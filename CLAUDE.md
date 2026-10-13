@@ -10,7 +10,7 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[README.md](README.md)** : présentation, lancement du projet, et guide pour l'équipe BD.
 - **[docs/architecture.md](docs/architecture.md)** : organisation du code back et front, règles de chaque couche, contrat d'API, liste de contrôle pour ajouter une fonctionnalité. **À lire avant d'écrire du code.**
 
-- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 0, hypothèses non validées.
+- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 1, hypothèses non validées.
 
 ## Équipe et responsabilités
 
