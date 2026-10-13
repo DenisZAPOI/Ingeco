@@ -116,6 +116,9 @@ La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API
 Cette partie s'adresse aux trois membres de l'équipe BD. Elle explique comment l'API se
 connectera à votre base, et ce dont les développeurs ont besoin de votre part.
 
+**Pour concevoir le schéma, partir de [docs/contrat-api.md](docs/contrat-api.md)** : il liste
+les données que l'API devra lire et écrire, route par route.
+
 ### Le principe : la base est à vous
 
 - **Vous choisissez le SGBD** (PostgreSQL, MySQL, MariaDB, SQL Server, Oracle…), vous concevez
