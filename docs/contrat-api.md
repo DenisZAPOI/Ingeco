@@ -640,6 +640,8 @@ cartes bancaires).
 - Il est à usage unique par construction : le paiement ne réussit que sur une course
   `awaiting_payment` (mise à jour conditionnelle, comme en [6.2](#62-deux-chauffeurs-acceptent-la-même-course)).
   Un lien déjà utilisé affiche « Déjà payé ».
+- Le jeton ne doit jamais apparaître dans les logs : `utils/request_logs.py` journalise le chemin
+  de chaque requête, il faudra y masquer la partie `{token}`.
 - La page de paiement ne montre ni le nom, ni les adresses : seulement le montant, les communes et
   l'horaire. Quelqu'un qui intercepte le lien ne peut que payer la course à la place de l'usager.
 - Un usager sans téléphone capable d'ouvrir un lien ne peut voyager qu'avec un bon à 100 %
