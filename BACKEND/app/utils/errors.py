@@ -11,6 +11,10 @@ Which code:
     404 NotFound              resource missing, or invisible to the caller
     409 Conflict              conflict with the current STATE (ride already accepted)
     422 UnprocessableEntity   BUSINESS RULE violation (voucher exhausted)
+    429 TooManyRequests       too many failed attempts (login, activation code)
+
+The `detail` of a business error is shown as is to the user: write it in
+French, in plain words.
 """
 
 import json
@@ -62,6 +66,11 @@ class UnprocessableEntity(ApiError):
     error = "Unprocessable Entity"
 
 
+class TooManyRequests(ApiError):
+    code = 429
+    error = "Too Many Requests"
+
+
 def register_handlers(app: Flask) -> None:
     """Every error leaves the API in the { error, detail } format.
 
@@ -89,12 +98,31 @@ def register_handlers(app: Flask) -> None:
 # The library builds its own error responses; these two hooks rewrite them in
 # our format, so the front-end only has one shape to read.
 
+# Pydantic writes its messages in English; the front-end shows them next to the
+# field, so the common ones are translated here. A message written by our own
+# rules (type "business_rule", see dtos/base.py) is already in French.
+BUSINESS_RULE_ERROR = "business_rule"
+_FIELD_MESSAGES = {
+    "missing": "Ce champ est obligatoire.",
+    "extra_forbidden": "Ce champ n'est pas accepté.",
+    "string_too_short": "Ce champ est obligatoire.",
+    "string_too_long": "Ce texte est trop long.",
+}
+_DEFAULT_FIELD_MESSAGE = "Valeur invalide."
+
+
+def _field_message(problem: dict) -> str:
+    if problem["type"] == BUSINESS_RULE_ERROR:
+        return problem["msg"]
+    return _FIELD_MESSAGES.get(problem["type"], _DEFAULT_FIELD_MESSAGE)
+
+
 def before_validation(_request: Request, response: Response | None, error: ValidationError | None, _view) -> None:
     """Invalid request body → 400 { error, detail: { fields: [...] } }."""
     if error is None or response is None:
         return
     fields = [
-        {"field": ".".join(str(part) for part in problem["loc"]), "message": problem["msg"]}
+        {"field": ".".join(str(part) for part in problem["loc"]), "message": _field_message(problem)}
         for problem in error.errors()
     ]
     response.set_data(json.dumps({"error": "Bad Request", "detail": {"fields": fields}}, ensure_ascii=False))

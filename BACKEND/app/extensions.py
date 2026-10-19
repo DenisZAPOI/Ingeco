@@ -6,6 +6,7 @@ They are created here, without an application, then attached to it in
 which avoids circular imports with main.py.
 """
 
+from flask_jwt_extended import JWTManager
 from flask_pydantic_spec import FlaskPydanticSpec
 from flask_socketio import SocketIO
 
@@ -14,6 +15,9 @@ from .utils.errors import after_validation, before_validation
 # async_mode="threading": works with the Flask development server and
 # simple-websocket, without eventlet or gevent to install.
 socketio = SocketIO(async_mode="threading")
+
+# JWT in HttpOnly cookies, see utils/access.py.
+jwt = JWTManager()
 
 # OpenAPI documentation generated from the DTOs, served on /apidoc/swagger.
 # The front-end generates its TypeScript types from /apidoc/openapi.json.
