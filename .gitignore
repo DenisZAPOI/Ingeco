@@ -1,0 +1,30 @@
+# Secrets: the .env.example files are committed, the .env files never are
+.env
+
+# Python (BACKEND)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.db
+
+# Node (FRONTEND)
+node_modules/
+dist/
+dev-dist/
+*.local
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Local tool settings
+.claude/launch.json
+.claude/settings.local.json
+.idea/
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db

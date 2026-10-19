@@ -1,0 +1,97 @@
+/* Plain CSS, no framework: the app must stay light on a weak network.
+   Every color and size is a variable: the visual identity changes here only. */
+
+:root {
+  --color-primary: #0b5d3b;
+  --color-primary-hover: #08452c;
+  --color-accent: #f2b705;
+  --color-text: #1a1a1a;
+  --color-muted: #555;
+  --color-background: #ffffff;
+  --color-surface: #f3f5f4;
+  --color-error: #b3261e;
+
+  --radius: 0.75rem;
+  --space: 1rem;
+  /* Large touch targets: public not always at ease with digital tools. */
+  --touch-target: 3.25rem;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 112.5%;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.header {
+  padding: var(--space);
+  background: var(--color-primary);
+}
+
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target);
+  padding: 0 calc(var(--space) * 1.5);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--color-primary-hover);
+}
+
+.button:focus-visible,
+.brand:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.request-error {
+  padding: var(--space);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-error);
+}
+
+.checklist {
+  padding: var(--space) calc(var(--space) * 2);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
