@@ -7,7 +7,8 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 // a retry than to leave the user in front of an endless spinner.
 const TIMEOUT_MS = 15_000;
 
-/** Error returned by the API ({ error, detail }), or network failure (status 0). */
+/** Error returned by the API ({ error, detail }), or network failure (status 0).
+ *  A body outside the error format (503 of /health) is kept whole in `detail`. */
 export class ApiError extends Error {
   readonly status: number;
   readonly detail: unknown;
@@ -55,5 +56,5 @@ function readErrorPayload(payload: unknown): { error: string | null; detail: unk
     const { error, detail } = payload as { error: unknown; detail?: unknown };
     return { error: typeof error === 'string' ? error : null, detail: detail ?? null };
   }
-  return { error: null, detail: null };
+  return { error: null, detail: payload };
 }
