@@ -88,6 +88,8 @@ cd FRONTEND && npm run api:types           # back lancé : régénère src/types
 
 Avant de rendre la main : `pytest`, `npm run lint`, `npm run build`, puis test dans le navigateur.
 
+La CI GitHub (`.github/workflows/ci.yml`) relance ces vérifications sur chaque pull request, plus la comparaison des types générés (`npm run api:types`) : elles doivent passer pour merger sur `main`.
+
 ## Règles d'architecture
 
 Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
