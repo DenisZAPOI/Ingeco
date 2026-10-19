@@ -14,7 +14,7 @@ export function RequestState({ loading, error, onRetry, children }: RequestState
   }
   if (error) {
     return (
-      <div role="alert" className="request-error">
+      <div role="alert" className="alert alert-error">
         <p>{error}</p>
         <button type="button" className="button" onClick={onRetry}>
           Réessayer
