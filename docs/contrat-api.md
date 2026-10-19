@@ -1,4 +1,4 @@
-# Contrat d'API (version 1, proposition)
+# Contrat d'API (version 2, proposition)
 
 Ce document s'adresse à **l'équipe base de données**. Il liste ce que l'API devra faire pour le
 MVP, et donc **ce qu'elle devra lire et écrire dans la base**. Il sert de point de départ pour
@@ -12,10 +12,29 @@ concevoir le schéma.
   particulier les [hypothèses](#7-hypothèses-et-questions-ouvertes) de la fin. Une route qui
   n'est pas dans ce document n'aura pas besoin de la base pour le MVP.
 
-## Ce qui change depuis la version 0
+## Ce qui change depuis la version 1
 
-La version 0 a été relue : elle laissait des cas sans réponse. La numérotation des parties n'a
-pas bougé, les ajouts sont en fin de partie (6.7, 6.8, H11 à H15).
+Le client a répondu le 13/10/2026 à une partie de nos questions
+([points-a-valider-porteur.pdf](points-a-valider-porteur.pdf)). Trois réponses changent le
+contrat : le paiement se fait **à la réservation, avant le trajet**, par carte uniquement ; le
+centre d'appel est tenu par **des personnes dédiées** ; tout le monde peut réserver par téléphone.
+La numérotation n'a pas bougé, les ajouts sont en fin de partie (6.9, H16, H17). Le détail du
+raisonnement est dans [cas-d-utilisation.md](cas-d-utilisation.md).
+
+| Sujet | Changement | Effet sur le schéma |
+|---|---|---|
+| Paiement avant le trajet | Nouveau statut `awaiting_payment` : la course n'est proposée aux chauffeurs qu'une fois payée ([3.3](#33-course-ride)). La notion d'impayé disparaît | Une valeur de statut |
+| Course qui expire | Rembourse la part payée ([6.8](#68-expiration-des-courses-sans-chauffeur)). Un délai de paiement de 15 minutes s'ajoute | Aucun |
+| Centre d'appel | Nouveau rôle `operator`, sans droits d'administration ([2](#2-rôles)) | Une valeur de rôle |
+| Paiement par téléphone | L'opérateur n'enregistre plus le paiement : l'usager reçoit un lien de paiement par SMS ([6.9](#69-lien-de-paiement-par-sms)) | Aucun (lien signé, rien à stocker) |
+| Opérateur | Consulte les courses d'un usager (`GET /operator/riders/{id}/rides`) | Aucun |
+| Statistiques | Les impayés sont remplacés par les paiements abandonnés ([6.4](#64-statistiques-et-suivi-de-consommation)) | Aucun |
+| Intégrité | Une course proposée aux chauffeurs est toujours payée ou sans part usager ([6.5](#65-unicité-et-intégrité)) | Une contrainte possible |
+
+### Changements de la version 0 à la version 1
+
+La version 0 a été relue : elle laissait des cas sans réponse. Les ajouts étaient en fin de
+partie (6.7, 6.8, H11 à H15).
 
 | Sujet | Changement | Effet sur le schéma |
 |---|---|---|
@@ -73,7 +92,8 @@ Chaque compte a **un** rôle.
 | `rider` | Usager, prioritaire ou non (attribut `isPriority`) | Lui-même, ou un opérateur par téléphone |
 | `driver` | Chauffeur | Lui-même, puis validé par un administrateur |
 | `partner` | Référent d'une structure partenaire | Un administrateur |
-| `admin` | Administrateur (tient aussi l'écran opérateur dans le MVP) | Un administrateur |
+| `operator` | Opérateur du centre d'appel : retrouve, crée un usager, réserve et annule à sa place. Aucun droit d'administration (H3) | Un administrateur |
+| `admin` | Administrateur. Peut aussi utiliser l'écran opérateur, pour remplacer un opérateur | Un administrateur |
 
 Le tout premier administrateur ne peut être créé par personne : il doit figurer dans vos données
 de départ, sans mot de passe, et s'activer comme les autres comptes créés par un tiers
@@ -91,7 +111,7 @@ veut dire que l'API en fournira toujours une valeur.
 | Champ | Type | Obligatoire | Remarques |
 |---|---|---|---|
 | `id` | identifiant | oui | |
-| `role` | `rider` \| `driver` \| `partner` \| `admin` | oui | |
+| `role` | `rider` \| `driver` \| `partner` \| `operator` \| `admin` | oui | |
 | `status` | `active` \| `pending` \| `suspended` | oui | `pending` : chauffeur en attente de validation |
 | `firstName`, `lastName` | texte | oui | |
 | `phone` | texte | oui | **Unique.** Sert d'identifiant de connexion. Format international (`+594…`) |
@@ -102,7 +122,7 @@ veut dire que l'API en fournira toujours une valeur.
 | `createdAt` | date-heure | oui | |
 
 **Activation.** Un compte créé par quelqu'un d'autre (usager créé par l'opérateur, référent,
-administrateur) n'a pas de mot de passe. Un administrateur génère un code à usage unique, le
+opérateur, administrateur) n'a pas de mot de passe. Un administrateur génère un code à usage unique, le
 transmet à la personne (par téléphone ou en main propre), et celle-ci choisit son mot de passe
 avec `POST /auth/activate`. Le même mécanisme sert au mot de passe oublié : pas de
 réinitialisation en libre-service tant que les SMS sont simulés (H12). Un usager créé par
@@ -153,30 +173,32 @@ Une structure a un ou plusieurs référents.
 | `voucherAmountCents` | entier | oui | Part payée par le partenaire (0 sans bon) |
 | `riderAmountCents` | entier | oui | Part payée par l'usager. `priceCents = voucherAmountCents + riderAmountCents` |
 | `paymentStatus` | `not_required` \| `pending` \| `paid` \| `refunded` | oui | Voir « Paiement » ci-dessous |
-| `expiresAt` | date-heure | oui | Échéance au-delà de laquelle une course encore `pending` expire, voir [6.8](#68-expiration-des-courses-sans-chauffeur) |
+| `expiresAt` | date-heure | oui | Échéance au-delà de laquelle une course encore `awaiting_payment` ou `pending` expire, voir [6.8](#68-expiration-des-courses-sans-chauffeur). Recalculée au paiement |
 | `createdAt`, `acceptedAt`, `startedAt`, `completedAt`, `cancelledAt`, `expiredAt`, `paidAt` | date-heure | `createdAt` seulement | Une date par changement d'état. `acceptedAt` est remise à vide si le chauffeur se désiste |
 | `cancelledById` | référence compte | non | |
 
 Cycle de vie de `status` :
 
 ```
-            ┌──── désistement ────┐
-            ▼                     │
-        pending ──────────▶ accepted ──▶ in_progress ──▶ completed
-         │    │                 │
-         │    └────────┬────────┘
-         ▼             ▼
-      expired      cancelled
+                                       ┌──── désistement ────┐
+                                       ▼                     │
+  awaiting_payment ──paiement──▶  pending ──────────▶ accepted ──▶ in_progress ──▶ completed
+
+  awaiting_payment, pending            ──▶ expired     (délai dépassé)
+  awaiting_payment, pending, accepted  ──▶ cancelled   (annulation avant le départ)
 ```
+
+Une réservation sans part à payer (bon à 100 %) est créée directement en `pending`.
 
 | Statut | Signification | Qui déclenche |
 |---|---|---|
-| `pending` | Réservée, en attente d'un chauffeur | L'usager ou l'opérateur (réservation), le chauffeur (désistement) |
+| `awaiting_payment` | Réservée, en attente du paiement de la part de l'usager. **Pas encore proposée aux chauffeurs** | L'usager ou l'opérateur (réservation) |
+| `pending` | Payée (ou rien à payer), en attente d'un chauffeur | Le paiement, la réservation si rien à payer, le chauffeur (désistement) |
 | `accepted` | Un chauffeur l'a prise | Un chauffeur |
 | `in_progress` | Le passager est à bord | Le chauffeur de la course |
 | `completed` | Terminée | Le chauffeur de la course |
-| `cancelled` | Annulée par l'usager ou un administrateur, avant `in_progress` | L'usager de la course, un administrateur |
-| `expired` | Aucun chauffeur ne l'a prise à temps | L'API, automatiquement |
+| `cancelled` | Annulée avant `in_progress` | L'usager de la course, un opérateur, un administrateur |
+| `expired` | Pas payée à temps, ou aucun chauffeur ne l'a prise à temps | L'API, automatiquement |
 
 **Course active d'un chauffeur.** Une course `in_progress`, ou une course `accepted` qui est
 immédiate ou dont `scheduledAt` tombe dans les 60 prochaines minutes. Un chauffeur n'a qu'**une**
@@ -184,14 +206,20 @@ course active à la fois, mais il peut avoir accepté plusieurs courses programm
 condition qu'elles soient espacées d'au moins 60 minutes. Les durées de ce document (60 minutes,
 30 minutes, 15 minutes, 48 heures) sont des réglages de l'API, pas des données : rien à stocker.
 
-**Paiement** (simulé dans le MVP, H10 et H14).
+**Paiement** (simulé dans le MVP, H10). Confirmé par le client : **carte bancaire uniquement, à
+la réservation, avant le trajet**.
 
-- `not_required` : le bon couvre tout (`riderAmountCents = 0`).
-- `pending` → `paid` : l'usager paie sa part, à partir de `accepted` et au plus tard après la fin
-  de la course. Une course `completed` restée `pending` est un impayé, visible de
-  l'administrateur.
-- `paid` → `refunded` : la course est annulée après le paiement.
-- Pour une réservation par téléphone, c'est l'opérateur qui enregistre le paiement.
+- `not_required` : le bon couvre tout (`riderAmountCents = 0`). La course naît en `pending`.
+- `pending` → `paid` : la course est en `awaiting_payment`. L'usager paie sa part dans
+  l'application, ou par le lien reçu par SMS s'il a réservé par téléphone
+  ([6.9](#69-lien-de-paiement-par-sms)). Le paiement fait passer la course en `pending`, et
+  c'est seulement alors qu'elle est proposée aux chauffeurs.
+- Paiement refusé : rien ne change, l'usager peut réessayer jusqu'à `expiresAt`.
+- `paid` → `refunded` : la course est annulée ou expire après le paiement. Remboursement intégral
+  dans tous les cas (H17).
+- Une course `accepted`, `in_progress` ou `completed` est donc toujours `paid` ou
+  `not_required` : il n'y a plus d'impayé.
+- L'opérateur n'enregistre jamais de paiement et ne voit jamais de numéro de carte.
 
 ### 3.4 Évaluation (`Rating`)
 
@@ -269,13 +297,13 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 |---|---|---|---|
 | `GET /communes` | connecté | Liste des communes desservies | L : communes |
 | `GET /places` | connecté | Cherche une adresse dans une commune (`?search=&communeId=`) et renvoie des propositions avec leur position | Rien (service externe, H13) |
-| `POST /vouchers/check` | `rider`, `admin` | Vérifie un code de bon et renvoie sa prise en charge. L'administrateur précise le `riderId` | L : bon par code, structure |
-| `POST /rides/estimate` | `rider`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'administrateur précise le `riderId` | L : tarif, bon par code |
-| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
+| `POST /vouchers/check` | `rider`, `operator`, `admin` | Vérifie un code de bon et renvoie sa prise en charge. L'opérateur précise le `riderId` | L : bon par code, structure |
+| `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId` | L : tarif, bon par code |
+| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
 | `GET /rides` | `rider`, `driver` | Ses propres courses, filtrables par `status`, les plus récentes d'abord | L : courses par usager ou par chauffeur |
-| `GET /rides/{id}` | participant, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule et sa note moyenne. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
-| `POST /rides/{id}/cancel` | `rider` de la course, `admin` | Annule une course `pending` ou `accepted` | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
-| `POST /rides/{id}/payment` | `rider` de la course, `admin` | Paiement simulé de la part de l'usager | E : `paymentStatus`, `paidAt` |
+| `GET /rides/{id}` | participant, `operator`, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule et sa note moyenne. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
+| `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted` | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
+| `POST /rides/{id}/payment` | `rider` de la course | Paiement simulé de la part de l'usager, sur une course `awaiting_payment`. La fait passer en `pending` et la propose aux chauffeurs | E : `paymentStatus`, `paidAt`, statut, nouvelle `expiresAt` |
 | `POST /rides/{id}/rating` | `rider` de la course | Évalue une course terminée | E : une évaluation (409 s'il y en a déjà une) |
 
 « Participant » : l'usager ou le chauffeur de la course. Quelqu'un d'autre reçoit `404`.
@@ -311,19 +339,28 @@ la structure. Raison : un motif `health` rattaché à une personne est une donn�
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
-| `GET /operator/riders` | `admin` | Recherche un usager par téléphone ou par nom (`?search=`) | L : recherche sur le téléphone (début) et le nom (contient) |
-| `POST /operator/riders` | `admin` | Crée un usager sans mot de passe | E : un compte |
-| `POST /operator/rides` | `admin` | Réserve au nom d'un usager | Comme `POST /rides`, avec `channel = phone` et `bookedById` = l'opérateur |
+| `GET /operator/riders` | `operator`, `admin` | Recherche un usager par téléphone ou par nom (`?search=`) | L : recherche sur le téléphone (début) et le nom (contient) |
+| `POST /operator/riders` | `operator`, `admin` | Crée un usager sans mot de passe | E : un compte |
+| `GET /operator/riders/{id}/rides` | `operator`, `admin` | Courses d'un usager : à venir d'abord, puis passées. Sert à répondre à l'appel et à retrouver une course à annuler (Q2 du client, à confirmer) | L : courses par usager |
+| `POST /operator/rides` | `operator`, `admin` | Réserve au nom d'un usager. Si une part reste à payer, envoie le lien de paiement par SMS | Comme `POST /rides`, avec `channel = phone` et `bookedById` = l'opérateur |
+| `POST /operator/rides/{id}/payment-link` | `operator`, `admin` | Renvoie le lien de paiement (SMS perdu, usager qui rappelle). Seulement sur une course `awaiting_payment` | L : course, téléphone de l'usager. E : rien, voir [6.9](#69-lien-de-paiement-par-sms) |
 
-L'opérateur vérifie un bon, estime un prix, annule et enregistre un paiement avec les routes de
-la partie 4.2, qui acceptent le rôle `admin`.
+L'opérateur vérifie un bon, estime un prix, consulte et annule une course avec les routes de la
+partie 4.2, qui acceptent le rôle `operator`. Il n'a accès à aucune route de la partie 4.6.
+
+Le paiement par lien se fait sur deux routes publiques, protégées par le jeton du lien :
+
+| Route | Rôle | Ce qu'elle fait | En base |
+|---|---|---|---|
+| `GET /payment-links/{token}` | public (jeton) | Ce qu'il y a à payer : montant, communes, horaire. Ni nom, ni adresse | L : course |
+| `POST /payment-links/{token}` | public (jeton) | Paiement simulé, même effet que `POST /rides/{id}/payment` | E : comme `POST /rides/{id}/payment` |
 
 ### 4.6 Administration
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
 | `GET /admin/users` | `admin` | Liste les comptes, filtrables par rôle et statut, recherche par nom ou téléphone | L : comptes |
-| `POST /admin/users` | `admin` | Crée un référent partenaire ou un administrateur, sans mot de passe | E : un compte |
+| `POST /admin/users` | `admin` | Crée un référent partenaire, un opérateur ou un administrateur, sans mot de passe | E : un compte |
 | `PATCH /admin/users/{id}` | `admin` | Valide un chauffeur, suspend ou réactive un compte, marque un usager prioritaire | E : le compte |
 | `POST /admin/users/{id}/activation-code` | `admin` | Génère un code d'activation (premier accès ou mot de passe oublié). Le code est affiché une seule fois, remplace le précédent | E : code haché, échéance |
 | `GET /admin/partners` | `admin` | Liste les structures | L : structures |
@@ -363,7 +400,7 @@ Une course (`GET /rides/42`) :
   "priceCents": 1640,
   "voucherAmountCents": 820,
   "riderAmountCents": 820,
-  "paymentStatus": "pending",
+  "paymentStatus": "paid",
   "voucher": { "id": 7, "code": "SOL-4F7K2Q9M", "coveragePercent": 50 },
   "driver": {
     "id": 15,
@@ -374,13 +411,13 @@ Une course (`GET /rides/42`) :
   },
   "rating": null,
   "createdAt": "2026-10-13T14:30:00Z",
-  "expiresAt": "2026-10-13T14:45:00Z",
+  "paidAt": "2026-10-13T14:30:20Z",
+  "expiresAt": "2026-10-13T14:45:20Z",
   "acceptedAt": "2026-10-13T14:30:45Z",
   "startedAt": null,
   "completedAt": null,
   "cancelledAt": null,
-  "expiredAt": null,
-  "paidAt": null
+  "expiredAt": null
 }
 ```
 
@@ -417,7 +454,7 @@ course) et un par chauffeur (`driver:{id}`, pour lui proposer des courses).
 
 | Événement | Salon | Contenu |
 |---|---|---|
-| `ride:offer` | `driver:{id}` de chaque chauffeur en ligne proche | Une nouvelle course immédiate en attente (à la réservation, ou après un désistement) |
+| `ride:offer` | `driver:{id}` de chaque chauffeur en ligne proche | Une nouvelle course immédiate à prendre (quand elle passe en `pending` : après le paiement, à la réservation si rien à payer, ou après un désistement) |
 | `ride:offer-closed` | Les mêmes | La course n'est plus à prendre (acceptée, annulée ou expirée) |
 | `ride:updated` | `ride:{id}` | La course complète, après chaque changement d'état |
 | `driver:location` | `ride:{id}`, tant que la course est active | La position du chauffeur |
@@ -426,7 +463,8 @@ Un événement perdu n'est pas renvoyé. À chaque reconnexion, le front relit l
 HTTP (`GET /rides/{id}`, `GET /drivers/me/ride-offers`) : le temps réel accélère l'affichage, il
 n'est jamais la seule source.
 
-Les SMS du mode dégradé sont simulés (écrits dans les logs) : pas de table pour le MVP.
+Les SMS (mode dégradé, lien de paiement) sont simulés (écrits dans les logs, sans numéro ni
+contenu personnel) : pas de table pour le MVP.
 
 ---
 
@@ -496,10 +534,13 @@ Toutes sur une période (`from`, `to`), calculées à la demande (pas de table d
 volume du MVP, quelques dizaines de courses par jour) :
 
 - nombre de courses par statut, par jour, par commune de départ, par motif, par canal ;
-- nombre de courses `expired` : c'est la demande que le service n'a pas su servir ;
+- nombre de courses `expired` faute de chauffeur (`paymentStatus` à `refunded` ou
+  `not_required`) : c'est la demande que le service n'a pas su servir ;
+- nombre de courses `expired` faute de paiement (`paymentStatus` resté à `pending`) : les
+  paiements abandonnés ;
 - nombre d'usagers et de chauffeurs actifs, part des usagers prioritaires ;
 - nombre de courses financées et montant pris en charge, au total et par structure ;
-- nombre et montant des impayés (`completed` et `paymentStatus = pending`) ;
+- nombre et montant des remboursements ;
 - note moyenne, et **part des évaluations à 4 ou 5** (l'objectif du client est « plus de 90 % de
   satisfaction » : c'est une proportion, pas une moyenne) ;
 - pour un référent : les mêmes chiffres, limités à sa structure et sans donnée individuelle.
@@ -520,6 +561,7 @@ et de commune **contraintes** (clé étrangère ou `CHECK`), sinon les regroupem
 | `priceCents = voucherAmountCents + riderAmountCents`, montants ≥ 0 | Course |
 | `score` entre 1 et 5, `coveragePercent` entre 1 et 100 | Évaluation, bon |
 | `driverId` renseigné si et seulement si le statut est `accepted`, `in_progress` ou `completed` (il peut l'être aussi sur une course `cancelled`) | Course |
+| Statut `pending`, `accepted`, `in_progress` ou `completed` ⇒ `paymentStatus` à `paid` ou `not_required` | Course |
 | Un chauffeur n'a qu'une course active à la fois, et ses courses programmées sont espacées d'au moins 60 minutes | Course. **Vérifié par l'API seulement** : la règle dépend de l'heure, une contrainte en base ne peut pas l'exprimer |
 
 ### 6.6 Accès les plus fréquents (pour vos index)
@@ -531,7 +573,7 @@ et de commune **contraintes** (clé étrangère ou `CHECK`), sinon les regroupem
 | Course par id | Élevée |
 | Courses d'un usager / d'un chauffeur, triées par date | Élevée |
 | Courses par statut (`pending` surtout) | Élevée |
-| Courses `pending` dont `expiresAt` est passée (une fois par minute) | Élevée |
+| Courses `awaiting_payment` ou `pending` dont `expiresAt` est passée (une fois par minute) | Élevée |
 | Compte par téléphone, bon par code, course par `clientRequestId` | Moyenne |
 | Bons d'une structure, courses d'un bon | Faible |
 | Agrégats de statistiques | Faible |
@@ -555,26 +597,53 @@ une erreur. Une seconde évaluation renvoie `409`.
 
 ### 6.8 Expiration des courses sans chauffeur
 
-Une course `pending` que personne ne prend ne doit pas rester ouverte indéfiniment : elle bloque
-une utilisation du bon et laisse l'usager sans réponse.
+Une course `pending` que personne ne prend, ou `awaiting_payment` que personne ne paie, ne doit
+pas rester ouverte indéfiniment : elle bloque une utilisation du bon et laisse l'usager sans
+réponse.
 
 `expiresAt` est calculée par l'API :
 
 | Situation | `expiresAt` |
 |---|---|
-| Course immédiate, à la réservation | `createdAt` + 15 minutes |
-| Course programmée, à la réservation | `scheduledAt` |
+| Réservation avec une part à payer (`awaiting_payment`) | `createdAt` + 15 minutes (délai de paiement, H16) |
+| Course immédiate, quand elle passe en `pending` (paiement, ou réservation sans part à payer) | Maintenant + 15 minutes |
+| Course programmée, quand elle passe en `pending` | `scheduledAt` |
 | Après un désistement du chauffeur | Maintenant + 15 minutes, ou `scheduledAt` si c'est plus tard |
+
+Le délai de paiement (15 minutes) est plus court que le délai minimal d'une course programmée
+(30 minutes) : une course programmée payée à temps est toujours encore à venir.
 
 Une tâche de l'API tourne chaque minute :
 
 ```sql
 UPDATE course SET statut = 'expired', expire_le = :maintenant
-WHERE statut = 'pending' AND expire_a < :maintenant;
+WHERE statut IN ('awaiting_payment', 'pending') AND expire_a < :maintenant;
 ```
 
-puis libère le bon de chaque course expirée ([6.3](#63-consommer-un-bon)), dans la même
-transaction. Besoin : un index qui serve cette requête (statut + `expiresAt`).
+puis, dans la même transaction, libère le bon de chaque course expirée
+([6.3](#63-consommer-un-bon)) et passe en `refunded` celles qui étaient `paid`. L'usager est
+prévenu (SMS simulé) et peut refaire sa demande. Le remboursement est simulé dans le MVP ; avec un
+vrai prestataire, l'appel de remboursement se fera après la transaction, avec nouvelle tentative
+en cas d'échec. Besoin : un index qui serve cette requête (statut + `expiresAt`).
+
+### 6.9 Lien de paiement par SMS
+
+Un usager qui réserve par téléphone paie sa part sur son propre téléphone : l'opérateur ne voit
+jamais de numéro de carte (sinon le centre d'appel devrait appliquer les règles de sécurité des
+cartes bancaires).
+
+- À la réservation (`POST /operator/rides`), l'API envoie à l'usager un SMS contenant un lien
+  `/payer/{token}`. Simulé dans le MVP : une ligne de log sans numéro ni contenu personnel, et le
+  lien est affiché à l'opérateur pour les démonstrations.
+- Le jeton est **signé** par l'API avec sa clé secrète : il contient l'identifiant de la course
+  et une échéance égale à `expiresAt`. **Rien à stocker en base.**
+- Il est à usage unique par construction : le paiement ne réussit que sur une course
+  `awaiting_payment` (mise à jour conditionnelle, comme en [6.2](#62-deux-chauffeurs-acceptent-la-même-course)).
+  Un lien déjà utilisé affiche « Déjà payé ».
+- La page de paiement ne montre ni le nom, ni les adresses : seulement le montant, les communes et
+  l'horaire. Quelqu'un qui intercepte le lien ne peut que payer la course à la place de l'usager.
+- Un usager sans téléphone capable d'ouvrir un lien ne peut voyager qu'avec un bon à 100 %
+  (question 1 ci-dessous).
 
 ---
 
@@ -588,33 +657,37 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 |---|---|---|
 | H1 | Connexion par **téléphone** + mot de passe, e-mail facultatif | L'e-mail devient obligatoire et unique |
 | H2 | « Usager prioritaire » est un attribut de l'usager, pas un rôle à part | Une valeur de rôle en plus |
-| H3 | L'écran opérateur est utilisé par l'administrateur | Un rôle `operator` en plus |
+| H3 | Le centre d'appel est tenu par des personnes dédiées (confirmé par le client), qui ont un rôle `operator` à part, sans droits d'administration | Si elles doivent tout pouvoir faire : le rôle `admin`, une valeur de rôle en moins |
 | H4 | Disponibilité du chauffeur = en ligne / hors ligne, pas de planning | Une table de créneaux |
 | H5 | Un seul véhicule par chauffeur | Une table véhicule à part, avec un véhicule « actif » |
 | H6 | Seule la dernière position du chauffeur est gardée, et effacée hors ligne | Une table d'historique des positions, volumineuse et sensible (RGPD) |
 | H7 | Un bon = un pourcentage de prise en charge sur un nombre de courses | Bons en montant (budget en euros), plafond par course… |
 | H8 | Un seul tarif (prise en charge + prix au kilomètre) | Grille tarifaire par profil et par type de financement (demandé par le cahier des charges, pas encore classé) |
-| H9 | Le chauffeur touche le prix total de la course, sans commission, **même si l'usager n'a pas encore payé** | Un taux de commission, un montant « chauffeur » sur la course, un suivi des versements |
+| H9 | Le chauffeur touche le prix total de la course, sans commission | Un taux de commission, un montant « chauffeur » sur la course, un suivi des versements |
 | H10 | Paiement simulé : un simple statut sur la course | Une table de paiements (référence du prestataire, tentatives, remboursements) |
 | H11 | Un désistement de chauffeur n'est pas mémorisé (seulement journalisé) | Une table des désistements, ou un compteur sur le chauffeur |
 | H12 | Activation et mot de passe oublié par un code généré par un administrateur | Avec de vrais SMS : réinitialisation en libre-service, même stockage du code |
 | H13 | Adresses et distance par la route viennent d'un **service externe** appelé par l'API (à choisir, sur données OpenStreetMap). L'usager choisit lui-même la commune dans la liste | Si la commune doit être déduite de la position : les contours des communes en base, avec un type spatial |
-| H14 | L'usager peut payer après la course : un impayé n'empêche ni le départ ni la clôture | Paiement exigé avant le départ : pas de changement de schéma, une règle en plus |
+| H14 | Par téléphone, l'usager paie par un lien reçu par SMS ([6.9](#69-lien-de-paiement-par-sms)) | Carte dictée à l'opérateur : règles de sécurité des cartes bancaires au centre d'appel, déconseillé. Sans effet sur le schéma |
 | H15 | `isPriority` n'a aucun effet automatique (ni sur le prix, ni sur l'attribution) | Un ordre de priorité dans la recherche de chauffeur, ou un tarif lié au profil (rejoint H8) |
+| H16 | 15 minutes pour payer, sinon la réservation expire et le bon est rendu | Un autre délai : aucun effet sur le schéma |
+| H17 | Remboursement intégral en cas d'annulation ou d'expiration, quels que soient l'auteur et le moment | Frais d'annulation tardive : un montant remboursé sur la course |
 
 **Questions pour le client** (en plus de celles de `CLAUDE.md`)
 
-1. Un usager qui réserve par téléphone et n'a pas l'application : comment paie-t-il sa part,
-   puisque les espèces sont exclues ? Bon à 100 % obligatoire, paiement pris par l'opérateur ?
+1. Le lien de paiement par SMS convient-il (H14) ? Un usager dont le téléphone ne peut pas ouvrir
+   de lien ne pourra voyager qu'avec un bon à 100 % : est-ce acceptable ?
 2. Qu'apporte concrètement le statut d'usager prioritaire (H15) ?
-3. Qui supporte un impayé : le chauffeur ou la plateforme (H9, H14) ?
+3. L'opérateur peut-il consulter les trajets d'un usager (`GET /operator/riders/{id}/rides`) ?
 4. Au bout de combien de temps sans chauffeur prévient-on l'usager, et par quel moyen ?
 5. Le référent peut-il voir quel usager a utilisé un bon nominatif, ou seulement des totaux ?
+6. Le remboursement est-il intégral dans tous les cas (H17) ?
 
 **À régler entre développeurs, sans effet sur le schéma**
 
 - Protection contre les requêtes forgées (CSRF) si le jeton est dans un cookie.
-- Limitation du nombre d'essais sur `/auth/login`, `/auth/activate` et `/vouchers/check`, tenue
+- Limitation du nombre d'essais sur `/auth/login`, `/auth/activate`, `/vouchers/check` et
+  `/payment-links/{token}`, tenue
   en mémoire par l'API.
 - Hébergement en HTTPS, obligatoire pour la géolocalisation et l'installation de l'application.
 - Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) et des

@@ -10,7 +10,9 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[README.md](README.md)** : présentation, lancement du projet, et guide pour l'équipe BD.
 - **[docs/architecture.md](docs/architecture.md)** : organisation du code back et front, règles de chaque couche, contrat d'API, liste de contrôle pour ajouter une fonctionnalité. **À lire avant d'écrire du code.**
 
-- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 1, hypothèses non validées.
+- **[docs/cas-d-utilisation.md](docs/cas-d-utilisation.md)** : cas d'utilisation par acteur, avec fiches détaillées, statut MVP et regroupement en fonctionnalités par étape. Résume les réponses du client qui ont fait passer le contrat d'API en version 2.
+- **[docs/points-a-valider-porteur.pdf](docs/points-a-valider-porteur.pdf)** : choix et questions soumis au client (13/10/2026), avec ce qu'il a déjà confirmé.
+- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 ; les autres hypothèses restent non validées.
 
 ## Équipe et responsabilités
 
@@ -105,6 +107,7 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 | Usager prioritaire | Idem, avec prise en charge partielle ou totale, et accès par téléphone |
 | Chauffeur | Gère ses disponibilités, accepte et clôture des courses, suit ses revenus |
 | Référent partenaire | Émet des bons solidaires, suit leur consommation (associations, collectivités, entreprises) |
+| Opérateur | Centre d'appel : retrouve ou crée un usager, réserve et annule à sa place |
 | Administrateur | Gère les comptes, les tarifs, les statistiques, le support |
 
 ## Périmètre du MVP
@@ -167,7 +170,7 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec l'équipe BD** : SGBD retenu (le pilote Python s'ajoute alors à `requirements.txt`), date de livraison du schéma, mode d'accès (connexion directe ou autre).
 - **Avec le client** : disponibilité « 24h/24 » ou « en semaine avec créneaux élargis » (le cahier des charges dit les deux).
 - **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
-- **Avec le client** : qui utilise l'écran opérateur ? Un rôle « Opérateur » à part, ou l'administrateur ? Le cahier des charges parle d'un centre d'appel sans en décrire le profil.
+- **Avec le client** : le centre d'appel est tenu par des personnes dédiées (confirmé le 13/10/2026). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
 - **En interne (étape 2)** : jeton JWT en cookie `HttpOnly` (comme ProjectOrganizer, `api/client.ts` envoie déjà les cookies) ou dans l'en-tête `Authorization`.
 - **En interne** : la géolocalisation en arrière-plan côté chauffeur est peu fiable en PWA. Si elle devient indispensable, il faudra une appli native pour le chauffeur.
