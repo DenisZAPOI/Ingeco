@@ -1,0 +1,104 @@
+# Continuous integration: the checks of CLAUDE.md ("Avant de rendre la main"),
+# run on every pull request and every push to main. Merging into main requires
+# them to pass.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push to the same branch cancels the run still going on the old one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.14"
+  NODE_VERSION: "24"
+
+jobs:
+  backend:
+    name: Back (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BACKEND
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: BACKEND/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      # tests/conftest.py provides its own configuration: in-memory SQLite.
+      - run: python -m pytest
+
+  frontend:
+    name: Front (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FRONTEND
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: FRONTEND/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # tsc -b then vite build: also catches type errors.
+      - run: npm run build
+
+  api-types:
+    # The front-end types are generated from the back-end OpenAPI: a DTO
+    # changed without running `npm run api:types` fails here.
+    name: Types de l'API à jour
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "sqlite://"
+      # Throwaway key for this run only: never a real secret.
+      FLASK_SECRET_KEY: ci-only-key-not-a-secret-0123456789abcdef
+      COOKIE_SECURE: "false"
+      LOG_FORMAT: text
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: BACKEND/requirements.txt
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: FRONTEND/package-lock.json
+      - run: python -m pip install -r requirements.txt
+        working-directory: BACKEND
+      - run: npm ci
+        working-directory: FRONTEND
+      - name: Start the API
+        working-directory: BACKEND
+        run: |
+          python -m app > api.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl --silent --fail http://localhost:5000/health > /dev/null && exit 0
+            sleep 1
+          done
+          cat api.log
+          exit 1
+      - run: npm run api:types
+        working-directory: FRONTEND
+      - name: Compare with the committed types
+        run: |
+          if ! git diff --exit-code -- FRONTEND/src/types/api.ts; then
+            echo "::error file=FRONTEND/src/types/api.ts::Types out of date: start the back-end, run 'npm run api:types' in FRONTEND and commit the result."
+            exit 1
+          fi
