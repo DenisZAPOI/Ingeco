@@ -76,14 +76,12 @@ Usager <|-- "Usager prioritaire"
 
 rectangle "Compte et connexion" {
   usecase "UC01 Créer un compte usager" as UC01
-  usecase "UC02 S'inscrire comme chauffeur" as UC02
   usecase "UC03 Activer son compte" as UC03
   usecase "UC04 Se connecter" as UC04
   usecase "UC05 Se déconnecter" as UC05
   usecase "UC06 Modifier son profil" as UC06
 }
 Visiteur --> UC01
-Visiteur --> UC02
 Visiteur --> UC03
 Visiteur --> UC04
 Usager --> UC05
@@ -224,9 +222,8 @@ actor "Passerelle SMS" as SMS <<système>>
 actor "Prestataire de paiement" as PSP <<système>>
 
 rectangle "Administration" {
-  usecase "UC50 Valider un chauffeur" as UC50
   usecase "UC51 Gérer les comptes" as UC51
-  usecase "UC52 Créer un compte référent, opérateur ou admin" as UC52
+  usecase "UC52 Créer un compte chauffeur, référent, opérateur ou admin" as UC52
   usecase "UC53 Générer un code d'activation" as UC53
   usecase "UC54 Gérer les structures partenaires" as UC54
   usecase "UC55 Superviser les courses" as UC55
@@ -237,7 +234,6 @@ rectangle "Traitements automatiques" {
   usecase "UC61 Proposer une course aux chauffeurs" as UC61
   usecase "UC62 Prévenir l'usager par SMS" as UC62
 }
-Admin --> UC50
 Admin --> UC51
 Admin --> UC52
 Admin --> UC53
@@ -265,9 +261,9 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 | ID | Cas d'utilisation | Acteur principal | Statut | Étape | Routes |
 |---|---|---|---|---|---|
 | UC01 | Créer un compte usager | Visiteur | MVP | 2 | `POST /auth/register` |
-| UC02 | S'inscrire comme chauffeur | Visiteur | MVP | 2 | `POST /auth/register` |
+| UC02 | ~~S'inscrire comme chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
 | UC03 | Activer son compte (premier accès ou mot de passe oublié) | Visiteur | MVP | 2 | `POST /auth/activate` |
-| UC04 | Se connecter | Visiteur | MVP | 2 | `POST /auth/login`, `GET /auth/me` |
+| UC04 | Se connecter | Visiteur | MVP | 2 | `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh` |
 | UC05 | Se déconnecter | Tout connecté | MVP | 2 | `POST /auth/logout` |
 | UC06 | Modifier son profil | Tout connecté | MVP | 2 | `PATCH /users/me` |
 
@@ -323,9 +319,9 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 
 | ID | Cas d'utilisation | Acteur principal | Statut | Étape | Routes |
 |---|---|---|---|---|---|
-| UC50 | Valider l'inscription d'un chauffeur | Administrateur | MVP | 2 | `GET /admin/users`, `PATCH /admin/users/{id}` |
+| UC50 | ~~Valider l'inscription d'un chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
 | UC51 | Gérer les comptes (suspendre, réactiver, marquer prioritaire) | Administrateur | MVP | 2 | `GET /admin/users`, `PATCH /admin/users/{id}` |
-| UC52 | Créer un compte référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users` |
+| UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users` |
 | UC53 | Générer un code d'activation | Administrateur | MVP | 2 | `POST /admin/users/{id}/activation-code` |
 | UC54 | Gérer les structures partenaires | Administrateur | MVP | 5 | `GET`, `POST`, `PATCH /admin/partners` |
 | UC55 | Superviser les courses (filtres, annulation, remboursements) | Administrateur | MVP | 7 | `GET /admin/rides`, `POST /rides/{id}/cancel` |
@@ -366,19 +362,11 @@ erreurs (E), postconditions, règles. Les codes HTTP renvoient aux conventions d
 - **Règles** : téléphone au format international (`+594…`), unique. Formulaire court, gros
   boutons, un seul écran si possible.
 
-#### UC02 S'inscrire comme chauffeur
+#### UC02 S'inscrire comme chauffeur (supprimé)
 
-- **Acteur** : Visiteur
-- **Scénario nominal**
-  1. Le visiteur choisit « Je suis chauffeur ».
-  2. Il saisit son identité, son téléphone, son mot de passe, puis son véhicule : immatriculation,
-     modèle, nombre de places, accessible ou non.
-  3. Le système crée un compte `driver` au statut `pending` et affiche « Votre inscription doit
-     être validée par l'équipe ».
-- **Variantes et erreurs** : E1 et E2 de UC01.
-- **Postconditions** : compte en attente. Il peut se connecter mais ne peut pas se mettre en
-  ligne avant la validation (UC50).
-- **Règles** : documents (permis, assurance, carte VTC) vérifiés **hors application** (Q11).
+Décision du 19/10/2026 : le chauffeur ne s'inscrit pas dans l'application. Il apporte ses
+documents (permis, assurance, carte VTC) en personne ; après vérification, un administrateur crée
+son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reçu (UC03).
 
 #### UC03 Activer son compte
 
@@ -535,10 +523,9 @@ erreurs (E), postconditions, règles. Les codes HTTP renvoient aux conventions d
 #### UC20 Se mettre en ligne / hors ligne
 
 - **Acteur** : Chauffeur
-- **Préconditions** : compte validé (`active`).
+- **Préconditions** : compte activé, non suspendu.
 - **Scénario nominal** : un seul gros bouton « Je suis disponible ». En ligne, le chauffeur
   partage sa position (UC21) et reçoit des propositions (UC22).
-- **Erreurs** : compte en attente de validation : le bouton explique pourquoi il est grisé.
 - **Règles** : hors ligne, sa position est effacée (RGPD). Il garde ses courses programmées
   acceptées.
 
@@ -698,12 +685,9 @@ erreurs (E), postconditions, règles. Les codes HTTP renvoient aux conventions d
 
 ### Administrateur
 
-#### UC50 Valider l'inscription d'un chauffeur
+#### UC50 Valider l'inscription d'un chauffeur (supprimé)
 
-- **Acteur** : Administrateur
-- **Scénario nominal** : il filtre les chauffeurs en attente, vérifie les documents hors
-  application, puis valide ; le chauffeur peut se mettre en ligne.
-- **Variantes** : A1 refus : le compte est suspendu.
+Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir UC02.
 
 #### UC51 Gérer les comptes
 
@@ -712,11 +696,12 @@ erreurs (E), postconditions, règles. Les codes HTTP renvoient aux conventions d
   suspendre, réactiver, marquer un usager prioritaire (hypothèse Q3).
 - **Règles** : pas de suppression physique ; un compte suspendu ne peut plus se connecter.
 
-#### UC52 Créer un compte référent, opérateur ou administrateur
+#### UC52 Créer un compte chauffeur, référent, opérateur ou administrateur
 
 - **Acteur** : Administrateur
-- **Scénario nominal** : il saisit l'identité et le téléphone, choisit le rôle (et la structure
-  pour un référent) ; le compte est créé sans mot de passe et le système génère le code
+- **Scénario nominal** : il saisit l'identité et le téléphone, choisit le rôle (avec le véhicule
+  pour un chauffeur, dont il a vérifié les documents en personne, et la structure pour un
+  référent) ; le compte est créé sans mot de passe et le système génère le code
   d'activation (UC53).
 
 #### UC53 Générer un code d'activation
@@ -825,8 +810,8 @@ Regroupement des cas d'utilisation MVP par étape de développement, pour en fai
 
 | Étape | Fonctionnalité | Cas d'utilisation | Écrans principaux |
 |---|---|---|---|
-| 2 | Inscription, connexion, activation | UC01 à UC06 | Accueil, inscription usager, inscription chauffeur, activation, connexion, profil |
-| 2 | Administration des comptes | UC50 à UC53 | Liste des comptes, fiche compte, création de compte |
+| 2 | Inscription, connexion, activation | UC01, UC03 à UC06 | Accueil, inscription usager, activation, connexion, profil |
+| 2 | Administration des comptes | UC51 à UC53 | Liste des comptes, fiche compte, création de compte (dont chauffeur et véhicule) |
 | 3 | Réservation et paiement | UC10, UC11, UC12, UC14 | Réserver (adresses, motif, horaire, prix, confirmation), paiement simulé |
 | 3 | Mes trajets, annulation, évaluation | UC16, UC17, UC18 | Liste et détail des trajets, évaluation |
 | 3 | Courses du chauffeur | UC20, UC22 (liste), UC23, UC24, UC26, UC27, UC28 | Disponibilité, courses proposées, course en cours, revenus |

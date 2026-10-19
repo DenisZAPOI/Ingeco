@@ -17,6 +17,7 @@ adapté au projet.
 | Appels depuis le front | Flask-Cors | 6.0.5 |
 | Accès à la base | SQLAlchemy | 2.0.54 |
 | Validation et documentation d'API | Pydantic + flask-pydantic-spec | 2.13.5 / 0.8.7 |
+| Authentification (JWT en cookies) | Flask-JWT-Extended | 4.7.4 |
 | Configuration | python-dotenv | 1.2.2 |
 | Tests | pytest | 9.1.1 |
 
@@ -40,7 +41,8 @@ BACKEND/
     ├── repository/             Seul accès à la base             modèle : health_repository.py
     ├── models/                 Modèles ORM des tables de l'équipe BD (vide pour l'instant)
     ├── sockets/                Événements temps réel ; broadcast.py pour émettre
-    └── utils/                  database, errors, logs, request_logs, security_headers
+    └── utils/                  database, errors, logs, request_logs, security_headers,
+                                access (session, rôles), passwords, rate_limit
 ```
 
 Chaque dossier de couche a un `__init__.py` qui rappelle ce qu'on y range. **`GET /health` est
@@ -95,10 +97,32 @@ exactement les mêmes règles que les routes HTTP.
 | 404 | Ressource inexistante ou invisible pour l'appelant |
 | 409 | Conflit avec l'état (course déjà acceptée) |
 | 422 | Règle métier violée (bon épuisé) |
+| 429 | Trop d'essais ratés (connexion, code d'activation) |
 
+- Le `detail` d'une erreur métier est affiché tel quel à l'usager : **en français**, en mots simples.
+  Les messages de validation de Pydantic sont traduits dans `utils/errors.py` ; une règle écrite
+  dans `services/` lève `ValueError` avec son message, transformé en erreur de champ par
+  `apply_rule` (`dtos/base.py`).
 - Documentation générée depuis les DTOs : http://localhost:5000/apidoc/swagger. Chaque route
   déclare **tous** ses codes d'erreur dans `@spec.validate(resp=Response(...))`, avec `ErrorDto`.
   Une réponse non conforme à son DTO renvoie 500 : c'est un bug à corriger.
+
+### Authentification
+
+- **Session** : deux JWT dans des cookies `HttpOnly`, posés par Flask-JWT-Extended. Jeton d'accès
+  de 15 minutes, jeton de renouvellement de 30 jours limité au chemin `/auth/refresh`. Cookies
+  `SameSite=Lax`, `Secure` sauf si `COOKIE_SECURE=false` (développement en http).
+- **CSRF** : double envoi. L'API pose aussi des cookies lisibles (`csrf_access_token`,
+  `csrf_refresh_token`) ; `api/client.ts` les recopie dans l'en-tête `X-CSRF-TOKEN` de chaque
+  écriture. Un site tiers ne peut pas lire ces cookies, donc pas forger la requête.
+- **Renouvellement** : sur un `401`, `api/client.ts` appelle une fois `POST /auth/refresh`, puis
+  rejoue l'appel. Le renouvellement relit le compte : un compte suspendu perd l'accès en 15 minutes
+  au plus.
+- **Rôles** : `@require_login("admin", ...)` dans le contrôleur, **au-dessus** de `@spec.validate`.
+  Sans argument : n'importe quel utilisateur connecté. `current_user_id()` donne l'appelant.
+- **Mots de passe et codes** : hachés en scrypt (`utils/passwords.py`), jamais en clair, jamais
+  dans les logs. 5 échecs en 15 minutes par numéro bloquent la connexion ou l'activation
+  (`utils/rate_limit.py`, en mémoire).
 
 ### Temps réel
 
@@ -143,7 +167,7 @@ FRONTEND/src/
 ├── types/api.ts             GÉNÉRÉ depuis l'OpenAPI du back, jamais modifié à la main
 ├── lib/                     Logique pure, sans React (messages d'erreur, calculs, formats)
 ├── hooks/                   Orchestration d'un écran : appel, chargement, erreur, nouvelle tentative
-├── context/                 Providers d'état global (session, à l'étape 2)
+├── context/                 Providers d'état global (SessionProvider : l'utilisateur connecté)
 ├── components/
 │   ├── ui/                  Éléments réutilisables (RequestState : chargement / erreur / réessayer)
 │   └── layout/              Cadre commun (Layout)
@@ -166,19 +190,23 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
 
 ### Règles
 
-- **Un seul `fetch`**, dans `api/client.ts`.
+- **Un seul `fetch`**, dans `api/client.ts` (cookies, en-tête CSRF, renouvellement de session).
 - **Types générés** : après tout changement d'un DTO, lancer le back puis `npm run api:types`.
   TypeScript signale ensuite tous les écrans cassés.
 - **Chaque appel a un état de chargement et un état d'erreur avec « Réessayer »**
   (`RequestState`). Le client abandonne une requête au bout de 15 s.
 - **Un composant n'appelle jamais `api/`** : il passe par un hook.
 - **Le front ne protège rien** : masquer un écran évite une erreur de manipulation, la vraie
-  vérification du rôle est dans le back.
+  vérification du rôle est dans le back. `useSession()` donne l'utilisateur connecté ;
+  `routes/AccessRoutes.tsx` redirige un visiteur vers `/connexion`.
+- **Formulaires** : `components/form/` (`Form`, `TextField`, `PasswordField`, `CheckboxField`) et
+  le hook `useSubmit`, qui place les erreurs du back sous chaque champ.
 - **Du texte, jamais du HTML** : `dangerouslySetInnerHTML` interdit sur une donnée utilisateur.
 - **Public peu à l'aise avec le numérique** : textes courts et simples, gros boutons
   (`--touch-target`), contraste fort, focus visible, animations coupées si
   `prefers-reduced-motion`.
-- **Aucune couleur en dur dans les composants** : tout passe par les variables de `global.css`.
+- **Aucune couleur, taille ou marge en dur** : tout passe par les variables de `global.css`, selon
+  la [charte graphique](charte-graphique.md).
 - Un composant qui dépasse une centaine de lignes a presque toujours deux responsabilités.
 
 ---
@@ -191,6 +219,6 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
 4. `services/` : règles, droits, transaction unique ; tests pytest.
 5. `controllers/` : la route, avec tous ses codes d'erreur dans `@spec.validate`.
 6. `sockets/` : l'événement temps réel éventuel, émis par le service.
-7. Test qui prouve qu'un rôle non autorisé est refusé.
+7. `@require_login(...)` sur la route, et un test qui prouve qu'un rôle non autorisé est refusé.
 8. Front : `npm run api:types`, puis `api/` → `hooks/` → `components/` → `pages/` → `routes/`.
 9. `pytest`, `npm run lint`, `npm run build` passent.
