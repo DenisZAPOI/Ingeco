@@ -11,8 +11,11 @@ Flask-Cors==6.0.5
 Flask-SocketIO==5.6.1
 simple-websocket==1.1.0
 
-# Database access (the DBMS driver will be added once the DB team picks it)
+# Database access: MySQL 8.4 (local container, compose.yaml at the repo root)
 SQLAlchemy==2.0.54
+PyMySQL==1.2.3
+# Needed by PyMySQL for MySQL 8's default authentication (caching_sha2_password)
+cryptography==50.0.2
 
 # Input validation and API documentation (OpenAPI + Swagger UI)
 pydantic==2.13.5
