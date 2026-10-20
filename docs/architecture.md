@@ -254,11 +254,14 @@ moins 300 ms. Mesuré au 20/10/2026 : 90 Ko de JS ≈ 3 s, un aller-retour ≈ 0
 **Tester** (Chrome ou Edge) :
 
 ```
-cd FRONTEND && npm run build && npm run preview -- --port 5173
+cd FRONTEND && npm run build && npm run preview
 ```
 
-Pas `npm run dev` : Vite y sert des dizaines de petits fichiers non regroupés, la mesure serait
-fausse. Dans les DevTools, onglet **Network**, choisir **Regular 2G**, puis :
+(`preview` écoute sur le port 5173, celui qu'autorise le CORS du back.) **Jamais `npm run dev`
+pour cette mesure** : Vite y sert des centaines de modules non regroupés, dont React en version de
+développement (plus de 1 Mo) ; en Regular 2G, plus de 20 s. L'écran d'avant le JavaScript doit
+quand même y rester lisible : le CSS est lié dans `index.html` (pas importé par `main.tsx`) et
+chaque SVG porte une largeur et une hauteur par défaut. Dans les DevTools, onglet **Network**, choisir **Regular 2G**, puis :
 - **première visite** : cocher « Disable cache » et vider le service worker (onglet Application →
   Storage → Clear site data) ;
 - **réouverture** : décocher « Disable cache », recharger ;
