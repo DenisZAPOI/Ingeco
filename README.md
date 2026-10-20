@@ -51,7 +51,7 @@ Répartition du travail :
 
 | Partie | Technologies |
 |---|---|
-| Back-end (API) | Python 3.14, Flask, Flask-SocketIO (temps réel), SQLAlchemy (accès à la base), Pydantic (validation) |
+| Back-end (API) | Python 3.14, Flask, Flask-SocketIO (temps réel), SQLAlchemy (accès à la base), Pydantic (validation), Flask-JWT-Extended (connexion) |
 | Front-end | React 19, TypeScript, Vite, application web installable sur mobile (PWA) |
 | Base de données | **Choisie par l'équipe BD.** En attendant : SQLite, uniquement pour vérifier que la connexion fonctionne |
 | Documentation de l'API | Générée automatiquement (Swagger) : http://localhost:5000/apidoc/swagger |
@@ -108,6 +108,27 @@ npm run dev                        # lance l'interface sur http://localhost:5173
 ```
 
 La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API et la base.
+
+### Comptes de test
+
+Tant que la base n'est pas livrée, les comptes sont des **données factices en mémoire**
+(`BACKEND/app/repository/user_repository.py`) : ils reviennent à cet état à chaque redémarrage de
+l'API. Personnes fictives, mot de passe commun **`Trajet-2026!`**.
+
+| Téléphone | Prénom | Rôle |
+|---|---|---|
+| 0694 00 00 01 | Alice | Usager |
+| 0694 00 00 02 | Bruno | Usager prioritaire, besoin d'un véhicule adapté |
+| 0694 00 00 03 | Chloé | Chauffeur |
+| 0694 00 00 04 | David | Référent partenaire |
+| 0694 00 00 05 | Emma | Opérateur (centre d'appel) |
+| 0694 00 00 06 | Farid | Administrateur |
+| 0694 00 00 07 | Gaëlle | Usager créé par le centre d'appel, **à activer** avec le code `12345678` (« J'ai reçu un code ») |
+| 0694 00 00 08 | Hugo | Usager suspendu |
+
+En développement, `COOKIE_SECURE=false` dans `BACKEND/.env` : les cookies de session marqués
+`Secure` ne passent qu'en HTTPS, ce qui bloque Safari sur `http://localhost` et tout téléphone qui
+teste l'appli par l'adresse IP de l'ordinateur. Une fois déployé, toujours `true` (HTTPS).
 
 ---
 

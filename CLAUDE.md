@@ -10,6 +10,7 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[README.md](README.md)** : présentation, lancement du projet, et guide pour l'équipe BD.
 - **[docs/architecture.md](docs/architecture.md)** : organisation du code back et front, règles de chaque couche, contrat d'API, liste de contrôle pour ajouter une fonctionnalité. **À lire avant d'écrire du code.**
 
+- **[docs/charte-graphique.md](docs/charte-graphique.md)** : couleurs, typographie, espacements, composants, ton des textes et accessibilité du front. **À suivre pour tout écran** ; les valeurs vivent dans `FRONTEND/src/styles/global.css`.
 - **[docs/cas-d-utilisation.md](docs/cas-d-utilisation.md)** : cas d'utilisation par acteur, avec fiches détaillées, statut MVP et regroupement en fonctionnalités par étape. Résume les réponses du client qui ont fait passer le contrat d'API en version 2.
 - **[docs/points-a-valider-porteur.pdf](docs/points-a-valider-porteur.pdf)** : choix et questions soumis au client (13/10/2026), avec ce qu'il a déjà confirmé.
 - **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 ; les autres hypothèses restent non validées.
@@ -28,7 +29,7 @@ Le socle reprend celui de ProjectOrganizer (R5.A.05), que Denis connaît déjà.
 - **Back** : Python 3.14, Flask, Flask-SocketIO, SQLAlchemy, Pydantic + flask-pydantic-spec (validation et Swagger). Versions figées dans `BACKEND/requirements.txt`.
 - **Front** : React 19 + TypeScript 6, Vite 8, react-router-dom 7, PWA (vite-plugin-pwa), CSS maison sans framework. Leaflet + OpenStreetMap et socket.io-client seront ajoutés à l'étape 4.
 - **Contrat d'API** : l'OpenAPI généré par le back. Les types TypeScript du front en sont **générés** (`npm run api:types`), jamais écrits à la main.
-- **Auth** : JWT, avec contrôle du rôle côté back (étape 2, pas encore en place).
+- **Auth** : JWT dans des cookies `HttpOnly` (Flask-JWT-Extended), jeton d'accès de 15 min renouvelé par un jeton de 30 jours, CSRF par double envoi, mots de passe hachés en scrypt (Werkzeug). Rôle contrôlé côté back par `@require_login(...)` (`utils/access.py`). Détail dans [docs/architecture.md](docs/architecture.md).
 - **BD** : fournie par l'équipe parcours C (SGBD à confirmer). En local, SQLite vide (`sqlite:///local.db`) ou données factices dans `repository/` tant que le schéma n'est pas livré. SQLite n'est qu'un branchement temporaire (plus permissif que les vrais SGBD) : dès que le SGBD est connu, travailler en local sur le même SGBD et retirer SQLite. Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
 
 ## Structure du repo
@@ -52,7 +53,7 @@ FRONTEND/
     types/api.ts   # généré depuis l'OpenAPI du back
     lib/           # logique pure, sans React
     hooks/         # appel + chargement + erreur + nouvelle tentative
-    context/       # état global (session, étape 2)
+    context/       # état global (session de l'utilisateur connecté)
     components/    # ui/, layout/, puis un dossier par domaine
     pages/         # une page par route
     routes/        # AppRoutes.tsx
@@ -107,7 +108,7 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 |---|---|
 | Usager | Réserve, paie, évalue un trajet |
 | Usager prioritaire | Idem, avec prise en charge partielle ou totale, et accès par téléphone |
-| Chauffeur | Gère ses disponibilités, accepte et clôture des courses, suit ses revenus |
+| Chauffeur | Gère ses disponibilités, accepte et clôture des courses, suit ses revenus. Son compte est créé par l'administrateur après vérification de ses documents en personne |
 | Référent partenaire | Émet des bons solidaires, suit leur consommation (associations, collectivités, entreprises) |
 | Opérateur | Centre d'appel : retrouve ou crée un usager, réserve et annule à sa place |
 | Administrateur | Gère les comptes, les tarifs, les statistiques, le support |
@@ -174,5 +175,4 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
 - **Avec le client** : le centre d'appel est tenu par des personnes dédiées (confirmé le 13/10/2026). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
-- **En interne (étape 2)** : jeton JWT en cookie `HttpOnly` (comme ProjectOrganizer, `api/client.ts` envoie déjà les cookies) ou dans l'en-tête `Authorization`.
 - **En interne** : la géolocalisation en arrière-plan côté chauffeur est peu fiable en PWA. Si elle devient indispensable, il faudra une appli native pour le chauffeur.

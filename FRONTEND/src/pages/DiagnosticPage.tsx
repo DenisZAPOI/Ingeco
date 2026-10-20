@@ -10,7 +10,7 @@ export function DiagnosticPage() {
       <h1>État du service</h1>
       <RequestState loading={loading} error={error} onRetry={retry}>
         {health && (
-          <ul className="checklist">
+          <ul className="panel">
             <li>API : {health.status === 'ok' ? 'en ligne' : 'dégradée'}</li>
             <li>
               Base de données : {health.database.reachable ? `joignable (${health.database.dialect})` : 'injoignable'}

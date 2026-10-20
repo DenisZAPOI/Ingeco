@@ -18,6 +18,9 @@ SQLAlchemy==2.0.54
 pydantic==2.13.5
 flask-pydantic-spec==0.8.7
 
+# Authentication (JWT in HttpOnly cookies)
+Flask-JWT-Extended==4.7.4
+
 # Configuration
 python-dotenv==1.2.2
 

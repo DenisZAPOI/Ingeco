@@ -30,6 +30,8 @@ raisonnement est dans [cas-d-utilisation.md](cas-d-utilisation.md).
 | Opérateur | Consulte les courses d'un usager (`GET /operator/riders/{id}/rides`) | Aucun |
 | Statistiques | Les impayés sont remplacés par les paiements abandonnés ([6.4](#64-statistiques-et-suivi-de-consommation)) | Aucun |
 | Intégrité | Une course proposée aux chauffeurs est toujours payée ou sans part usager ([6.5](#65-unicité-et-intégrité)) | Une contrainte possible |
+| Comptes chauffeurs (décision du 19/10/2026) | Plus d'inscription chauffeur en ligne : il apporte ses documents en personne, puis un administrateur crée son compte avec son véhicule, et le chauffeur l'active avec un code. `POST /auth/register` ne crée que des usagers | La valeur de statut `pending` du compte disparaît |
+| Session | Routes `POST /auth/refresh` et code `429`, règles du mot de passe et du téléphone ([4.1](#41-compte-et-connexion)) | Aucun |
 
 ### Changements de la version 0 à la version 1
 
@@ -79,7 +81,7 @@ partie (6.7, 6.8, H11 à H15).
 
 Codes d'erreur communs à toutes les routes : `400` charge invalide, `401` non connecté, `403` rôle
 insuffisant, `404` introuvable ou invisible pour l'appelant, `409` conflit d'état, `422` règle
-métier violée. Le détail est dans [architecture.md](architecture.md#contrat-dapi).
+métier violée, `429` trop d'essais. Le détail est dans [architecture.md](architecture.md#contrat-dapi).
 
 ---
 
@@ -90,7 +92,7 @@ Chaque compte a **un** rôle.
 | Rôle (valeur dans l'API) | Profil | Créé par |
 |---|---|---|
 | `rider` | Usager, prioritaire ou non (attribut `isPriority`) | Lui-même, ou un opérateur par téléphone |
-| `driver` | Chauffeur | Lui-même, puis validé par un administrateur |
+| `driver` | Chauffeur | Un administrateur, après vérification des documents en personne |
 | `partner` | Référent d'une structure partenaire | Un administrateur |
 | `operator` | Opérateur du centre d'appel : retrouve, crée un usager, réserve et annule à sa place. Aucun droit d'administration (H3) | Un administrateur |
 | `admin` | Administrateur. Peut aussi utiliser l'écran opérateur, pour remplacer un opérateur | Un administrateur |
@@ -112,7 +114,7 @@ veut dire que l'API en fournira toujours une valeur.
 |---|---|---|---|
 | `id` | identifiant | oui | |
 | `role` | `rider` \| `driver` \| `partner` \| `operator` \| `admin` | oui | |
-| `status` | `active` \| `pending` \| `suspended` | oui | `pending` : chauffeur en attente de validation |
+| `status` | `active` \| `suspended` | oui | Un compte pas encore activé est `active` sans mot de passe |
 | `firstName`, `lastName` | texte | oui | |
 | `phone` | texte | oui | **Unique.** Sert d'identifiant de connexion. Format international (`+594…`) |
 | `email` | texte | non | Unique s'il est renseigné |
@@ -121,11 +123,20 @@ veut dire que l'API en fournira toujours une valeur.
 | `activationCodeExpiresAt` | date-heure | non | Fin de validité du code (48 h après sa création) |
 | `createdAt` | date-heure | oui | |
 
-**Activation.** Un compte créé par quelqu'un d'autre (usager créé par l'opérateur, référent,
-opérateur, administrateur) n'a pas de mot de passe. Un administrateur génère un code à usage unique, le
+**Activation.** Un compte créé par quelqu'un d'autre (usager créé par l'opérateur, chauffeur,
+référent, opérateur, administrateur) n'a pas de mot de passe. Un administrateur génère un code à usage unique, le
 transmet à la personne (par téléphone ou en main propre), et celle-ci choisit son mot de passe
 avec `POST /auth/activate`. Le même mécanisme sert au mot de passe oublié : pas de
-réinitialisation en libre-service tant que les SMS sont simulés (H12). Un usager créé par
+réinitialisation en libre-service tant que les SMS sont simulés (H12). Le code fait 8 chiffres,
+facile à dicter.
+
+**Session.** Deux JWT dans des cookies `HttpOnly` : un jeton d'accès de 15 minutes et un jeton de
+renouvellement de 30 jours. Protection CSRF par double envoi : un cookie lisible porte un jeton
+que le front recopie dans l'en-tête `X-CSRF-TOKEN` de chaque écriture. Rien à stocker en base.
+
+**Saisie.** Le téléphone est saisi comme l'usager le connaît (`0694 12 34 56`) et enregistré au
+format international (`+594694123456`). Mot de passe : au moins 8 caractères, dont une
+majuscule, un chiffre et un symbole. Un usager créé par
 téléphone qui n'utilise jamais l'application n'est jamais activé, et c'est normal.
 
 Selon le rôle, des informations en plus :
@@ -284,10 +295,11 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
-| `POST /auth/register` | public | Crée un compte `rider` (actif) ou `driver` (en attente, avec son véhicule). `409` si le téléphone existe déjà, y compris pour un compte créé par l'opérateur : il faut alors l'activer | L : téléphone ou e-mail déjà pris ? E : un compte |
-| `POST /auth/activate` | public | Téléphone + code d'activation + nouveau mot de passe. Efface le code | L : compte par téléphone. E : mot de passe, code remis à vide |
-| `POST /auth/login` | public | Connexion par téléphone + mot de passe | L : compte par téléphone |
-| `POST /auth/logout` | connecté | Déconnexion | Rien |
+| `POST /auth/register` | public | Crée un compte `rider` actif et ouvre la session. Jamais un autre rôle. `409` si le téléphone existe déjà, y compris pour un compte créé par l'opérateur : il faut alors l'activer | L : téléphone ou e-mail déjà pris ? E : un compte |
+| `POST /auth/activate` | public | Téléphone + code d'activation + nouveau mot de passe, puis ouvre la session. Efface le code. `422` si le code est faux ou expiré, `429` après 5 échecs en 15 minutes | L : compte par téléphone. E : mot de passe, code remis à vide |
+| `POST /auth/login` | public | Connexion par téléphone + mot de passe. `429` après 5 échecs en 15 minutes pour le même numéro | L : compte par téléphone |
+| `POST /auth/refresh` | connecté | Renouvelle le jeton d'accès (15 min) à partir du jeton de renouvellement (30 jours). Relit le compte : un compte suspendu est déconnecté ici | L : compte par id |
+| `POST /auth/logout` | public | Efface les cookies de session | Rien |
 | `GET /auth/me` | connecté | Renvoie le compte connecté et son profil | L : compte par id |
 | `PATCH /users/me` | connecté | Modifie son nom, son e-mail, son mot de passe, ses besoins d'accessibilité | E : le compte |
 
@@ -360,8 +372,8 @@ Le paiement par lien se fait sur deux routes publiques, protégées par le jeton
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
 | `GET /admin/users` | `admin` | Liste les comptes, filtrables par rôle et statut, recherche par nom ou téléphone | L : comptes |
-| `POST /admin/users` | `admin` | Crée un référent partenaire, un opérateur ou un administrateur, sans mot de passe | E : un compte |
-| `PATCH /admin/users/{id}` | `admin` | Valide un chauffeur, suspend ou réactive un compte, marque un usager prioritaire | E : le compte |
+| `POST /admin/users` | `admin` | Crée un chauffeur (avec son véhicule, après vérification de ses documents en personne), un référent partenaire, un opérateur ou un administrateur, sans mot de passe | E : un compte |
+| `PATCH /admin/users/{id}` | `admin` | Suspend ou réactive un compte, marque un usager prioritaire, modifie le véhicule d'un chauffeur | E : le compte |
 | `POST /admin/users/{id}/activation-code` | `admin` | Génère un code d'activation (premier accès ou mot de passe oublié). Le code est affiché une seule fois, remplace le précédent | E : code haché, échéance |
 | `GET /admin/partners` | `admin` | Liste les structures | L : structures |
 | `POST /admin/partners` | `admin` | Crée une structure | E : une structure |
@@ -687,11 +699,11 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 
 **À régler entre développeurs, sans effet sur le schéma**
 
-- Protection contre les requêtes forgées (CSRF) si le jeton est dans un cookie.
-- Limitation du nombre d'essais sur `/auth/login`, `/auth/activate`, `/vouchers/check` et
-  `/payment-links/{token}`, tenue
-  en mémoire par l'API.
-- Hébergement en HTTPS, obligatoire pour la géolocalisation et l'installation de l'application.
+- Limitation du nombre d'essais sur `/vouchers/check` et `/payment-links/{token}`, comme pour
+  `/auth/login` et `/auth/activate` (déjà en place).
+- Hébergement en HTTPS, obligatoire pour la géolocalisation, l'installation de l'application et
+  les cookies de session (`COOKIE_SECURE=true`). Le front et l'API doivent être servis sous le même
+  site (même domaine parent), sinon le front ne peut pas lire le cookie CSRF.
 - Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) et des
   appels au service externe (H13) dans l'architecture.
 

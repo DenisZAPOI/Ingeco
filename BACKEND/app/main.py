@@ -11,9 +11,11 @@ from flask import Flask
 from flask_cors import CORS
 
 from .config import Config
+from .controllers.auth_controller import auth_bp
 from .controllers.health_controller import health_bp
-from .extensions import socketio, spec
-from .utils import database, errors, logs, request_logs, security_headers
+from .controllers.user_controller import user_bp
+from .extensions import jwt, socketio, spec
+from .utils import access, database, errors, logs, request_logs, security_headers
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,8 @@ def create_app(config: type[Config] = Config) -> Flask:
     # supports_credentials: the browser sends the session cookie with front-end calls.
     CORS(app, resources={r"/*": {"origins": config.CORS_ORIGINS}}, supports_credentials=True)
     socketio.init_app(app, cors_allowed_origins=config.CORS_ORIGINS)
+    jwt.init_app(app)
+    access.register_jwt_callbacks(jwt)
 
     # Registers the real-time event handlers.
     from . import sockets  # noqa: F401
@@ -51,6 +55,8 @@ def create_app(config: type[Config] = Config) -> Flask:
 
     # --- Routes: one Blueprint per resource ----------------------------------
     app.register_blueprint(health_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
 
     # After the Blueprints: the documentation describes the registered routes.
     spec.register(app)
