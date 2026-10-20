@@ -1,0 +1,43 @@
+# Base de données locale (développement seulement).
+#   docker compose up -d       démarre MySQL et charge sql/schema-mvp.sql
+#   docker compose down -v     arrête et EFFACE la base (pour recharger le script)
+#
+# Image officielle plutôt qu'une image Alpine : il n'existe pas de MySQL
+# officiel sur Alpine, et les images tierces (souvent MariaDB) ne sont ni
+# maintenues par l'éditeur ni tout à fait le même moteur. Le réglage
+# ci-dessous limite la mémoire à environ 250 Mo.
+services:
+  db:
+    image: mysql:8.4
+    container_name: enroute-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?à définir dans .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-enroute}
+      MYSQL_USER: ${MYSQL_USER:-enroute}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?à définir dans .env}
+    command:
+      # Horloge du serveur en UTC : convention du contrat d'API (dates en UTC)
+      - --default-time-zone=+00:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      # Mémoire réduite : le volume du MVP se compte en milliers de lignes
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --skip-name-resolve
+    ports:
+      # Joignable depuis cet ordinateur seulement, pas depuis le réseau
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      # Lu au premier démarrage seulement (base vide). Le script hors MVP
+      # n'est pas chargé : l'API ne s'en sert pas.
+      - ./sql/schema-mvp.sql:/docker-entrypoint-initdb.d/01-schema-mvp.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  db-data:
