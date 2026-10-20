@@ -21,6 +21,9 @@ centre d'appel est tenu par **des personnes dédiées** ; tout le monde peut ré
 La numérotation n'a pas bougé, les ajouts sont en fin de partie (6.9, H16, H17). Le détail du
 raisonnement est dans [cas-d-utilisation.md](cas-d-utilisation.md).
 
+La première visio avec la cliente ([compte-rendu-visio-1.md](compte-rendu-visio-1.md)) ajoute deux
+points : la zone du pilote et la photo du chauffeur (H18, H19).
+
 | Sujet | Changement | Effet sur le schéma |
 |---|---|---|
 | Paiement avant le trajet | Nouveau statut `awaiting_payment` : la course n'est proposée aux chauffeurs qu'une fois payée ([3.3](#33-course-ride)). La notion d'impayé disparaît | Une valeur de statut |
@@ -32,6 +35,8 @@ raisonnement est dans [cas-d-utilisation.md](cas-d-utilisation.md).
 | Intégrité | Une course proposée aux chauffeurs est toujours payée ou sans part usager ([6.5](#65-unicité-et-intégrité)) | Une contrainte possible |
 | Comptes chauffeurs (décision du 19/10/2026) | Plus d'inscription chauffeur en ligne : il apporte ses documents en personne, puis un administrateur crée son compte avec son véhicule, et le chauffeur l'active avec un code. `POST /auth/register` ne crée que des usagers | La valeur de statut `pending` du compte disparaît |
 | Session | Routes `POST /auth/refresh` et code `429`, règles du mot de passe et du téléphone ([4.1](#41-compte-et-connexion)) | Aucun |
+| Zone du pilote (première visio) | Seules Cayenne, Rémire-Montjoly et Matoury sont desservies au départ ; Kourou viendra ensuite. Départ et arrivée doivent être dans une commune desservie (H18) | Les données de référence des communes changent |
+| Profil du chauffeur (première visio) | Le passager voit la photo du chauffeur. Le contenu du reste du profil (« mini CV ») est à préciser avec la cliente (H19) | **Un champ photo sur le chauffeur** |
 
 ### Changements de la version 0 à la version 1
 
@@ -148,6 +153,7 @@ Selon le rôle, des informations en plus :
 | `driver` | `isAvailable` | booléen | oui | En ligne / hors ligne |
 | `driver` | `lastLat`, `lastLng`, `lastLocationAt` | position + date-heure | non | **Dernière position connue seulement**, pas d'historique. Remise à vide quand le chauffeur passe hors ligne (RGPD) |
 | `driver` | véhicule : `plate`, `model`, `seats`, `isAccessible` | texte, texte, entier, booléen | oui | Un seul véhicule par chauffeur dans le MVP |
+| `driver` | photo | image (voir H19) | non | Photo du visage, prise par l'administrateur lors de la vérification en personne. Montrée au passager pour sa sécurité. Réduite par l'API à une petite image (de l'ordre de 15 Ko) avant d'être enregistrée |
 | `partner` | `partnerId` | référence | oui | La structure à laquelle le référent appartient |
 
 ### 3.2 Structure partenaire (`Partner`)
@@ -281,7 +287,7 @@ Fournies par vous, lues par l'API, jamais modifiées par elle dans le MVP.
 
 | Donnée | Contenu | Remarques |
 |---|---|---|
-| Communes | `id`, `name` | Au minimum les trois communes pilotes : Cayenne, Matoury, Kourou |
+| Communes | `id`, `name` | Les communes **desservies** : au départ Cayenne, Rémire-Montjoly et Matoury (zone du pilote, H18). Kourou, prévue par le cahier des charges, s'ajoutera plus tard |
 | Tarif | `baseFareCents` (prise en charge), `perKmCents` (prix au kilomètre) | Un seul tarif dans le MVP. Prévoir qu'il puisse y en avoir plusieurs plus tard (par profil, par type de financement) |
 | Premier administrateur | Un compte `admin`, sans mot de passe | Données fictives, voir [2](#2-rôles) |
 
@@ -308,12 +314,13 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
 | `GET /communes` | connecté | Liste des communes desservies | L : communes |
-| `GET /places` | connecté | Cherche une adresse dans une commune (`?search=&communeId=`) et renvoie des propositions avec leur position | Rien (service externe, H13) |
+| `GET /places` | connecté | Cherche une adresse dans une commune desservie (`?search=&communeId=`) et renvoie des propositions avec leur position | Rien (service externe, H13) |
 | `POST /vouchers/check` | `rider`, `operator`, `admin` | Vérifie un code de bon et renvoie sa prise en charge. L'opérateur précise le `riderId` | L : bon par code, structure |
 | `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId` | L : tarif, bon par code |
-| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
+| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle. `422` si le départ ou l'arrivée est hors de la zone desservie (H18) | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
 | `GET /rides` | `rider`, `driver` | Ses propres courses, filtrables par `status`, les plus récentes d'abord | L : courses par usager ou par chauffeur |
-| `GET /rides/{id}` | participant, `operator`, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule et sa note moyenne. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
+| `GET /rides/{id}` | participant, `operator`, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule, sa note moyenne et l'adresse de sa photo. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
+| `GET /rides/{id}/driver-photo` | participant, `operator`, `admin` | Photo du chauffeur de la course. Pour l'usager, seulement tant que la course est `accepted` ou `in_progress`. Mise en cache par le téléphone | L : photo du chauffeur |
 | `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted` | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
 | `POST /rides/{id}/payment` | `rider` de la course | Paiement simulé de la part de l'usager, sur une course `awaiting_payment`. La fait passer en `pending` et la propose aux chauffeurs | E : `paymentStatus`, `paidAt`, statut, nouvelle `expiresAt` |
 | `POST /rides/{id}/rating` | `rider` de la course | Évalue une course terminée | E : une évaluation (409 s'il y en a déjà une) |
@@ -374,6 +381,7 @@ Le paiement par lien se fait sur deux routes publiques, protégées par le jeton
 | `GET /admin/users` | `admin` | Liste les comptes, filtrables par rôle et statut, recherche par nom ou téléphone | L : comptes |
 | `POST /admin/users` | `admin` | Crée un chauffeur (avec son véhicule, après vérification de ses documents en personne), un référent partenaire, un opérateur ou un administrateur, sans mot de passe | E : un compte |
 | `PATCH /admin/users/{id}` | `admin` | Suspend ou réactive un compte, marque un usager prioritaire, modifie le véhicule d'un chauffeur | E : le compte |
+| `PUT /admin/users/{id}/photo` | `admin` | Enregistre ou remplace la photo d'un chauffeur. L'API la réduit et la recompresse avant de l'écrire | E : photo du chauffeur |
 | `POST /admin/users/{id}/activation-code` | `admin` | Génère un code d'activation (premier accès ou mot de passe oublié). Le code est affiché une seule fois, remplace le précédent | E : code haché, échéance |
 | `GET /admin/partners` | `admin` | Liste les structures | L : structures |
 | `POST /admin/partners` | `admin` | Crée une structure | E : une structure |
@@ -418,6 +426,7 @@ Une course (`GET /rides/42`) :
     "id": 15,
     "firstName": "Prénom",
     "averageScore": 4.7,
+    "photoUrl": "/rides/42/driver-photo",
     "vehicle": { "plate": "AA-000-AA", "model": "Modèle fictif", "isAccessible": false },
     "location": { "lat": 4.9301, "lng": -52.3255, "updatedAt": "2026-10-13T14:31:10Z" }
   },
@@ -686,6 +695,8 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 | H15 | `isPriority` n'a aucun effet automatique (ni sur le prix, ni sur l'attribution) | Un ordre de priorité dans la recherche de chauffeur, ou un tarif lié au profil (rejoint H8) |
 | H16 | 15 minutes pour payer, sinon la réservation expire et le bon est rendu | Un autre délai : aucun effet sur le schéma |
 | H17 | Remboursement intégral en cas d'annulation ou d'expiration, quels que soient l'auteur et le moment | Frais d'annulation tardive : un montant remboursé sur la course |
+| H18 | Zone du pilote = **la liste des communes desservies** : départ et arrivée doivent être dans l'une d'elles. La cliente a parlé de « Cayenne et environ 5 km autour » : Cayenne, Rémire-Montjoly, Matoury. Un rayon autour de Cayenne, s'il le faut, est un réglage de l'API | Si la zone doit être un tracé précis plutôt qu'une liste de communes : un contour en base, avec un type spatial (rejoint H13) |
+| H19 | Une photo par chauffeur, de petite taille, enregistrée **en base** (binaire) ou **en fichier** sur le serveur de l'API avec sa référence en base : **à vous de choisir, et de nous le dire**. Le reste du profil (« mini CV ») n'est pas encore défini | Des champs de profil en plus sur le chauffeur, selon la réponse de la cliente |
 
 **Questions pour le client** (en plus de celles de `CLAUDE.md`)
 
@@ -696,6 +707,9 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 4. Au bout de combien de temps sans chauffeur prévient-on l'usager, et par quel moyen ?
 5. Le référent peut-il voir quel usager a utilisé un bon nominatif, ou seulement des totaux ?
 6. Le remboursement est-il intégral dans tous les cas (H17) ?
+7. Quelles sont les limites exactes de la zone du pilote, et que répond-on à une demande hors
+   zone (H18) ?
+8. Que contient le profil du chauffeur montré au passager, en plus de sa photo (H19) ?
 
 **À régler entre développeurs, sans effet sur le schéma**
 
@@ -710,7 +724,9 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 **Demandé par le cahier des charges, hors de ce contrat pour l'instant** (à trancher avec le
 client, mais utile à garder en tête pour ne pas fermer la porte) : notifications à l'usager,
 documents des chauffeurs (permis, assurance, agréments), paramétrage des tarifs par
-l'administrateur, indicateurs d'impact social, facturation consolidée des partenaires.
+l'administrateur, indicateurs d'impact social, facturation consolidée des partenaires. Évoqué
+par la cliente en visio : un **abonnement mensuel** (au nombre de courses ou au montant dépensé),
+qui demanderait ses propres tables.
 
 **Ce qu'on attend de vous**
 

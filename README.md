@@ -40,6 +40,7 @@ des **bons solidaires**.
 | Usager prioritaire | Idem, avec prise en charge partielle ou totale |
 | Chauffeur | Gère ses disponibilités, accepte et clôture des courses, suit ses revenus |
 | Référent partenaire | Émet des bons solidaires, suit leur consommation |
+| Opérateur | Centre d'appel : retrouve ou crée un usager, réserve et annule à sa place |
 | Administrateur | Gère les comptes, les tarifs, les statistiques |
 
 Répartition du travail :
@@ -214,7 +215,8 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
    dépendent.
 2. **Le script de création du schéma** (`.sql`), à déposer dans le dépôt, par exemple dans un
    dossier `sql/`. Il fait foi : les classes Python suivent le script, pas l'inverse.
-3. **Les données de référence** (communes, types de trajets, profils…), et des **données de test
+3. **Les données de référence** (communes desservies : Cayenne, Rémire-Montjoly et Matoury pour
+   le pilote ; types de trajets, profils…), et des **données de test
    fictives**. Le RGPD interdit toute donnée personnelle réelle : faux noms, faux téléphones,
    fausses adresses.
 4. **La date de livraison**, même approximative, pour organiser le travail.

@@ -9,8 +9,10 @@ Sources, par ordre de priorité :
 
 1. [points-a-valider-porteur.pdf](points-a-valider-porteur.pdf) (13/10/2026) : ce que le client
    a **déjà confirmé**, et nos propositions en attente de réponse.
-2. [expression-des-besoins.pdf](expression-des-besoins.pdf) (06/07/2026) : le cahier des charges.
-3. [contrat-api.md](contrat-api.md) (version 2) : les routes et les règles métier proposées.
+2. [compte-rendu-visio-1.md](compte-rendu-visio-1.md) : la première visio avec la cliente (zone
+   du pilote, photo du chauffeur, abonnement).
+3. [expression-des-besoins.pdf](expression-des-besoins.pdf) (06/07/2026) : le cahier des charges.
+4. [contrat-api.md](contrat-api.md) (version 2) : les routes et les règles métier proposées.
 
 Les réponses du client qui ont fait passer le contrat d'API de la version 1 à la version 2 sont
 résumées en [partie 6](#6-écarts-avec-le-contrat-dapi-v1).
@@ -38,7 +40,7 @@ résumées en [partie 6](#6-écarts-avec-le-contrat-dapi-v1).
 | **Usager prioritaire** | Un usager (personne en insertion, senior, PMR, demandeur d'emploi) marqué prioritaire. Hérite de tout ce que fait l'usager | `rider` + `isPriority` |
 | **Chauffeur** | Chauffeur partenaire, éventuellement en parcours d'insertion | `driver` |
 | **Référent partenaire** | Salarié d'une association, collectivité ou entreprise qui finance des trajets | `partner` |
-| **Opérateur** | Personne dédiée du centre d'appel, qui réserve à la place de l'usager `operator` |
+| **Opérateur** | Personne dédiée du centre d'appel, qui réserve à la place de l'usager | `operator` |
 | **Administrateur** | Équipe Ingeco qui pilote la plateforme | `admin` |
 
 L'usager prioritaire est une **spécialisation** de l'usager : il n'a aucun cas d'utilisation
@@ -276,7 +278,7 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 | UC12 | Estimer le prix d'un trajet | Usager, Opérateur | MVP | 3 | `POST /rides/estimate` |
 | UC13 | Utiliser un bon solidaire | Usager, Opérateur | MVP | 5 | `POST /vouchers/check` |
 | UC14 | Payer sa part | Usager | Simulé | 3 | `POST /rides/{id}/payment` |
-| UC15 | Suivre son trajet sur une carte | Usager | MVP | 4 | `GET /rides/{id}`, événements `ride:updated`, `driver:location` |
+| UC15 | Suivre son trajet sur une carte | Usager | MVP | 4 | `GET /rides/{id}`, `GET /rides/{id}/driver-photo`, événements `ride:updated`, `driver:location` |
 | UC16 | Annuler une réservation | Usager | MVP | 3 | `POST /rides/{id}/cancel` |
 | UC17 | Consulter ses trajets | Usager | MVP | 3 | `GET /rides`, `GET /rides/{id}` |
 | UC18 | Évaluer un trajet | Usager | MVP | 3 | `POST /rides/{id}/rating` |
@@ -321,7 +323,7 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 |---|---|---|---|---|---|
 | UC50 | ~~Valider l'inscription d'un chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
 | UC51 | Gérer les comptes (suspendre, réactiver, marquer prioritaire) | Administrateur | MVP | 2 | `GET /admin/users`, `PATCH /admin/users/{id}` |
-| UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users` |
+| UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users`, `PUT /admin/users/{id}/photo` |
 | UC53 | Générer un code d'activation | Administrateur | MVP | 2 | `POST /admin/users/{id}/activation-code` |
 | UC54 | Gérer les structures partenaires | Administrateur | MVP | 5 | `GET`, `POST`, `PATCH /admin/partners` |
 | UC55 | Superviser les courses (filtres, annulation, remboursements) | Administrateur | MVP | 7 | `GET /admin/rides`, `POST /rides/{id}/cancel` |
@@ -429,11 +431,15 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
   - E3 : paiement refusé : la course n'est pas proposée aux chauffeurs. L'usager peut réessayer
     pendant 15 minutes, après quoi la réservation expire et le bon est rendu (UC60).
   - E4 : aucun chauffeur en 15 minutes : UC60.
+  - E5 : départ ou arrivée hors de la zone desservie (`422`) : le système le dit simplement
+    (« Nous ne desservons pas encore cette adresse »). Que proposer d'autre : à voir avec la
+    cliente.
 - **Postconditions** : une course `pending`, payée ou sans part usager ; le bon utilisé compte
   une course de plus.
 - **Règles** : le prix est **calculé par le serveur** et figé à la réservation (proposition B).
   Le prix affiché à l'étape 4 est recalculé à l'étape 5, jamais repris tel quel. Le besoin de
-  véhicule accessible est copié du profil.
+  véhicule accessible est copié du profil. Seules les communes desservies sont proposées : au
+  départ Cayenne, Rémire-Montjoly et Matoury, demandé par la cliente en visio (H18 du contrat).
 
 #### UC11 Programmer un trajet à l'avance
 
@@ -486,12 +492,16 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Scénario nominal**
   1. L'usager ouvre sa course en cours.
   2. Il voit l'état : recherche d'un chauffeur, chauffeur en route, à bord, terminé.
-  3. Dès qu'un chauffeur accepte : son prénom, son véhicule (modèle, immatriculation), sa note
-     moyenne, et sa position sur la carte, mise à jour en direct.
+  3. Dès qu'un chauffeur accepte : sa photo, son prénom, son véhicule (modèle, immatriculation),
+     sa note moyenne, et sa position sur la carte, mise à jour en direct.
 - **Variantes** : A1 réseau faible : l'écran se met à jour à la reconnexion en relisant la
   course ; le mode dégradé par SMS prévient des étapes clés (UC62). A2 le chauffeur se désiste :
   retour à « Recherche d'un chauffeur », sans nouveau paiement.
-- **Règles** : la position du chauffeur n'est visible que pendant une course active.
+- **Règles** : la position du chauffeur n'est visible que pendant une course active ; sa photo,
+  tant que la course est acceptée ou en cours. La photo est demandée par la cliente pour la
+  sécurité : le passager doit savoir qui vient le chercher. Elle s'affiche après le texte, en
+  petite taille, pour ne pas ralentir l'écran sur réseau faible. Le reste du profil (« mini CV »)
+  est à définir avec la cliente.
 
 #### UC16 Annuler une réservation
 
@@ -702,7 +712,9 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 - **Scénario nominal** : il saisit l'identité et le téléphone, choisit le rôle (avec le véhicule
   pour un chauffeur, dont il a vérifié les documents en personne, et la structure pour un
   référent) ; le compte est créé sans mot de passe et le système génère le code
-  d'activation (UC53).
+  d'activation (UC53). Pour un chauffeur, il ajoute sa photo, prise lors du rendez-vous.
+- **Règles** : à ce rendez-vous, la société vérifie le permis, l'âge et le véhicule (visio avec
+  la cliente), en plus de l'assurance et de la carte VTC.
 
 #### UC53 Générer un code d'activation
 
@@ -782,6 +794,9 @@ suite.
 | UC76 | Suivre le module de formation | Chauffeur | Contenu à écrire avec le client |
 | UC77 | Évaluer l'usager | Chauffeur | Non demandé |
 | UC78 | Gérer un planning de disponibilités | Chauffeur | En ligne / hors ligne suffit (H4) |
+| UC79 | Souscrire un abonnement mensuel (nombre de courses ou montant) | Usager | Évoqué par la cliente en visio, absent du cahier des charges : non classé |
+| UC80 | Enregistrer l'agrément d'un chauffeur pour le transport de personnes handicapées | Administrateur | « En deuxième partie », selon la cliente |
+| UC81 | Desservir Kourou et d'autres communes | Administrateur, équipe BD | Le pilote commence par Cayenne et ses environs ; ajouter une commune est une donnée de référence |
 | – | Payer en espèces | Usager | **Exclu** par le cahier des charges et confirmé par le client |
 
 ---
@@ -800,6 +815,14 @@ Les réponses du client du 13/10/2026 changeaient trois points du contrat d'API 
 
 UC44 (trajets d'un usager vus par l'opérateur) a aussi sa route dans la version 2, en attente de
 la réponse du client (Q2).
+
+Sur les quatre points donnés comme confirmés le 13/10/2026, deux ont été dits pendant la première
+visio (carte uniquement, paiement à la réservation). Les deux autres (réservation par téléphone
+pour tous, appels pris par des personnes dédiées) n'y figurent pas : retrouver la trace écrite de
+cette réponse.
+
+La première visio ajoute aussi au contrat v2 la zone du pilote (H18) et la photo du chauffeur
+(H19), voir [compte-rendu-visio-1.md](compte-rendu-visio-1.md).
 
 ---
 
