@@ -87,7 +87,7 @@ cd FRONTEND && npm run build
 cd FRONTEND && npm run api:types           # back lancé : régénère src/types/api.ts
 ```
 
-Avant de rendre la main : `pytest`, `npm run lint`, `npm run build`, puis test dans le navigateur.
+Avant de rendre la main : `pytest`, `npm run lint`, `npm run build`, puis test dans le navigateur, **dont un passage en « Regular 2G »** (voir ci-dessous).
 
 La CI GitHub (`.github/workflows/ci.yml`) relance ces vérifications sur chaque pull request, plus la comparaison des types générés (`npm run api:types`) : elles doivent passer pour merger sur `main`.
 
@@ -100,6 +100,7 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 - JSON en camelCase (traduit par `dtos/base.py`), champs vides envoyés à `null`. Chaque route déclare tous ses codes d'erreur dans `@spec.validate`.
 - Chaque route vérifie le rôle de l'appelant côté back. Le front masque des écrans, il ne protège rien.
 - Le front doit rester léger et tolérer un réseau faible : peu de dépendances, pas de ressources lourdes, un état de chargement et un état d'erreur avec nouvelle tentative sur chaque appel (`RequestState`).
+- **Objectif réseau : « Regular 2G »** (profil des DevTools : 250 kbit/s, 300 ms d'aller-retour), vérifié pour **chaque fonctionnalité** avant sa pull request. Sur ce profil : quelque chose d'utile à l'écran en moins de 1 s, un écran utilisable en moins de 5 s à la première visite, une réouverture sans attente. Moyens (chargement optimiste, allers-retours comptés, messages de réseau lent) et méthode de test : [docs/architecture.md](docs/architecture.md#réseau-faible--objectif-regular-2g).
 - L'interface est pensée pour un public peu à l'aise avec le numérique : parcours courts, gros boutons, textes simples, accessible aux personnes à mobilité réduite.
 
 ## Rôles
@@ -162,8 +163,8 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - Identifiants de code en anglais (`ride`, `driver`, `voucher`, `ride_service.py`), textes d'interface en français. Documentation en français.
 - Fichiers back : `<resource>_controller.py`, `<resource>_service.py`, `<resource>_repository.py`, `<resource>_dto.py`. Front : composants en `PascalCase.tsx` (export nommé), hooks en `useSomething.ts`, pages en `SomethingPage.tsx`.
 - Pas de nombre magique : une constante nommée. Les commentaires expliquent le pourquoi, pas le quoi. Jamais `any` en TypeScript.
-- Pas de push direct sur `main`. Une branche par fonctionnalité (`feature/...`, `fix/...`), une pull request relue par l'autre développeur.
-- Messages de commit courts, à l'impératif, préfixés (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
+- Pas de push direct sur `main`. Une branche par fonctionnalité (`feature/...`, `fix/...`, `perf/...` pour la performance), une pull request relue par l'autre développeur.
+- Messages de commit courts, à l'impératif, préfixés (`feat:`, `fix:`, `perf:`, `docs:`, `refactor:`, `test:`, `chore:`).
 - Toute logique de `services/` a ses tests pytest, dont au moins un qui prouve qu'un rôle non autorisé est refusé.
 - Secrets dans `.env`, jamais commités. Tenir les `.env.example` à jour.
 - RGPD : aucune donnée personnelle réelle dans les jeux de test, les seeds ou les logs.

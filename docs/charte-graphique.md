@@ -174,6 +174,7 @@ dans `components/`, documenté ici.
 |---|---|
 | `alert alert-error` | Échec d'un envoi, erreur de chargement (avec « Réessayer ») |
 | `alert alert-success` | Confirmation d'un enregistrement |
+| `alert alert-info` | État de l'application qui n'est ni une erreur ni une réussite (pas de réseau) ; fond `surface`, texte courant |
 | `note` | Information secondaire, en gris (« Mot de passe oublié ? … ») |
 | `panel` | Encadré gris clair pour regrouper une information (état du service, récapitulatif) |
 
@@ -185,6 +186,15 @@ les annonce.
 Chaque appel au réseau passe par `RequestState` : « Chargement… » pendant l'attente, puis le
 contenu, ou un message d'erreur avec un bouton « Réessayer ». Jamais d'écran blanc, jamais de
 roue qui tourne sans fin (le client abandonne au bout de 15 s).
+
+- **D'abord ce qu'on sait déjà.** Un écran s'affiche tout de suite avec ce qui est connu (le
+  prénom et le rôle de la dernière session, par exemple) ; l'attente ne concerne que la partie
+  qui vient du réseau.
+- **Réseau lent** : après 3 s, « Chargement… » devient « Le réseau est lent. Merci de patienter,
+  le chargement continue… » ; pendant un envoi, une note dit « Ne fermez pas l'application,
+  l'envoi continue. ».
+- **Sans réseau** : un bandeau `alert alert-info` en haut de l'écran, « Pas de connexion
+  internet. L'application reprendra dès le retour du réseau. ».
 
 ---
 
@@ -268,3 +278,5 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 5. Testé à 360 px de large : pas de défilement horizontal, tout se touche facilement.
 6. Testé au clavier : tout est accessible, le focus se voit.
 7. Texte agrandi à 200 % : rien ne se chevauche.
+8. Testé en **« Regular 2G »** (DevTools) : l'écran ne reste jamais vide, les attentes sont
+   expliquées (voir [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)).
