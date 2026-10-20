@@ -264,6 +264,9 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 
 - **Pas de photo, pas d'illustration décorative** : chaque kilo-octet compte sur le réseau
   guyanais.
+- Seule exception : la **photo du chauffeur** sur le suivi de course, demandée par la cliente pour
+  la sécurité du passager. Petite (de l'ordre de 15 Ko), chargée après le texte, avec un `alt`
+  (« Photo de Prénom, votre chauffeur ») et une place réservée pour que l'écran ne saute pas.
 - Une icône n'est jamais seule : elle accompagne un texte. Si elle est décorative,
   `aria-hidden="true"`.
 - Icônes et logo en **SVG** intégré, dans les couleurs de la charte : `components/ui/icons.tsx`

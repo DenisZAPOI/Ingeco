@@ -13,12 +13,15 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[docs/charte-graphique.md](docs/charte-graphique.md)** : couleurs, typographie, espacements, composants, ton des textes et accessibilité du front. **À suivre pour tout écran** ; les valeurs vivent dans `FRONTEND/src/styles/global.css`.
 - **[docs/cas-d-utilisation.md](docs/cas-d-utilisation.md)** : cas d'utilisation par acteur, avec fiches détaillées, statut MVP et regroupement en fonctionnalités par étape. Résume les réponses du client qui ont fait passer le contrat d'API en version 2.
 - **[docs/points-a-valider-porteur.pdf](docs/points-a-valider-porteur.pdf)** : choix et questions soumis au client (13/10/2026), avec ce qu'il a déjà confirmé.
-- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 ; les autres hypothèses restent non validées.
+- **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 et de la première visio ; les autres hypothèses restent non validées.
+- **[docs/compte-rendu-visio-1.md](docs/compte-rendu-visio-1.md)** : décisions de la première visio avec la cliente (zone du pilote, profil du chauffeur, abonnement, organisation).
 
 ## Équipe et responsabilités
 
 - **2 développeurs** (dont Denis ZAPOI) : front et back, c'est-à-dire tout ce repo.
 - **3 étudiants parcours C** : la base de données (schéma, migrations, données de référence).
+- **Côté client** : la fondatrice et présidente d'Ingeco Territoires, et une tutrice, Sophonie Delva, pour les questions numériques. Revue chaque mardi à 10 h, échanges par WhatsApp.
+- **Échéance** : fin du projet vers le 10 janvier 2027 ; le service doit démarrer en janvier 2027.
 
 La base ne nous appartient pas. Ne jamais créer ni modifier de table, de colonne ou de migration depuis ce repo (jamais de `Base.metadata.create_all()`). Si une fonctionnalité demande un changement de schéma, le signaler et rédiger la demande pour l'équipe BD, sans l'appliquer.
 
@@ -123,8 +126,9 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 - Réservation immédiate ou programmée
 - Mise en relation avec un chauffeur disponible
 - Côté chauffeur : accepter, démarrer, clôturer une course
-- Suivi du trajet sur carte
+- Suivi du trajet sur carte, avec la photo et le profil du chauffeur (demandé par la cliente pour la sécurité ; changement de schéma à demander à l'équipe BD)
 - Évaluation du trajet
+- Zone desservie limitée au pilote : Cayenne, Rémire-Montjoly et Matoury (environ 5 km autour de Cayenne). Kourou viendra ensuite
 - Bons solidaires : émission, utilisation à la réservation, suivi de consommation
 - Écran opérateur pour réserver au nom d'un usager (tient lieu de centre d'appel)
 - Statistiques administrateur de base
@@ -136,14 +140,16 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 **Hors MVP**
 - Paiement en espèces dans l'application (exclu par le cahier des charges)
 - Module de formation des chauffeurs
+- Agréments des chauffeurs pour le transport de personnes handicapées (« en deuxième partie », selon la cliente)
 - Facturation consolidée des partenaires
 - Application native
 
-**Demandé par le cahier des charges, pas encore classé** (à trancher avec le client)
+**Demandé par le client, pas encore classé** (à trancher avec le client)
 - Tarification solidaire modulable (selon le profil et le financement) et paramétrage des tarifs par l'administrateur
 - Notifications à l'usager
 - Gestion documentaire des chauffeurs (permis, assurance, agréments)
 - Indicateurs d'impact social et couverture territoriale dans le tableau de bord
+- Abonnement mensuel (au nombre de courses ou au montant dépensé), évoqué en visio, absent du cahier des charges
 
 Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 
@@ -174,6 +180,9 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec l'équipe BD** : SGBD retenu (le pilote Python s'ajoute alors à `requirements.txt`), date de livraison du schéma, mode d'accès (connexion directe ou autre).
 - **Avec le client** : disponibilité « 24h/24 » ou « en semaine avec créneaux élargis » (le cahier des charges dit les deux).
 - **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
-- **Avec le client** : le centre d'appel est tenu par des personnes dédiées (confirmé le 13/10/2026). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
+- **Avec le client** : le centre d'appel est tenu par des personnes dédiées, et tout le monde peut réserver par téléphone (donnés comme confirmés le 13/10/2026, mais absents de la première visio : retrouver la trace écrite de cette réponse). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
+- **Avec le client** : les limites exactes de la zone du pilote (communes, rayon) et ce qu'on répond à une demande hors zone.
+- **Avec le client** : le contenu du profil du chauffeur montré au passager, en plus de la photo (« mini CV »).
+- **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
 - **En interne** : la géolocalisation en arrière-plan côté chauffeur est peu fiable en PWA. Si elle devient indispensable, il faudra une appli native pour le chauffeur.
