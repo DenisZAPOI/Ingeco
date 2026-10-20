@@ -230,6 +230,16 @@ a:hover {
   color: var(--color-success);
 }
 
+/* A state of the app that is neither a failure nor a success (no network). */
+.alert-info {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.main > .alert {
+  margin-top: var(--space);
+}
+
 .alert > p {
   margin: 0;
 }
@@ -317,6 +327,19 @@ a:hover {
   height: var(--checkbox-size);
   flex-shrink: 0;
   accent-color: var(--color-primary);
+}
+
+/* --- First screen before the JavaScript (index.html) ---------------------------
+   The script in index.html picks which of the two the user sees: the welcome
+   screen for a visitor on the home page, a waiting message otherwise. */
+
+.shell-loading,
+[data-shell='loading'] .shell-welcome {
+  display: none;
+}
+
+[data-shell='loading'] .shell-loading {
+  display: block;
 }
 
 /* --- Utilities ----------------------------------------------------------------- */

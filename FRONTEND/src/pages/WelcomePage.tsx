@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
-/** First screen of a visitor: three large choices, nothing else. */
+/** First screen of a visitor: three large choices, nothing else.
+ *  Copied in index.html, shown before the app has loaded: change both together. */
 export function WelcomePage() {
   return (
     <section>
