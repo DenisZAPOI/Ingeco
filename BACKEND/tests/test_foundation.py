@@ -88,6 +88,19 @@ def test_cors_only_allows_the_front_end(client):
     assert "Access-Control-Allow-Origin" not in refused.headers
 
 
+def test_the_browser_keeps_the_cors_preflight(client):
+    response = client.options(
+        "/auth/login",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+
+    assert response.headers.get("Access-Control-Max-Age") == "7200"
+
+
 def test_the_openapi_description_is_served(client):
     response = client.get("/apidoc/openapi.json")
 

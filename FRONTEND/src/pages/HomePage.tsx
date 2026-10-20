@@ -13,17 +13,19 @@ const SPACES: Record<Role, { title: string; coming: string }> = {
   admin: { title: 'Administration', coming: 'Vous pourrez bientôt gérer les comptes ici.' },
 };
 
-/** Visitor: the welcome screen. Logged in: the home of their role. */
+/** Visitor: the welcome screen. Logged in: the home of their role, drawn from
+ *  the last session's hint until the API confirms it. */
 export function HomePage() {
-  const { user } = useSession();
-  if (!user) {
+  const { user, hint } = useSession();
+  const account = user ?? hint;
+  if (!account) {
     return <WelcomePage />;
   }
 
-  const space = SPACES[user.role];
+  const space = SPACES[account.role];
   return (
     <section>
-      <h1>Bonjour {user.firstName}</h1>
+      <h1>Bonjour {account.firstName}</h1>
       <h2>{space.title}</h2>
       <p>{space.coming}</p>
       <Link to="/profil" className="button button-block button-secondary">

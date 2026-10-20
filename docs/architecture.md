@@ -194,7 +194,8 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
 - **Types générés** : après tout changement d'un DTO, lancer le back puis `npm run api:types`.
   TypeScript signale ensuite tous les écrans cassés.
 - **Chaque appel a un état de chargement et un état d'erreur avec « Réessayer »**
-  (`RequestState`). Le client abandonne une requête au bout de 15 s.
+  (`RequestState`). Le client abandonne une requête au bout de 15 s. Mais l'écran n'attend pas
+  le réseau quand il peut faire sans (voir [Réseau faible](#réseau-faible--objectif-regular-2g)).
 - **Un composant n'appelle jamais `api/`** : il passe par un hook.
 - **Le front ne protège rien** : masquer un écran évite une erreur de manipulation, la vraie
   vérification du rôle est dans le back. `useSession()` donne l'utilisateur connecté ;
@@ -209,6 +210,64 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
   la [charte graphique](charte-graphique.md).
 - Un composant qui dépasse une centaine de lignes a presque toujours deux responsabilités.
 
+### Réseau faible : objectif « Regular 2G »
+
+Le public utilise souvent un téléphone d'entrée de gamme sur un réseau 2G ou 3G faible. Chaque
+fonctionnalité est vérifiée sur le profil **« Regular 2G »** des DevTools (250 kbit/s, 300 ms
+d'aller-retour) avant sa pull request :
+
+| Moment | Objectif |
+|---|---|
+| Première visite | Quelque chose d'utile à l'écran en moins de **1 s**, écran utilisable en moins de **5 s** |
+| Réouverture (application en cache) | L'écran s'affiche **sans attendre le réseau** |
+| Toute action | Une réponse visible tout de suite (bouton désactivé, « Envoi en cours… ») |
+
+Sur ce réseau, **c'est le nombre d'allers-retours qui coûte, plus que le poids** : chacun prend au
+moins 300 ms. Mesuré au 20/10/2026 : 90 Ko de JS ≈ 3 s, un aller-retour ≈ 0,35 s.
+
+**Ce qui est en place, et à suivre pour chaque nouvel écran :**
+
+1. **L'écran avant le JavaScript.** `index.html` contient l'écran d'accueil en HTML (copie de
+   `Layout.tsx` et `WelcomePage.tsx`, à modifier ensemble), affiché dès l'arrivée du CSS. Un petit
+   script y montre « Chargement… » à la place pour une autre page ou un utilisateur déjà connecté.
+2. **Chargement optimiste de la session.** Aucun écran n'attend `/auth/me`. `SessionProvider`
+   part de l'indice laissé par la dernière session (`lib/sessionHint.ts` : prénom et rôle
+   seulement, effacé à la déconnexion) ; l'API confirme ou corrige ensuite. Un écran de
+   l'utilisateur connecté s'affiche donc avec `user ?? hint`, et lance ses propres appels sans
+   attendre la session.
+3. **Allers-retours comptés.** Les cookies CSRF lisibles disent l'état de la session sans appel
+   (`storedSession()` dans `api/client.ts`) : aucun appel pour un visiteur, un seul pour un
+   utilisateur connecté (`/auth/refresh` renvoie aussi le compte). Côté back, la réponse aux
+   requêtes de contrôle CORS (`OPTIONS`, avant chaque écriture) est gardée 2 h par le navigateur
+   (`CORS_PREFLIGHT_MAX_AGE_SECONDS`). En production, servir l'API sur la même origine que le
+   front les supprimerait toutes.
+4. **Dire ce qui se passe.** Après 3 s d'attente, `LoadingMessage` et `Form` disent que le
+   réseau est lent et que ça continue (`useSlowNetwork`). Sans réseau, `Layout` affiche un
+   bandeau (`useOnline`) et relit la session dès son retour.
+5. **Chaque nouvel appel se demande** : peut-il partir en même temps qu'un autre plutôt
+   qu'après ? Sa réponse peut-elle être affichée d'avance (dernière valeur connue) ? Faut-il
+   l'empêcher de partir deux fois (une réservation qui part deux fois sur un réseau lent) ?
+6. **Lourdeurs à venir** : charger Leaflet seulement sur l'écran de la carte (`React.lazy`),
+   donner d'abord l'information en texte (« Votre chauffeur arrive dans 4 min »), mettre en cache
+   les tuiles déjà vues.
+
+**Tester** (Chrome ou Edge) :
+
+```
+cd FRONTEND && npm run build && npm run preview
+```
+
+(`preview` écoute sur le port 5173, celui qu'autorise le CORS du back.) **Jamais `npm run dev`
+pour cette mesure** : Vite y sert des centaines de modules non regroupés, dont React en version de
+développement (plus de 1 Mo) ; en Regular 2G, plus de 20 s. L'écran d'avant le JavaScript doit
+quand même y rester lisible : le CSS est lié dans `index.html` (pas importé par `main.tsx`) et
+chaque SVG porte une largeur et une hauteur par défaut. Dans les DevTools, onglet **Network**, choisir **Regular 2G**, puis :
+- **première visite** : cocher « Disable cache » et vider le service worker (onglet Application →
+  Storage → Clear site data) ;
+- **réouverture** : décocher « Disable cache », recharger ;
+- regarder quand l'écran devient utile (onglet Performance ou captures de Network) et combien
+  d'appels à l'API partent, puis refaire le parcours de la fonctionnalité.
+
 ---
 
 ## 3. Ajouter une fonctionnalité — liste de contrôle
@@ -222,3 +281,5 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
 7. `@require_login(...)` sur la route, et un test qui prouve qu'un rôle non autorisé est refusé.
 8. Front : `npm run api:types`, puis `api/` → `hooks/` → `components/` → `pages/` → `routes/`.
 9. `pytest`, `npm run lint`, `npm run build` passent.
+10. Parcours testé en **« Regular 2G »** : objectifs du tableau
+    [ci-dessus](#réseau-faible--objectif-regular-2g) tenus, aucun aller-retour évitable.

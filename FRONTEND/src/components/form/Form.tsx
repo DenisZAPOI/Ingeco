@@ -1,5 +1,7 @@
 import { useEffect, useRef, type FormEvent, type ReactNode } from 'react';
 
+import { useSlowNetwork } from '../../hooks/useSlowNetwork';
+
 type FormProps = {
   onSubmit: () => void;
   submitLabel: string;
@@ -14,6 +16,7 @@ type FormProps = {
 /** A form with its general message and its large submit button. */
 export function Form({ onSubmit, submitLabel, submitting, error, success, children }: FormProps) {
   const messageRef = useRef<HTMLDivElement>(null);
+  const slow = useSlowNetwork(submitting);
 
   // Move the focus to the message: a screen reader announces it, and on a
   // small screen the user sees it instead of a button that "did nothing".
@@ -43,6 +46,12 @@ export function Form({ onSubmit, submitLabel, submitting, error, success, childr
           </p>
         )}
       </div>
+      {/* Without it, on 2G, the user taps again or leaves while the request is on its way. */}
+      {slow && (
+        <p role="status" className="note">
+          Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
+        </p>
+      )}
       <button type="submit" className="button button-block" disabled={submitting}>
         {submitting ? 'Envoi en cours…' : submitLabel}
       </button>

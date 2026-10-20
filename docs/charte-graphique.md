@@ -82,6 +82,7 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 |---|---|---|---|
 | Texte courant | 18 px (`1rem`) | normale | taille de `:root` (112,5 %) |
 | Petit texte (mentions) | 16 px, **jamais moins** | normale | `--font-size-small` |
+| Phrase d'introduction d'un écran (`.lead`) | 20 px | normale | `--font-size-lead` |
 | Titre de page `h1` | 31,5 px | 700 | `--font-size-h1` |
 | Titre de partie `h2` | 24,75 px | 700 | `--font-size-h2` |
 | Libellé de champ, bouton, message | 18 px | 600 | `--font-weight-strong` |
@@ -111,6 +112,8 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--touch-target` | 58,5 px | **Hauteur minimale** de tout ce qui se touche (le minimum recommandé est 48 px) |
 | `--checkbox-size` | 27 px | Case à cocher |
 | `--content-width` | 720 px | Largeur maximale du contenu |
+| `--icon-size` | 27 px | Icône dans un bouton ou une pastille |
+| `--logo-size` | 72 px | Logo de l'écran d'accueil |
 
 On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
 
@@ -148,6 +151,9 @@ dans `components/`, documenté ici.
 - Pendant l'envoi, le bouton est désactivé et dit « Envoi en cours… » (composant `Form`).
 - Une action qui change de page est un lien (`<Link className="button">`), une action qui agit
   est un `<button>`.
+- Une action tertiaire (« J'ai reçu un code ») est un lien `link-action` : seul sur sa ligne,
+  aussi haut qu'un bouton pour se toucher facilement.
+- Une icône dans un bouton : `button-icon`, avant le libellé.
 
 ### Formulaires
 
@@ -174,8 +180,22 @@ dans `components/`, documenté ici.
 |---|---|
 | `alert alert-error` | Échec d'un envoi, erreur de chargement (avec « Réessayer ») |
 | `alert alert-success` | Confirmation d'un enregistrement |
+| `alert alert-info` | État de l'application qui n'est ni une erreur ni une réussite (pas de réseau) ; fond `surface`, texte courant |
 | `note` | Information secondaire, en gris (« Mot de passe oublié ? … ») |
-| `panel` | Encadré gris clair pour regrouper une information (état du service, récapitulatif) |
+| `panel` | Encadré gris clair pour regrouper une information (état du service, récapitulatif, aide) |
+
+### Écran d'accueil
+
+Le seul écran qui présente le service. De haut en bas : le logo, « Bienvenue », une phrase
+(`lead`), trois atouts en liste (`benefits` : une pastille verte claire avec une icône, puis le
+texte), **« Créer un compte »** en action principale, « J'ai déjà un compte » en secondaire,
+« J'ai reçu un code » en lien, puis l'encadré « Besoin d'aide ? » du centre d'appel.
+
+- L'encadré d'aide n'apparaît que si `VITE_CALL_CENTER_PHONE` est renseigné (numéro fourni par
+  le client) : jamais de numéro fictif. Le numéro est écrit en entier, en gros, au-dessus du
+  bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre téléphone.
+- L'écran est recopié dans `index.html` pour s'afficher avant le JavaScript (voir
+  [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)) : modifier les deux.
 
 Un message d'erreur porte `role="alert"`, une confirmation `role="status"` : un lecteur d'écran
 les annonce.
@@ -185,6 +205,15 @@ les annonce.
 Chaque appel au réseau passe par `RequestState` : « Chargement… » pendant l'attente, puis le
 contenu, ou un message d'erreur avec un bouton « Réessayer ». Jamais d'écran blanc, jamais de
 roue qui tourne sans fin (le client abandonne au bout de 15 s).
+
+- **D'abord ce qu'on sait déjà.** Un écran s'affiche tout de suite avec ce qui est connu (le
+  prénom et le rôle de la dernière session, par exemple) ; l'attente ne concerne que la partie
+  qui vient du réseau.
+- **Réseau lent** : après 3 s, « Chargement… » devient « Le réseau est lent. Merci de patienter,
+  le chargement continue… » ; pendant un envoi, une note dit « Ne fermez pas l'application,
+  l'envoi continue. ».
+- **Sans réseau** : un bandeau `alert alert-info` en haut de l'écran, « Pas de connexion
+  internet. L'application reprendra dès le retour du réseau. ».
 
 ---
 
@@ -237,7 +266,9 @@ numérique). Objectif : niveau AA du référentiel WCAG.
   guyanais.
 - Une icône n'est jamais seule : elle accompagne un texte. Si elle est décorative,
   `aria-hidden="true"`.
-- Icônes et logo en **SVG** intégré, dans les couleurs de la charte.
+- Icônes et logo en **SVG** intégré, dans les couleurs de la charte : `components/ui/icons.tsx`
+  (trait de 2 px, couleur du texte `currentColor`, `aria-hidden`). Le logo y prend ses couleurs par
+  des classes (`logo-ground`, `logo-road`, `logo-sun`), jamais par des valeurs en dur.
 - Le logo actuel (`public/favicon.svg`) : une route vers l'horizon et un soleil jaune sur un carré
   vert arrondi. À remplacer si le client fournit le sien.
 - La carte (étape 4) utilise les tuiles OpenStreetMap ; les repères (usager, chauffeur, arrivée)
@@ -268,3 +299,5 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 5. Testé à 360 px de large : pas de défilement horizontal, tout se touche facilement.
 6. Testé au clavier : tout est accessible, le focus se voit.
 7. Texte agrandi à 200 % : rien ne se chevauche.
+8. Testé en **« Regular 2G »** (DevTools) : l'écran ne reste jamais vide, les attentes sont
+   expliquées (voir [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)).

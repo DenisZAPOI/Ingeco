@@ -28,6 +28,7 @@
   /* --- Typography ------------------------------------------------------------ */
   --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-size-small: 0.889rem; /* 16 px: never smaller */
+  --font-size-lead: 1.125rem; /* 20 px: the one sentence that presents a screen */
   --font-size-h2: 1.375rem;
   --font-size-h1: 1.75rem;
   --font-weight-strong: 600;
@@ -48,6 +49,8 @@
   --touch-target: 3.25rem;
   --checkbox-size: 1.5rem;
   --content-width: 40rem;
+  --icon-size: 1.5rem;
+  --logo-size: 4rem;
 
   font-family: var(--font-family);
   font-size: 112.5%; /* 18 px */
@@ -230,6 +233,16 @@ a:hover {
   color: var(--color-success);
 }
 
+/* A state of the app that is neither a failure nor a success (no network). */
+.alert-info {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.main > .alert {
+  margin-top: var(--space);
+}
+
 .alert > p {
   margin: 0;
 }
@@ -317,6 +330,119 @@ a:hover {
   height: var(--checkbox-size);
   flex-shrink: 0;
   accent-color: var(--color-primary);
+}
+
+/* --- Icons and logo ------------------------------------------------------------ */
+
+.logo-ground {
+  fill: var(--color-primary);
+}
+
+.logo-road {
+  fill: none;
+  stroke: var(--color-on-primary);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logo-sun {
+  fill: var(--color-accent);
+}
+
+.button-icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin-right: var(--space-s);
+  flex-shrink: 0;
+}
+
+/* --- Welcome screen --------------------------------------------------------------- */
+
+.welcome-hero {
+  margin-top: var(--space-l);
+}
+
+.welcome-logo {
+  display: block;
+  width: var(--logo-size);
+  height: var(--logo-size);
+}
+
+.welcome-hero h1 {
+  margin-top: var(--space);
+  margin-bottom: var(--space-s);
+}
+
+.lead {
+  font-size: var(--font-size-lead);
+}
+
+.benefits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  margin: var(--space-l) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: var(--space);
+}
+
+.benefit-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.benefit-icon svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+/* A link that is an action of its own: on its own line, as easy to touch as a button. */
+.link-action {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: var(--touch-target);
+}
+
+.help {
+  margin-top: var(--space-l);
+  padding: var(--space);
+}
+
+.help-phone {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-title);
+}
+
+.help h2 {
+  margin-top: var(--space-s);
+}
+
+/* --- First screen before the JavaScript (index.html) ---------------------------
+   The script in index.html picks which of the two the user sees: the welcome
+   screen for a visitor on the home page, a waiting message otherwise. */
+
+.shell-loading,
+[data-shell='loading'] .shell-welcome {
+  display: none;
+}
+
+[data-shell='loading'] .shell-loading {
+  display: block;
 }
 
 /* --- Utilities ----------------------------------------------------------------- */

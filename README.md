@@ -244,13 +244,13 @@ de schéma déjà livré doit être annoncé : l'API devra suivre.
 
 ## 6. Règles de travail
 
-- Pas de push direct sur `main` : une branche par fonctionnalité (`feature/...`, `fix/...`) et une
+- Pas de push direct sur `main` : une branche par fonctionnalité (`feature/...`, `fix/...`, `perf/...`) et une
   pull request relue par l'autre développeur.
 - **Intégration continue** (GitHub Actions, `.github/workflows/ci.yml`) : chaque pull request
   lance les tests du back (`pytest`), le lint et le build du front, et vérifie que les types de
   l'API du front sont à jour (`npm run api:types`). **Une pull request ne peut être mergée que si
   les trois passent.**
-- Messages de commit courts, à l'impératif, préfixés : `feat:`, `fix:`, `docs:`, `refactor:`,
+- Messages de commit courts, à l'impératif, préfixés : `feat:`, `fix:`, `perf:`, `docs:`, `refactor:`,
   `test:`, `chore:`.
 - Les secrets (mots de passe, clés) vont dans les fichiers `.env`, jamais sur GitHub.
 - Aucune donnée personnelle réelle dans les tests, les données d'exemple ou les logs (RGPD).

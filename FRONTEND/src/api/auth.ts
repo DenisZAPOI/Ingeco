@@ -1,5 +1,5 @@
 import type { components } from '../types/api';
-import { request } from './client';
+import { request, storedSession } from './client';
 
 export type User = components['schemas']['UserDto'];
 export type Role = User['role'];
@@ -25,4 +25,18 @@ export function logout(): Promise<void> {
 
 export function fetchMe(): Promise<User> {
   return request<User>('GET', '/auth/me');
+}
+
+/** The logged-in account, or null for a visitor, in as few calls as the
+ *  cookies allow: none for a visitor, one otherwise (the renewal returns the
+ *  account too). Rejects with a 401 when the session has ended. */
+export async function fetchSession(): Promise<User | null> {
+  switch (storedSession()) {
+    case 'none':
+      return null;
+    case 'expired':
+      return request<User>('POST', '/auth/refresh');
+    case 'active':
+      return fetchMe();
+  }
 }

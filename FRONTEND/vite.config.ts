@@ -27,4 +27,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
+  // Same port: the built app (the one to test on a slow network) talks to the API too.
+  preview: {
+    port: 5173,
+    strictPort: true,
+  },
 });

@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 
 SECRET_KEY_MIN_LENGTH = 32
 MAX_BODY_SIZE_BYTES = 1024 * 1024
+# The front and the API are on different origins: before each write, the
+# browser asks the API for permission (OPTIONS). Kept 2 hours (Chrome's cap),
+# so a write costs one round trip instead of two on a 2G network.
+CORS_PREFLIGHT_MAX_AGE_SECONDS = 2 * 60 * 60
 
 
 def create_app(config: type[Config] = Config) -> Flask:
@@ -40,7 +44,12 @@ def create_app(config: type[Config] = Config) -> Flask:
     database.initialize(config.DATABASE_URL)
 
     # supports_credentials: the browser sends the session cookie with front-end calls.
-    CORS(app, resources={r"/*": {"origins": config.CORS_ORIGINS}}, supports_credentials=True)
+    CORS(
+        app,
+        resources={r"/*": {"origins": config.CORS_ORIGINS}},
+        supports_credentials=True,
+        max_age=CORS_PREFLIGHT_MAX_AGE_SECONDS,
+    )
     socketio.init_app(app, cors_allowed_origins=config.CORS_ORIGINS)
     jwt.init_app(app)
     access.register_jwt_callbacks(jwt)

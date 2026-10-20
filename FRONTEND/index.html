@@ -5,10 +5,71 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b5d3b" />
+    <meta name="description" content="Des trajets solidaires vers l'emploi, la formation, les soins et les démarches, en Guyane." />
     <title>En route pour l'emploi</title>
+    <!-- Linked here rather than imported by main.tsx: the screen below must be
+         styled before the JavaScript arrives, in dev as in production. -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <script>
+      // Before the JavaScript of the app (≈ 90 kB: about 15 s on GPRS at the
+      // first visit), the page below already shows the real welcome screen.
+      // It would be wrong for someone logged in last time (same key as
+      // src/lib/sessionHint.ts) or on another page: they get a waiting message.
+      try {
+        if (location.pathname !== '/' || localStorage.getItem('session-hint')) {
+          document.documentElement.dataset.shell = 'loading';
+        }
+      } catch {
+        // Storage blocked: the welcome screen, corrected by the app if needed.
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Replaced by the app as soon as it starts. The welcome screen is a copy
+         of Layout.tsx, WelcomePage.tsx and icons.tsx: change them together
+         (the call-center block comes with the app: it needs its .env value). Its links are
+         real links, they work before the app has loaded. -->
+    <div id="root">
+      <header class="header">
+        <a href="/" class="brand">En route pour l'emploi</a>
+      </header>
+      <main class="main">
+        <section class="shell-welcome">
+          <div class="welcome-hero">
+            <svg class="welcome-logo" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <rect class="logo-ground" width="64" height="64" rx="14" />
+              <path class="logo-road" d="M14 44h36M20 44l6-20h12l6 20" />
+              <circle class="logo-sun" cx="32" cy="16" r="5" />
+            </svg>
+            <h1>Bienvenue</h1>
+            <p class="lead">Des trajets solidaires pour aller au travail, en formation, aux soins et aux démarches.</p>
+          </div>
+          <ul class="benefits">
+            <li class="benefit">
+              <span class="benefit-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11" /><rect x="3" y="11" width="18" height="6" rx="2" /><path d="M6 17v2M18 17v2M7 14h.01M17 14h.01" /></svg></span>
+              Un chauffeur vient vous chercher et vous dépose.
+            </li>
+            <li class="benefit">
+              <span class="benefit-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4z" /><path d="M15 6v2M15 11v2M15 16v2" /></svg></span>
+              Une association, une mairie ou un employeur peut payer tout ou partie du trajet.
+            </li>
+            <li class="benefit">
+              <span class="benefit-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="1.5" /><path d="M11 7v6h5l2.5 5" /><path d="M11 10h4" /><path d="M8 10.5a5 5 0 1 0 6.5 6.5" /></svg></span>
+              Un véhicule adapté au fauteuil roulant, sur demande.
+            </li>
+          </ul>
+          <nav class="stack" aria-label="Accès au compte">
+            <a href="/inscription" class="button button-block">Créer un compte</a>
+            <a href="/connexion" class="button button-block button-secondary">J'ai déjà un compte</a>
+          </nav>
+          <p class="note">
+            Compte créé par le centre d'appel, ou vous êtes chauffeur ?
+            <a href="/activation" class="link-action">J'ai reçu un code</a>
+          </p>
+        </section>
+        <p class="shell-loading" role="status">Chargement…</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
