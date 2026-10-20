@@ -5,10 +5,47 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b5d3b" />
+    <meta name="description" content="Des trajets solidaires vers l'emploi, la formation, les soins et les démarches, en Guyane." />
     <title>En route pour l'emploi</title>
+    <script>
+      // Before the JavaScript of the app (≈ 90 kB: about 15 s on GPRS at the
+      // first visit), the page below already shows the real welcome screen.
+      // It would be wrong for someone logged in last time (same key as
+      // src/lib/sessionHint.ts) or on another page: they get a waiting message.
+      try {
+        if (location.pathname !== '/' || localStorage.getItem('session-hint')) {
+          document.documentElement.dataset.shell = 'loading';
+        }
+      } catch {
+        // Storage blocked: the welcome screen, corrected by the app if needed.
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Replaced by the app as soon as it starts. The welcome screen is a copy
+         of Layout.tsx and WelcomePage.tsx: change them together. Its links are
+         real links, they work before the app has loaded. -->
+    <div id="root">
+      <header class="header">
+        <a href="/" class="brand">En route pour l'emploi</a>
+      </header>
+      <main class="main">
+        <section class="shell-welcome">
+          <h1>Bienvenue</h1>
+          <p>Des trajets solidaires vers l'emploi, la formation, les soins et les démarches.</p>
+          <nav class="stack" aria-label="Accès au compte">
+            <a href="/connexion" class="button button-block">Se connecter</a>
+            <a href="/inscription" class="button button-block">Créer un compte</a>
+            <a href="/activation" class="button button-block button-secondary">J'ai reçu un code</a>
+          </nav>
+          <p class="note">
+            Vous êtes chauffeur ? Votre compte est créé par l'équipe après la vérification de vos documents. Utilisez
+            ensuite le code reçu.
+          </p>
+        </section>
+        <p class="shell-loading" role="status">Chargement…</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

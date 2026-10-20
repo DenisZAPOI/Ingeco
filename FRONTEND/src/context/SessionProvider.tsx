@@ -1,38 +1,59 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { fetchMe, logout as logoutRequest, type User } from '../api/auth';
+import { fetchSession, logout as logoutRequest, type User } from '../api/auth';
 import { ApiError, onSessionExpired } from '../api/client';
 import { errorMessage } from '../lib/errorMessage';
+import { readSessionHint, saveSessionHint, type SessionHint } from '../lib/sessionHint';
 import { SessionContext, type Session, type SessionStatus } from './sessionContext';
 
 const UNAUTHORIZED = 401;
 
-/** Reads the session once at startup, then keeps the logged-in account for every screen. */
+/** Reads the session once at startup, then keeps the logged-in account for every screen.
+ *  Screens are not held back meanwhile: they draw from the hint left by the
+ *  last session, and the API confirms or corrects it. */
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
+  const [hint] = useState<SessionHint | null>(readSessionHint);
   const [status, setStatus] = useState<SessionStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  // A visitor can log in before the startup read answers (it can take seconds
+  // on 2G): that answer is then out of date and must not undo the login.
+  const accountSetByScreen = useRef(false);
+
+  // Every change of account goes through here, so the hint always matches.
+  const applyUser = useCallback((next: User | null) => {
+    saveSessionHint(next);
+    setUserState(next);
+    setError(null);
+    setStatus('ready');
+  }, []);
+
+  const setUser = useCallback(
+    (next: User | null) => {
+      accountSetByScreen.current = true;
+      applyUser(next);
+    },
+    [applyUser],
+  );
 
   useEffect(() => {
     // The session could not be renewed: back to the visitor screens.
     onSessionExpired(() => setUser(null));
-  }, []);
+  }, [setUser]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchMe()
+    const isOutdated = () => cancelled || accountSetByScreen.current;
+    fetchSession()
       .then((me) => {
-        if (cancelled) return;
-        setUser(me);
-        setStatus('ready');
+        if (!isOutdated()) applyUser(me);
       })
       .catch((caught: unknown) => {
-        if (cancelled) return;
+        if (isOutdated()) return;
         // 401: simply nobody logged in on this phone.
         if (caught instanceof ApiError && caught.status === UNAUTHORIZED) {
-          setUser(null);
-          setStatus('ready');
+          applyUser(null);
           return;
         }
         setError(errorMessage(caught));
@@ -41,7 +62,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, [attempt, applyUser]);
 
   const retry = useCallback(() => {
     setStatus('loading');
@@ -55,11 +76,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // while the user (on a shared phone) thinks they are logged out.
     await logoutRequest();
     setUser(null);
-  }, []);
+  }, [setUser]);
 
   const session = useMemo<Session>(
-    () => ({ user, status, error, retry, setUser, logout }),
-    [user, status, error, retry, logout],
+    () => ({ user, status, hint: status === 'ready' ? null : hint, error, retry, setUser, logout }),
+    [user, status, hint, error, retry, setUser, logout],
   );
 
   return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;

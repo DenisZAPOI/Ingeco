@@ -46,11 +46,27 @@ export function onSessionExpired(listener: () => void): void {
   sessionExpiredListener = listener;
 }
 
+export type StoredSession = 'none' | 'expired' | 'active';
+
+/** What the session cookies say, without a call. Each CSRF cookie lives exactly
+ *  as long as its HttpOnly token: no refresh one means nobody is logged in, no
+ *  access one means the 15 minutes are over. On 2G, each call avoided saves a
+ *  third of a second or more. */
+export function storedSession(): StoredSession {
+  if (!readCookie(REFRESH_CSRF_COOKIE)) return 'none';
+  return readCookie(ACCESS_CSRF_COOKIE) ? 'active' : 'expired';
+}
+
 export async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
   try {
     return await send<T>(method, path, body);
   } catch (error) {
-    if (!(error instanceof ApiError) || error.status !== UNAUTHORIZED || NO_RENEWAL_PATHS.has(path)) {
+    if (
+      !(error instanceof ApiError) ||
+      error.status !== UNAUTHORIZED ||
+      NO_RENEWAL_PATHS.has(path) ||
+      storedSession() === 'none'
+    ) {
       throw error;
     }
     // The access token lasts 15 minutes: renew it once, then replay the call.
