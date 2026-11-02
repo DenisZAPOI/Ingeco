@@ -155,7 +155,7 @@ fictives, mot de passe commun **`Trajet-2026!`**.
 | 0694 00 00 03 | Chloé | Chauffeur |
 | 0694 00 00 04 | David | Référent partenaire |
 | 0694 00 00 05 | Emma | Opérateur (centre d'appel) |
-| 0694 00 00 06 | Farid | Administrateur |
+| 0694 00 00 06 | Farid | Administrateur : « Comptes » sur l'accueil pour créer un chauffeur, suspendre, générer un code |
 | 0694 00 00 07 | Gaëlle | Usager créé par le centre d'appel, **à activer** avec le code `12345678` (« J'ai reçu un code ») |
 | 0694 00 00 08 | Hugo | Usager suspendu |
 
