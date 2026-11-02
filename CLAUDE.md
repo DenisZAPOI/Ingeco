@@ -33,7 +33,7 @@ Le socle reprend celui de ProjectOrganizer (R5.A.05), que Denis connaît déjà.
 - **Front** : React 19 + TypeScript 6, Vite 8, react-router-dom 7, PWA (vite-plugin-pwa), CSS maison sans framework. Leaflet + OpenStreetMap et socket.io-client seront ajoutés à l'étape 4.
 - **Contrat d'API** : l'OpenAPI généré par le back. Les types TypeScript du front en sont **générés** (`npm run api:types`), jamais écrits à la main.
 - **Auth** : JWT dans des cookies `HttpOnly` (Flask-JWT-Extended), jeton d'accès de 15 min renouvelé par un jeton de 30 jours, CSRF par double envoi, mots de passe hachés en scrypt (Werkzeug). Rôle contrôlé côté back par `@require_login(...)` (`utils/access.py`). Détail dans [docs/architecture.md](docs/architecture.md).
-- **BD** : fournie par l'équipe parcours C (SGBD à confirmer). En local, SQLite vide (`sqlite:///local.db`) ou données factices dans `repository/` tant que le schéma n'est pas livré. SQLite n'est qu'un branchement temporaire (plus permissif que les vrais SGBD) : dès que le SGBD est connu, travailler en local sur le même SGBD et retirer SQLite. Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
+- **BD** : fournie par l'équipe parcours C. MySQL 8.4 (à confirmer avec eux), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307, schéma `sql/schema-mvp.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé). Pilote PyMySQL. Les `repository/` sont encore sur données factices en mémoire. Les tests et la CI tournent sur SQLite en mémoire. Le déploiement sera choisi en fin de projet. Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
 
 ## Structure du repo
 
@@ -61,6 +61,10 @@ FRONTEND/
     pages/         # une page par route
     routes/        # AppRoutes.tsx
     styles/        # global.css (variables)
+sql/
+  schema-mvp.sql         # schéma v2 + données de référence et de test, chargé dans le conteneur
+  schema-hors-scope.sql  # bons, structures, documents, formation : pas encore chargé
+compose.yaml             # base MySQL locale (Docker)
 docs/
 ```
 
@@ -79,6 +83,10 @@ cd FRONTEND && npm install && cp .env.example .env
 Au quotidien :
 
 ```
+# base MySQL locale (Docker, compose.yaml ; .env à la racine copié de .env.example)
+docker compose up -d
+docker compose down -v                     # efface la base, rechargée depuis sql/schema-mvp.sql au prochain up
+
 # back (http://localhost:5000, Swagger sur /apidoc/swagger)
 cd BACKEND && .venv/Scripts/python -m app
 cd BACKEND && .venv/Scripts/python -m pytest
@@ -126,10 +134,10 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 - Réservation immédiate ou programmée
 - Mise en relation avec un chauffeur disponible
 - Côté chauffeur : accepter, démarrer, clôturer une course
-- Suivi du trajet sur carte, avec la photo et le profil du chauffeur (demandé par la cliente pour la sécurité ; changement de schéma à demander à l'équipe BD)
+- Suivi du trajet sur carte, avec la photo et le profil du chauffeur (demandé par la cliente pour la sécurité ; colonne `photo` prévue dans `sql/schema-mvp.sql`)
 - Évaluation du trajet
 - Zone desservie limitée au pilote : Cayenne, Rémire-Montjoly et Matoury (environ 5 km autour de Cayenne). Kourou viendra ensuite
-- Bons solidaires : émission, utilisation à la réservation, suivi de consommation
+- Bons solidaires : émission, utilisation à la réservation, suivi de consommation. Leur fonctionnement n'est pas encore spécifié par la cliente : hors du schéma MVP pour l'instant (proposition dans `sql/schema-hors-scope.sql`)
 - Écran opérateur pour réserver au nom d'un usager (tient lieu de centre d'appel)
 - Statistiques administrateur de base
 
@@ -156,7 +164,7 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 ## Ordre de développement
 
 0. ~~Socle back et front~~ (fait : couches, `/health`, page `/diagnostic`, tests, génération des types)
-1. Modèle de données et contrat d'API, en accord avec l'équipe BD
+1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
 2. Authentification et rôles
 3. Parcours de réservation de bout en bout, sur données factices
 4. Temps réel et carte
@@ -177,7 +185,8 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 
 ## Points à confirmer
 
-- **Avec l'équipe BD** : SGBD retenu (le pilote Python s'ajoute alors à `requirements.txt`), date de livraison du schéma, mode d'accès (connexion directe ou autre).
+- **Avec l'équipe BD** : relecture du schéma v2 (`sql/`), réécrit par les développeurs à partir de leur première version (écrite avant le contrat v2) ; confirmation de MySQL 8.4 ; hébergement de la base en production (choisi en fin de projet).
+- **Avec le client** : le fonctionnement des bons solidaires (pourcentage sur un nombre de courses, montant, plafond, budget par structure ?). Tant qu'il n'est pas fixé, les bons restent hors du schéma MVP.
 - **Avec le client** : disponibilité « 24h/24 » ou « en semaine avec créneaux élargis » (le cahier des charges dit les deux).
 - **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
 - **Avec le client** : le centre d'appel est tenu par des personnes dédiées, et tout le monde peut réserver par téléphone (donnés comme confirmés le 13/10/2026, mais absents de la première visio : retrouver la trace écrite de cette réponse). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).

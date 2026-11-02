@@ -258,6 +258,11 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 (dépend d'une réponse du client). Colonne **Étape** : l'étape de l'ordre de développement de
 `CLAUDE.md`.
 
+« À trancher (bons) » : le fonctionnement des bons solidaires (pourcentage, montant, plafond,
+budget par structure) n'est pas encore spécifié par la cliente. Ces cas restent prévus, mais les
+bons et les structures sont hors du schéma MVP tant qu'il n'est pas fixé
+(`sql/schema-hors-scope.sql`).
+
 ### Compte et connexion
 
 | ID | Cas d'utilisation | Acteur principal | Statut | Étape | Routes |
@@ -276,7 +281,7 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 | UC10 | Réserver un trajet immédiat | Usager | MVP | 3 | `GET /communes`, `GET /places`, `POST /rides` |
 | UC11 | Programmer un trajet à l'avance | Usager | MVP | 3 | idem UC10, avec `scheduledAt` |
 | UC12 | Estimer le prix d'un trajet | Usager, Opérateur | MVP | 3 | `POST /rides/estimate` |
-| UC13 | Utiliser un bon solidaire | Usager, Opérateur | MVP | 5 | `POST /vouchers/check` |
+| UC13 | Utiliser un bon solidaire | Usager, Opérateur | À trancher (bons) | 5 | `POST /vouchers/check` |
 | UC14 | Payer sa part | Usager | Simulé | 3 | `POST /rides/{id}/payment` |
 | UC15 | Suivre son trajet sur une carte | Usager | MVP | 4 | `GET /rides/{id}`, `GET /rides/{id}/driver-photo`, événements `ride:updated`, `driver:location` |
 | UC16 | Annuler une réservation | Usager | MVP | 3 | `POST /rides/{id}/cancel` |
@@ -301,10 +306,10 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 
 | ID | Cas d'utilisation | Acteur principal | Statut | Étape | Routes |
 |---|---|---|---|---|---|
-| UC30 | Émettre un bon solidaire | Référent | MVP | 5 | `POST /vouchers` |
-| UC31 | Consulter ses bons et les trajets financés | Référent | MVP | 5 | `GET /vouchers`, `GET /vouchers/{id}` |
-| UC32 | Révoquer un bon | Référent | MVP | 5 | `POST /vouchers/{id}/revoke` |
-| UC33 | Suivre la consommation de sa structure | Référent | MVP | 5 | `GET /partners/me/consumption` |
+| UC30 | Émettre un bon solidaire | Référent | À trancher (bons) | 5 | `POST /vouchers` |
+| UC31 | Consulter ses bons et les trajets financés | Référent | À trancher (bons) | 5 | `GET /vouchers`, `GET /vouchers/{id}` |
+| UC32 | Révoquer un bon | Référent | À trancher (bons) | 5 | `POST /vouchers/{id}/revoke` |
+| UC33 | Suivre la consommation de sa structure | Référent | À trancher (bons) | 5 | `GET /partners/me/consumption` |
 
 ### Opérateur (centre d'appel)
 
@@ -325,7 +330,7 @@ Colonne **Statut** : `MVP` (à développer), `Simulé` (développé, sans effet 
 | UC51 | Gérer les comptes (suspendre, réactiver, marquer prioritaire) | Administrateur | MVP | 2 | `GET /admin/users`, `PATCH /admin/users/{id}` |
 | UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users`, `PUT /admin/users/{id}/photo` |
 | UC53 | Générer un code d'activation | Administrateur | MVP | 2 | `POST /admin/users/{id}/activation-code` |
-| UC54 | Gérer les structures partenaires | Administrateur | MVP | 5 | `GET`, `POST`, `PATCH /admin/partners` |
+| UC54 | Gérer les structures partenaires | Administrateur | À trancher (bons) | 5 | `GET`, `POST`, `PATCH /admin/partners` |
 | UC55 | Superviser les courses (filtres, annulation, remboursements) | Administrateur | MVP | 7 | `GET /admin/rides`, `POST /rides/{id}/cancel` |
 | UC56 | Consulter les statistiques | Administrateur | MVP | 7 | `GET /admin/stats` |
 
@@ -840,6 +845,6 @@ Regroupement des cas d'utilisation MVP par étape de développement, pour en fai
 | 3 | Courses du chauffeur | UC20, UC22 (liste), UC23, UC24, UC26, UC27, UC28 | Disponibilité, courses proposées, course en cours, revenus |
 | 3 | Expiration des courses | UC60 | Aucun (tâche) |
 | 4 | Temps réel et carte | UC15, UC21, UC22 (direct), UC25, UC61, UC62 | Suivi sur carte (usager), carte de la course (chauffeur) |
-| 5 | Bons solidaires | UC13, UC30 à UC33, UC54 | Saisie du code à la réservation, bons du référent, consommation, structures (admin) |
+| 5 | Bons solidaires (fonctionnement à fixer avec la cliente) | UC13, UC30 à UC33, UC54 | Saisie du code à la réservation, bons du référent, consommation, structures (admin) |
 | 6 | Écran opérateur | UC40 à UC45 | Recherche d'usager, création, réservation pour un tiers |
 | 7 | Supervision et statistiques | UC55, UC56 | Liste des courses, tableau de bord |

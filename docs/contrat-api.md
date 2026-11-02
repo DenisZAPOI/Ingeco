@@ -738,3 +738,21 @@ qui demanderait ses propres tables.
 
 Le reste (connexion, données de test, livraison du script) est dans le
 [README, partie 5](../README.md#5-pour-léquipe-base-de-données).
+
+**Où on en est (20/10/2026)**
+
+La première version du schéma de l'équipe BD avait été écrite avant ce contrat. Les développeurs
+l'ont réécrite pour qu'elle le couvre ([sql/schema-mvp.sql](../sql/schema-mvp.sql)), en gardant
+ses choix ; elle reste à relire par l'équipe BD. Réponses qu'elle apporte :
+
+1. SGBD : **MySQL 8.4**, sans type spatial (filtre sur un rectangle `lat`/`lng`, voir
+   [6.1](#61-trouver-les-chauffeurs-et-les-courses-proches)).
+2. Identifiants : **entiers** auto-incrémentés.
+3. Photo du chauffeur (H19) : **en base** (`BLOB`), avec sa date de modification pour le cache.
+4. Montants en centimes (entiers), dates en UTC, statuts et communes contraints (`ENUM`, clés
+   étrangères), règles de [6.5](#65-unicité-et-intégrité) en `CHECK`.
+
+Écart volontaire : les **bons solidaires et les structures partenaires** (3.2, 3.5, 4.4) ne sont
+pas dans le schéma MVP, parce que leur fonctionnement n'est pas encore spécifié par la cliente
+(H7). Une proposition fidèle à ce contrat est dans
+[sql/schema-hors-scope.sql](../sql/schema-hors-scope.sql), avec les autres éléments hors MVP.

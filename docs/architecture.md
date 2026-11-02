@@ -21,8 +21,8 @@ adapté au projet.
 | Configuration | python-dotenv | 1.2.2 |
 | Tests | pytest | 9.1.1 |
 
-Versions figées dans `requirements.txt`. Le pilote de la base (PostgreSQL, MySQL…) sera ajouté
-quand l'équipe BD aura choisi son SGBD. D'ici là : SQLite en local, base vide.
+Versions figées dans `requirements.txt`. Base : MySQL 8.4 en local dans Docker (`compose.yaml`,
+`sql/schema-mvp.sql`), pilote PyMySQL. Les tests tournent sur SQLite en mémoire.
 
 ### Dossiers
 

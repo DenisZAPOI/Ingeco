@@ -54,7 +54,7 @@ Répartition du travail :
 |---|---|
 | Back-end (API) | Python 3.14, Flask, Flask-SocketIO (temps réel), SQLAlchemy (accès à la base), Pydantic (validation), Flask-JWT-Extended (connexion) |
 | Front-end | React 19, TypeScript, Vite, application web installable sur mobile (PWA) |
-| Base de données | **Choisie par l'équipe BD.** En attendant : SQLite, uniquement pour vérifier que la connexion fonctionne |
+| Base de données | **MySQL 8.4**, en local dans Docker (choix de l'équipe BD, à confirmer) |
 | Documentation de l'API | Générée automatiquement (Swagger) : http://localhost:5000/apidoc/swagger |
 
 ## 3. Organisation du dépôt
@@ -68,14 +68,38 @@ BACKEND/      L'API en Python
     models/        La description en Python des tables de l'équipe BD
   tests/
 FRONTEND/     L'interface web (React)
+sql/          Scripts de la base : schema-mvp.sql (chargé), schema-hors-scope.sql (pas encore)
 docs/         Cahier des charges, architecture
+compose.yaml  La base MySQL locale (Docker)
 ```
 
 Le détail de l'organisation du code est dans [docs/architecture.md](docs/architecture.md).
 
 ## 4. Lancer le projet
 
-Prérequis : **Python 3.14** et **Node.js 24**.
+Prérequis : **Python 3.14**, **Node.js 24**, et **Docker** pour la base de données (Docker
+Desktop, ou Docker installé dans WSL : lancer alors les commandes `docker` depuis WSL, dans le
+dossier du dépôt, par exemple `/mnt/c/Users/.../Ingeco`).
+
+### Base de données (MySQL dans Docker)
+
+Un conteneur MySQL 8.4 local, décrit dans `compose.yaml`. Au premier démarrage, il crée la base
+avec `sql/schema-mvp.sql` (schéma et données de test).
+
+```bash
+cp .env.example .env               # puis remplacer les deux mots de passe
+docker compose up -d               # démarre la base sur 127.0.0.1:3307
+docker compose ps                  # « healthy » quand elle est prête
+```
+
+Le script n'est relu que si la base est vide. Après une modification de `sql/schema-mvp.sql` :
+
+```bash
+docker compose down -v             # EFFACE la base
+docker compose up -d               # la recrée avec le script
+```
+
+Pour ouvrir une console SQL : `docker compose exec db mysql -u enroute -p enroute`.
 
 ### Back-end
 
@@ -112,9 +136,11 @@ La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API
 
 ### Comptes de test
 
-Tant que la base n'est pas livrée, les comptes sont des **données factices en mémoire**
+Pour l'instant, l'API lit encore les comptes dans des **données factices en mémoire**
 (`BACKEND/app/repository/user_repository.py`) : ils reviennent à cet état à chaque redémarrage de
-l'API. Personnes fictives, mot de passe commun **`Trajet-2026!`**.
+l'API. Les mêmes comptes sont dans les données de test de `sql/schema-mvp.sql`, sauf David
+(référent partenaire), qui est dans `sql/schema-hors-scope.sql` avec les bons solidaires. Personnes
+fictives, mot de passe commun **`Trajet-2026!`**.
 
 | Téléphone | Prénom | Rôle |
 |---|---|---|
@@ -150,14 +176,15 @@ les données que l'API devra lire et écrire, route par route.
 - Si une fonctionnalité demande une nouvelle table ou une nouvelle colonne, les développeurs
   vous envoient une **demande écrite**. C'est vous qui décidez et qui modifiez le schéma.
 
-### Pourquoi il y a du SQLite pour l'instant
+### La base locale : MySQL 8.4 dans Docker
 
-Pour ne pas vous attendre, l'API est branchée sur **SQLite**, une base contenue dans un simple
-fichier (`BACKEND/local.db`), sans serveur à installer. Cette base est **vide** : elle sert
-uniquement à vérifier que la chaîne interface → API → base fonctionne.
+En local, l'API est branchée sur un conteneur **MySQL 8.4** (`compose.yaml`, voir la
+[partie 4](#4-lancer-le-projet)), créé à partir de `sql/schema-mvp.sql`. Ce script est la version 2
+du schéma, réécrite d'après le [contrat d'API](docs/contrat-api.md) ; `sql/schema-hors-scope.sql`
+garde ce qui n'est pas encore dans le périmètre (bons solidaires, documents, formation).
 
-**Ce n'est pas un choix imposé.** Le jour où vous livrez votre base, on remplace SQLite par
-votre SGBD, et SQLite disparaît du projet.
+Les tests automatiques (`pytest`, CI) tournent encore sur SQLite en mémoire : ils ne lisent pas
+la base. Le déploiement (hébergement de la base) sera choisi en fin de projet.
 
 ### Comment l'API parle à la base : SQLAlchemy
 
@@ -186,9 +213,9 @@ dépend du SGBD :
 
 | SGBD | `DATABASE_URL` | Pilote Python à ajouter dans `requirements.txt` |
 |---|---|---|
-| SQLite (actuel) | `sqlite:///local.db` | Aucun (inclus dans Python) |
+| MySQL (actuel) | `mysql+pymysql://utilisateur:motdepasse@127.0.0.1:3307/nom_base?charset=utf8mb4` | `PyMySQL` et `cryptography` (déjà installés) |
+| SQLite (tests) | `sqlite://` | Aucun (inclus dans Python) |
 | PostgreSQL | `postgresql+psycopg://utilisateur:motdepasse@hote:5432/nom_base` | `psycopg[binary]` |
-| MySQL / MariaDB | `mysql+pymysql://utilisateur:motdepasse@hote:3306/nom_base` | `PyMySQL` |
 | SQL Server | `mssql+pyodbc://utilisateur:motdepasse@hote:1433/nom_base?driver=ODBC+Driver+18+for+SQL+Server` | `pyodbc` (+ pilote ODBC de Microsoft) |
 | Oracle | `oracle+oracledb://utilisateur:motdepasse@hote:1521/?service_name=nom_service` | `oracledb` |
 
@@ -211,17 +238,21 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
 
 ### Ce dont les développeurs ont besoin de votre part
 
-1. **Le SGBD retenu**, le plus tôt possible : le pilote Python et quelques requêtes en
-   dépendent.
-2. **Le script de création du schéma** (`.sql`), à déposer dans le dépôt, par exemple dans un
-   dossier `sql/`. Il fait foi : les classes Python suivent le script, pas l'inverse.
+1. **Confirmer le SGBD** : MySQL 8.4, celui de votre première version. Le pilote Python et
+   quelques requêtes en dépendent.
+2. **Relire le script de création du schéma** du dossier `sql/`. Votre première version avait
+   été écrite avant le contrat d'API v2 : les développeurs l'ont réécrite (version 2) pour
+   qu'elle couvre le contrat, en gardant vos choix (MySQL, noms en français, identifiants
+   entiers). Le script fait foi : les classes Python suivent le script, pas l'inverse. Toute
+   correction passe par une pull request sur `sql/`.
 3. **Les données de référence** (communes desservies : Cayenne, Rémire-Montjoly et Matoury pour
    le pilote ; types de trajets, profils…), et des **données de test
    fictives**. Le RGPD interdit toute donnée personnelle réelle : faux noms, faux téléphones,
    fausses adresses.
 4. **La date de livraison**, même approximative, pour organiser le travail.
-5. **Comment se connecter** : base locale sur chaque machine (avec Docker par exemple), ou base
-   partagée sur un serveur.
+5. **Comment se connecter** : pour le développement, une base locale sur chaque machine, dans
+   Docker (`compose.yaml`, voir la [partie 4](#4-lancer-le-projet)). L'hébergement de la base
+   en production sera choisi en fin de projet.
 
 ### Ce qui nous aiderait (suggestions, pas des obligations)
 
