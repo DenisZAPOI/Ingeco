@@ -1,3 +1,4 @@
+import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { RequestState } from '../components/ui/RequestState';
 import { useHealth } from '../hooks/useHealth';
 
@@ -7,17 +8,19 @@ export function DiagnosticPage() {
 
   return (
     <section>
-      <h1>État du service</h1>
-      <RequestState loading={loading} error={error} onRetry={retry}>
-        {health && (
-          <ul className="panel">
-            <li>API : {health.status === 'ok' ? 'en ligne' : 'dégradée'}</li>
-            <li>
-              Base de données : {health.database.reachable ? `joignable (${health.database.dialect})` : 'injoignable'}
-            </li>
-          </ul>
-        )}
-      </RequestState>
+      <PageHero title="État du service" />
+      <PageSheet>
+        <RequestState loading={loading} error={error} onRetry={retry}>
+          {health && (
+            <ul className="panel">
+              <li>API : {health.status === 'ok' ? 'en ligne' : 'dégradée'}</li>
+              <li>
+                Base de données : {health.database.reachable ? `joignable (${health.database.dialect})` : 'injoignable'}
+              </li>
+            </ul>
+          )}
+        </RequestState>
+      </PageSheet>
     </section>
   );
 }

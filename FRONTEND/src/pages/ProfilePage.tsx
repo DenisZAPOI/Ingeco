@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { User } from '../api/auth';
+import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { CheckboxField } from '../components/form/CheckboxField';
 import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
@@ -12,13 +13,22 @@ import { formatPhone } from '../lib/phone';
 
 export function ProfilePage() {
   const { user } = useSession();
-  // Shown from the last session's hint: the account itself (phone, e-mail)
-  // arrives with the API's confirmation of the session.
-  if (!user) return <LoadingMessage />;
 
   return (
     <section>
-      <h1>Mon profil</h1>
+      <PageHero title="Mon profil" />
+      <PageSheet>
+        {/* Shown from the last session's hint: the account itself (phone,
+            e-mail) arrives with the API's confirmation of the session. */}
+        {user ? <Profile user={user} /> : <LoadingMessage />}
+      </PageSheet>
+    </section>
+  );
+}
+
+function Profile({ user }: { user: User }) {
+  return (
+    <>
       <p>
         Numéro de téléphone : <strong>{formatPhone(user.phone)}</strong>
         <br />
@@ -26,7 +36,7 @@ export function ProfilePage() {
       </p>
       <IdentityForm user={user} />
       <PasswordForm />
-    </section>
+    </>
   );
 }
 

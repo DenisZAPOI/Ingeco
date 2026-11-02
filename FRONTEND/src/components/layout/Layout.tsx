@@ -5,6 +5,7 @@ import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
 import { errorMessage } from '../../lib/errorMessage';
 import { ErrorAlert } from '../ui/ErrorAlert';
+import { LogoMark } from '../ui/icons';
 
 export function Layout() {
   const { user, status, error, retry, logout } = useSession();
@@ -41,6 +42,7 @@ export function Layout() {
     <>
       <header className="header">
         <Link to="/" className="brand">
+          <LogoMark className="brand-mark" />
           En route pour l'emploi
         </Link>
         {user && (
@@ -50,19 +52,22 @@ export function Layout() {
         )}
       </header>
       <main className="main">
-        {!online && (
-          <p role="status" className="alert alert-info">
-            Pas de connexion internet. L'application reprendra dès le retour du réseau.
-          </p>
-        )}
-        {logoutError && user && (
-          <p role="alert" className="alert alert-error">
-            {logoutError}
-          </p>
-        )}
-        {/* Screens are not held back by the session read (see SessionProvider):
-            only its failure is shown, the offline message already covers a lost network. */}
-        {online && status === 'error' && error && <ErrorAlert message={error} onRetry={retry} />}
+        {/* On the green, between the header and the band: seen first, on every screen. */}
+        <div className="layout-alerts">
+          {!online && (
+            <p role="status" className="alert alert-info">
+              Pas de connexion internet. L'application reprendra dès le retour du réseau.
+            </p>
+          )}
+          {logoutError && user && (
+            <p role="alert" className="alert alert-error">
+              {logoutError}
+            </p>
+          )}
+          {/* Screens are not held back by the session read (see SessionProvider):
+              only its failure is shown, the offline message already covers a lost network. */}
+          {online && status === 'error' && error && <ErrorAlert message={error} onRetry={retry} />}
+        </div>
         <Outlet />
       </main>
     </>
