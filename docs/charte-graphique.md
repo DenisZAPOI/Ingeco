@@ -33,7 +33,9 @@ un réseau faible. Chaque choix en découle.
 2. **Gros, lisible, contrasté.** Texte de base à 18 px, cibles tactiles de 58 px de haut, contrastes
    bien au-dessus du minimum légal.
 3. **Des mots simples.** Le texte dit ce qui se passe et quoi faire, sans jargon.
-4. **Léger.** Police du téléphone, aucune image lourde, aucune bibliothèque d'interface.
+4. **Léger.** Police du téléphone, aucune image lourde, aucune bibliothèque d'interface. La
+   profondeur vient des formes, des ombres douces et d'un motif SVG intégré : quelques centaines
+   d'octets de CSS, rien à télécharger en plus.
 5. **Pareil partout.** Un bouton, un champ, un message d'erreur ont toujours la même forme et la
    même place.
 
@@ -51,17 +53,21 @@ Vert forêt et jaune soleil : l'identité de l'application, qui évoque la Guyan
 | `--color-primary-hover` | `#08452c` | Survol du vert | 11,06:1 sur blanc |
 | `--color-primary-soft` | `#e3efe9` | Fond léger vert (survol du bouton secondaire, message de réussite) | Texte vert dessus : 6,73:1 |
 | `--color-on-primary` | `#ffffff` | Texte et bordures posés sur le vert | 7,95:1 |
-| `--color-accent` | `#f2b705` | Anneau de focus dans l'en-tête, petits repères | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
-| `--color-text` | `#1a1a1a` | Texte courant | 17,4:1 sur blanc |
+| `--color-on-primary-muted` | `#cfe3da` | Texte secondaire sur le bandeau vert (« Étape 2 sur 4 », phrase d'introduction) | 5,92:1 sur le vert |
+| `--color-accent` | `#f2b705` | Anneau de focus sur le vert, barre de progression, trait du motif | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
+| `--color-accent-soft` | `#fdf1c7` | Pastille « soleil » derrière une icône (action principale, état d'un trajet) | |
+| `--color-on-accent-soft` | `#6b4f00` | Icône ou texte sur `accent-soft` | 6,77:1 |
+| `--color-text` | `#1a1a1a` | Texte courant | 17,4:1 sur blanc, 15,51:1 sur `page` |
 | `--color-muted` | `#555555` | Texte secondaire (aide, note) | 7,46:1 sur blanc, 6,81:1 sur `surface` |
-| `--color-background` | `#ffffff` | Fond de page, fond des champs | |
+| `--color-background` | `#ffffff` | Fond des feuilles, des cartes et des champs | |
+| `--color-page` | `#eef3f0` | Fond de page, derrière les feuilles blanches | Texte gris dessus : 6,64:1 |
 | `--color-surface` | `#f3f5f4` | Fond d'un encadré (`.panel`) | |
-| `--color-border` | `#6b6b6b` | Bordure des champs | 5,33:1 sur blanc |
+| `--color-border` | `#7d8581` | Bordure des champs et des choix (verte au survol) | 3,79:1 sur blanc |
 | `--color-error` | `#b3261e` | Erreur : texte, bordure du champ fautif | 6,54:1 sur blanc, 5,62:1 sur `error-soft` |
 | `--color-error-soft` | `#fbeaea` | Fond d'un message d'erreur | |
 | `--color-success` | `#0b5d3b` | Réussite (même vert) | |
 | `--color-success-soft` | `#e3efe9` | Fond d'un message de réussite | |
-| `--color-focus` | `#1a1a1a` | Anneau de focus (jaune dans l'en-tête) | 17,4:1 sur blanc |
+| `--color-focus` | `#1a1a1a` | Anneau de focus (jaune sur le vert de l'en-tête et du bandeau) | 17,4:1 sur blanc |
 
 Règles :
 
@@ -107,13 +113,24 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--space-l` | 27 px | Entre deux blocs |
 | `--space-xl` | 36 px | Avant un titre de partie |
 | `--radius` | 13,5 px | Coins de tout ce qui est cliquable ou encadré |
+| `--radius-large` | 27 px | Coins de la feuille, des cartes d'action et du bas du bandeau |
 | `--border-width` | 2 px | Bordures de champ et de bouton |
 | `--focus-width` | 3 px | Anneau de focus |
 | `--touch-target` | 58,5 px | **Hauteur minimale** de tout ce qui se touche (le minimum recommandé est 48 px) |
 | `--checkbox-size` | 27 px | Case à cocher |
 | `--content-width` | 720 px | Largeur maximale du contenu |
-| `--icon-size` | 27 px | Icône dans un bouton ou une pastille |
-| `--logo-size` | 72 px | Logo de l'écran d'accueil |
+| `--icon-size` | 27 px | Icône dans un bouton ou une pastille ; logo de l'en-tête |
+| `--icon-chip-size` | 49,5 px | Pastille arrondie autour d'une icône (`icon-chip`) |
+| `--sheet-overlap` | 36 px | Part de la feuille qui chevauche le bandeau |
+| `--progress-height` | 6,75 px | Épaisseur de la barre de progression d'une réservation |
+
+Ombres, douces et teintées de vert, jamais noires et dures :
+
+| Variable | Usage |
+|---|---|
+| `--shadow-sheet` | La feuille blanche posée sur le bandeau |
+| `--shadow-card` | Une carte d'action secondaire (« Mon profil ») |
+| `--shadow-button` | Le bouton principal et la carte d'action principale |
 
 On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
 
@@ -124,10 +141,19 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
 - **Pensée pour le téléphone d'abord** (largeur de référence : 360 à 400 px), puis centrée sur
   ordinateur, à 720 px de large au plus.
 - **Une seule colonne.** Un champ par ligne, en pleine largeur.
-- **En-tête** vert : le nom de l'application (retour à l'accueil) à gauche, « Se déconnecter » à
-  droite pour un utilisateur connecté. Rien d'autre.
-- **Ordre d'un écran** : titre `h1`, une phrase d'explication si besoin, le contenu, puis le
-  bouton principal **en bas, en pleine largeur** (`button-block`), puis les liens secondaires.
+- **En-tête** vert : le logo et le nom de l'application (retour à l'accueil) à gauche,
+  « Se déconnecter » à droite pour un utilisateur connecté. Rien d'autre. Les messages de toute
+  l'application (pas de réseau, session illisible) s'affichent juste en dessous, sur le vert.
+- **Bandeau** (`PageHero`) : il prolonge l'en-tête, en vert, avec le bas arrondi et le motif de
+  la route en filigrane à droite. Il porte le `h1` de l'écran, et au besoin une ligne au-dessus
+  (« Étape 2 sur 4 »), une phrase en dessous (`hero-lead`) ou la barre de progression.
+- **Feuille** (`PageSheet`) : le contenu de l'écran, sur une feuille blanche aux coins arrondis
+  qui chevauche le bas du bandeau, avec une ombre douce. Derrière, le fond de page `page`.
+- **Ordre d'un écran** : bandeau avec le titre, puis dans la feuille : une phrase d'explication si
+  besoin, le contenu, le bouton principal **en bas, en pleine largeur** (`button-block`), puis les
+  liens secondaires.
+- Sur ordinateur, l'en-tête et le bandeau occupent toute la largeur ; leur contenu et la feuille
+  restent alignés sur 720 px au centre.
 - Jamais de défilement horizontal. Vérifier chaque écran à 360 px de large.
 
 ---
@@ -144,7 +170,7 @@ dans `components/`, documenté ici.
 | `button` | Fond vert, texte blanc | **L'action principale**, une seule par écran |
 | `button button-secondary` | Fond blanc, bordure et texte verts | Les autres actions (« Afficher », « J'ai reçu un code ») |
 | `button-block` | Pleine largeur | Boutons d'un formulaire ou d'un choix sur téléphone |
-| `header-action` | Bordure blanche sur le vert | Action de l'en-tête uniquement |
+| `header-action` | Bordure blanche sur le vert, texte de 16 px sur une ligne | Action de l'en-tête uniquement |
 
 - Le libellé est un **verbe** qui dit ce qui va se passer : « Créer mon compte », « Valider »,
   « Réserver ce trajet ». Jamais « OK », « Envoyer » seul ou « Cliquez ici ».
@@ -154,6 +180,34 @@ dans `components/`, documenté ici.
 - Une action tertiaire (« J'ai reçu un code ») est un lien `link-action` : seul sur sa ligne,
   aussi haut qu'un bouton pour se toucher facilement.
 - Une icône dans un bouton : `button-icon`, avant le libellé.
+- Le bouton principal porte une ombre verte douce (`--shadow-button`) ; le secondaire n'en a pas.
+
+### Cartes d'action
+
+Sur l'accueil d'un rôle, chaque destination est une grande carte entièrement cliquable
+(`action-card`, un lien) : une pastille avec une icône (`icon-chip`), un titre, une ligne
+d'explication si besoin, et une flèche à droite.
+
+| Classe | Rendu | Quand |
+|---|---|---|
+| `action-card action-card-primary` | Fond vert, pastille jaune pâle (`icon-chip-sun`), texte blanc | La destination principale (« Réserver un trajet »), une seule par écran |
+| `action-card` | Fond blanc, bordure vert pâle, ombre légère | Les autres destinations (« Mon profil ») |
+
+### Choix
+
+`ChoiceGroup` : des boutons radio en grandes tuiles, toutes visibles d'un coup (commune, motif,
+départ maintenant ou plus tard). Le choix fait est vert pâle avec une bordure verte ; le point du
+bouton radio le dit aussi, sans la couleur.
+
+### Réservation
+
+- `StepHeader` : le bandeau d'une étape, avec « Étape 2 sur 4 », la question de l'étape et une
+  barre en quatre segments, jaune jusqu'à l'étape en cours (décorative : le texte dit déjà où l'on
+  est).
+- `TripSummary` : le récapitulatif d'un trajet, libellé gris au-dessus de sa valeur, dans un
+  `panel`.
+- L'état d'un trajet (`status`) : une pastille « soleil » avec la voiture, puis la phrase en gras
+  (« Nous cherchons un chauffeur »).
 
 ### Formulaires
 
@@ -186,16 +240,18 @@ dans `components/`, documenté ici.
 
 ### Écran d'accueil
 
-Le seul écran qui présente le service. De haut en bas : le logo, « Bienvenue », une phrase
-(`lead`), trois atouts en liste (`benefits` : une pastille verte claire avec une icône, puis le
-texte), **« Créer un compte »** en action principale, « J'ai déjà un compte » en secondaire,
-« J'ai reçu un code » en lien, puis l'encadré « Besoin d'aide ? » du centre d'appel.
+Le seul écran qui présente le service. Dans le bandeau : « Bienvenue » et une phrase
+(`hero-lead`). Dans la feuille : trois atouts en liste (`benefits` : une pastille verte claire
+`icon-chip` avec une icône, puis le texte), **« Créer un compte »** en action principale,
+« J'ai déjà un compte » en secondaire, « J'ai reçu un code » en lien, puis l'encadré « Besoin
+d'aide ? » du centre d'appel.
 
 - L'encadré d'aide n'apparaît que si `VITE_CALL_CENTER_PHONE` est renseigné (numéro fourni par
   le client) : jamais de numéro fictif. Le numéro est écrit en entier, en gros, au-dessus du
   bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre téléphone.
 - L'écran est recopié dans `index.html` pour s'afficher avant le JavaScript (voir
-  [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)) : modifier les deux.
+  [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)) : modifier les deux,
+  ainsi que la copie de l'en-tête et du motif du bandeau.
 
 Un message d'erreur porte `role="alert"`, une confirmation `role="status"` : un lecteur d'écran
 les annonce.
@@ -262,8 +318,9 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 
 ## 9. Images et icônes
 
-- **Pas de photo, pas d'illustration décorative** : chaque kilo-octet compte sur le réseau
-  guyanais.
+- **Pas de photo, pas d'illustration décorative en image** : chaque kilo-octet compte sur le
+  réseau guyanais. Seul décor : le motif de la route du logo, en SVG intégré, en filigrane dans
+  le bandeau (`PageHero`).
 - Seule exception : la **photo du chauffeur** sur le suivi de course, demandée par la cliente pour
   la sécurité du passager. Petite (de l'ordre de 15 Ko), chargée après le texte, avec un `alt`
   (« Photo de Prénom, votre chauffeur ») et une place réservée pour que l'écran ne saute pas.
@@ -273,7 +330,8 @@ numérique). Objectif : niveau AA du référentiel WCAG.
   (trait de 2 px, couleur du texte `currentColor`, `aria-hidden`). Le logo y prend ses couleurs par
   des classes (`logo-ground`, `logo-road`, `logo-sun`), jamais par des valeurs en dur.
 - Le logo actuel (`public/favicon.svg`) : une route vers l'horizon et un soleil jaune sur un carré
-  vert arrondi. À remplacer si le client fournit le sien.
+  vert arrondi. Dans l'en-tête, son carré devient blanc translucide pour se détacher du vert
+  (`brand-mark`). À remplacer si le client fournit le sien.
 - La carte (étape 4) utilise les tuiles OpenStreetMap ; les repères (usager, chauffeur, arrivée)
   suivront les couleurs de la charte.
 
@@ -295,7 +353,8 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 
 ## 11. Liste de contrôle d'un nouvel écran
 
-1. Un `h1` qui dit où l'on est, une seule action principale, en bas, en pleine largeur.
+1. `PageHero` avec un titre qui dit où l'on est, puis le contenu dans `PageSheet`. Une seule
+   action principale, en bas, en pleine largeur.
 2. Uniquement des composants et des classes de cette charte, aucune valeur en dur.
 3. Textes relus : vouvoiement, mots simples, verbes sur les boutons, erreurs qui disent quoi faire.
 4. État de chargement et état d'erreur avec « Réessayer ».
