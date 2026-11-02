@@ -718,8 +718,10 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 - Hébergement en HTTPS, obligatoire pour la géolocalisation, l'installation de l'application et
   les cookies de session (`COOKIE_SECURE=true`). Le front et l'API doivent être servis sous le même
   site (même domaine parent), sinon le front ne peut pas lire le cookie CSRF.
-- Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) et des
-  appels au service externe (H13) dans l'architecture.
+- Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) dans
+  l'architecture. Réglé pour le service externe (H13) : **OpenRouteService** (recherche
+  d'adresses et distance par la route), appelé depuis `repository/place_repository.py` ; s'il ne
+  répond pas, pas de prix (`503`). Sans effet sur le schéma.
 
 **Demandé par le cahier des charges, hors de ce contrat pour l'instant** (à trancher avec le
 client, mais utile à garder en tête pour ne pas fermer la porte) : notifications à l'usager,

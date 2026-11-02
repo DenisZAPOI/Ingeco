@@ -116,6 +116,12 @@ Dans `.env`, remplacer `FLASK_SECRET_KEY` par une clé générée avec :
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
+Facultatif : pour chercher de vraies adresses et calculer la vraie distance par la route, créer un
+compte gratuit sur [OpenRouteService](https://openrouteservice.org) et copier sa clé dans
+`ORS_API_KEY`. Sans clé, l'API utilise une douzaine de lieux publics factices de la zone du pilote
+(mairies, gare routière, aéroport…) et une distance estimée, sans appel à Internet. Les tests
+n'appellent jamais OpenRouteService, même avec une clé.
+
 Puis :
 
 ```bash
