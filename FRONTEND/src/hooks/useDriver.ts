@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 
-import { fetchOffers, setAvailability, type OfferType } from '../api/drivers';
+import { fetchEarnings, fetchOffers, setAvailability, type OfferType } from '../api/drivers';
 import { driveRide, type RideAction } from '../api/rides';
+import { periodBounds, type EarningsPeriod } from '../lib/earnings';
 import { useRequest } from './useRequest';
 import { useSubmit } from './useSubmit';
 
@@ -15,4 +16,14 @@ export function useOffers(type: OfferType) {
 
 export function useDriveRide(id: number) {
   return useSubmit(useCallback((action: RideAction) => driveRide(id, action), [id]));
+}
+
+/** Earnings of today, this week or this month (Guyana days). */
+export function useEarnings(period: EarningsPeriod) {
+  return useRequest(
+    useCallback(() => {
+      const { from, to } = periodBounds(period);
+      return fetchEarnings(from, to);
+    }, [period]),
+  );
 }

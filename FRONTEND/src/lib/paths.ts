@@ -21,6 +21,8 @@ export const RIDES_PATH = '/trajets';
 // Driver side: "course", their own word (charter, part 7).
 export const DRIVER_RIDES_PATH = '/courses';
 
+export const EARNINGS_PATH = '/revenus';
+
 export function driverRidePath(id: number): string {
   return `/courses/${id}`;
 }

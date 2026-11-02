@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 
 import { useUpcomingRides } from '../../hooks/useRides';
-import { DRIVER_RIDES_PATH } from '../../lib/paths';
+import { DRIVER_RIDES_PATH, EARNINGS_PATH } from '../../lib/paths';
 import { RideCard } from '../rides/RideCard';
-import { ArrowRightIcon, CarIcon } from '../ui/icons';
+import { ArrowRightIcon, CarIcon, TicketIcon } from '../ui/icons';
 import { AvailabilityToggle } from './AvailabilityToggle';
 
 /** The driver's home: online or offline, their next ride, the rides offered. */
@@ -36,6 +36,16 @@ export function DriverHome() {
           <span className="action-card-text">
             <span className="action-card-title">Courses</span>
             <span className="action-card-hint">Proposées, programmées et les vôtres</span>
+          </span>
+          <ArrowRightIcon className="action-card-arrow" />
+        </Link>
+        <Link to={EARNINGS_PATH} className="action-card">
+          <span className="icon-chip">
+            <TicketIcon />
+          </span>
+          <span className="action-card-text">
+            <span className="action-card-title">Mes revenus</span>
+            <span className="action-card-hint">Aujourd'hui, cette semaine, ce mois-ci</span>
           </span>
           <ArrowRightIcon className="action-card-arrow" />
         </Link>
