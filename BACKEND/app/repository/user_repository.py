@@ -29,6 +29,13 @@ class Vehicle:
 
 
 @dataclass
+class Location:
+    lat: float
+    lng: float
+    at: datetime
+
+
+@dataclass
 class User:
     role: str
     status: str
@@ -45,6 +52,8 @@ class User:
     # driver
     is_available: bool = False
     vehicle: Vehicle | None = None
+    # Last known position only, no history (H6); None when offline.
+    location: Location | None = None
     # partner
     partner_id: int | None = None
     id: int = 0
@@ -94,6 +103,34 @@ def update_user(_session: Session, user: User) -> None:
     with _lock:
         _check_unique(user)
         _users[user.id] = copy.deepcopy(user)
+
+
+def set_availability(_session: Session, driver_id: int, available: bool) -> None:
+    """Online or offline. Offline also erases the last position (GDPR, H6)."""
+    with _lock:
+        driver = _users[driver_id]
+        driver.is_available = available
+        if not available:
+            driver.location = None
+
+
+def set_location(_session: Session, driver_id: int, location: Location) -> bool:
+    """Keeps the last position of an online driver. False if they are offline.
+
+    The most frequent write of the API: one row, one UPDATE, no read before
+    (`UPDATE chauffeur … WHERE id_utilisateur = :id AND est_disponible`).
+    """
+    with _lock:
+        driver = _users[driver_id]
+        if not driver.is_available:
+            return False
+        driver.location = copy.deepcopy(location)
+        return True
+
+
+def find_by_ids(_session: Session, user_ids: set[int]) -> dict[int, User]:
+    with _lock:
+        return {user_id: copy.deepcopy(_users[user_id]) for user_id in user_ids if user_id in _users}
 
 
 def _check_unique(user: User) -> None:

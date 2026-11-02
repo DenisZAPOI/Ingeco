@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
 
-from ..repository.ride_repository import Position, Rating, Ride, Stop
+from ..repository.ride_repository import DriverInfo, Position, Rating, Ride, Stop
 from ..services import ride_rules
 from ..services.account_rules import clean_name
 from ..services.ride_service import Estimate, RidePage
@@ -118,6 +118,29 @@ class RatingDto(ApiModel):
     created_at: datetime
 
 
+class RideVehicleDto(ApiModel):
+    plate: str = Field(examples=["AA-000-AA"])
+    model: str = Field(examples=["Modèle fictif"])
+    is_accessible: bool
+
+
+class RideDriverDto(ApiModel):
+    """The driver, for the rider and the staff. Phone only while the ride is under way."""
+
+    id: int
+    first_name: str
+    phone: str | None
+    average_score: float | None = Field(examples=[4.7])
+    vehicle: RideVehicleDto
+
+
+class RideRiderDto(ApiModel):
+    """The rider, for their driver while the ride is under way, and for the staff."""
+
+    first_name: str
+    phone: str
+
+
 class RideDto(ApiModel):
     id: int
     status: RideStatus
@@ -133,6 +156,8 @@ class RideDto(ApiModel):
     rider_amount_cents: int
     payment_status: PaymentStatus
     rating: RatingDto | None
+    driver: RideDriverDto | None
+    rider: RideRiderDto | None
     created_at: datetime
     paid_at: datetime | None
     expires_at: datetime
@@ -175,6 +200,8 @@ def ride_to_dto(ride: Ride) -> RideDto:
         rider_amount_cents=ride.price_cents,
         payment_status=ride.payment_status,
         rating=_rating_to_dto(ride.rating) if ride.rating else None,
+        driver=_driver_to_dto(ride.driver) if ride.driver else None,
+        rider=RideRiderDto(first_name=ride.rider.first_name, phone=ride.rider.phone) if ride.rider else None,
         created_at=ride.created_at,
         paid_at=ride.paid_at,
         expires_at=ride.expires_at,
@@ -227,3 +254,15 @@ def _rating_to_dto(rating: Rating) -> RatingDto:
 
 def _stop_to_dto(stop: Stop) -> StopDto:
     return StopDto(address=stop.address, lat=stop.lat, lng=stop.lng, commune_id=stop.commune_id)
+
+
+def _driver_to_dto(driver: DriverInfo) -> RideDriverDto:
+    return RideDriverDto(
+        id=driver.id,
+        first_name=driver.first_name,
+        phone=driver.phone,
+        average_score=round(driver.average_score, 1) if driver.average_score is not None else None,
+        vehicle=RideVehicleDto(
+            plate=driver.vehicle_plate, model=driver.vehicle_model, is_accessible=driver.vehicle_is_accessible
+        ),
+    )

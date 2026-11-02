@@ -20,7 +20,16 @@ from sqlalchemy.orm import Session
 
 from ..repository import ride_repository, tariff_repository, user_repository
 from ..repository.place_repository import PlacesUnavailable, road_distance_km
-from ..repository.ride_repository import AlreadyRated, DuplicateRequest, Position, Rating, Ride, Stop
+from ..repository.ride_repository import (
+    AlreadyRated,
+    Contact,
+    DriverInfo,
+    DuplicateRequest,
+    Position,
+    Rating,
+    Ride,
+    Stop,
+)
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
 from . import ride_rules
@@ -171,13 +180,52 @@ def _payment_already_settled(session: Session, ride_id: int) -> Ride:
 def get_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
     """A ride, for its rider, its driver, the call centre or an administrator.
 
-    Anyone else gets 404, as if it did not exist.
+    A driver also sees a ride waiting for a driver (an offer), without its
+    rider's contact. Anyone else gets 404, as if it did not exist.
     """
     with database.session() as session:
         ride = ride_repository.find_by_id(session, ride_id)
-    if ride is None or not (role in STAFF_ROLES or user_id in (ride.rider_id, ride.driver_id)):
-        raise NotFound(RIDE_NOT_FOUND)
-    return ride
+        if ride is None or not _may_see(ride, user_id, role):
+            raise NotFound(RIDE_NOT_FOUND)
+        return present(session, [ride], user_id=user_id, role=role)[0]
+
+
+def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> list[Ride]:
+    """Adds to each ride what the caller may know of the other party.
+
+    The rider (and the staff) see the driver: first name, vehicle, average
+    rating, and their phone while the ride is under way. The driver sees the
+    rider's first name and phone, only while the ride is under way: never on
+    an offer.
+    """
+    driver_ids = {ride.driver_id for ride in rides if ride.driver_id is not None}
+    rider_ids = {ride.rider_id for ride in rides}
+    people = user_repository.find_by_ids(session, driver_ids | rider_ids)
+    scores = ride_repository.average_scores(session, driver_ids)
+    for ride in rides:
+        under_way = ride.status in ride_rules.CONTACT_STATUSES
+        staff = role in STAFF_ROLES
+        if ride.driver_id is not None and (staff or user_id == ride.rider_id):
+            driver = people[ride.driver_id]
+            ride.driver = DriverInfo(
+                id=driver.id,
+                first_name=driver.first_name,
+                phone=driver.phone if under_way or staff else None,
+                vehicle_plate=driver.vehicle.plate,
+                vehicle_model=driver.vehicle.model,
+                vehicle_is_accessible=driver.vehicle.is_accessible,
+                average_score=scores.get(driver.id),
+            )
+        if staff or (under_way and user_id == ride.driver_id):
+            rider = people[ride.rider_id]
+            ride.rider = Contact(first_name=rider.first_name, phone=rider.phone)
+    return rides
+
+
+def _may_see(ride: Ride, user_id: int, role: str) -> bool:
+    if role in STAFF_ROLES or user_id in (ride.rider_id, ride.driver_id):
+        return True
+    return role == "driver" and ride.status == PENDING
 
 
 @dataclass(frozen=True)
@@ -190,7 +238,8 @@ class RidePage:
 def list_upcoming(*, user_id: int, role: str) -> list[Ride]:
     """The caller's rides not finished yet, the soonest first (UC17, "À venir")."""
     with database.session() as session:
-        return ride_repository.find_upcoming(session, **_owner(user_id, role), statuses=ride_rules.UPCOMING_STATUSES)
+        rides = ride_repository.find_upcoming(session, **_owner(user_id, role), statuses=ride_rules.UPCOMING_STATUSES)
+        return present(session, rides, user_id=user_id, role=role)
 
 
 def list_past(*, user_id: int, role: str, after: Position | None) -> RidePage:
@@ -201,6 +250,7 @@ def list_past(*, user_id: int, role: str, after: Position | None) -> RidePage:
         rides = ride_repository.find_page(
             session, **_owner(user_id, role), statuses=ride_rules.PAST_STATUSES, after=after, limit=page_size + 1
         )
+        present(session, rides, user_id=user_id, role=role)
     if len(rides) <= page_size:
         return RidePage(rides=rides, next_position=None)
     last = rides[page_size - 1]
@@ -219,7 +269,7 @@ def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
         if ride is None or not (role in STAFF_ROLES or ride.rider_id == user_id):
             raise NotFound(RIDE_NOT_FOUND)
         if ride.status == CANCELLED:
-            return ride
+            return present(session, [ride], user_id=user_id, role=role)[0]
         if ride.status not in ride_rules.CANCELLABLE_STATUSES:
             raise Conflict(_NOT_CANCELLABLE.get(ride.status, NOT_CANCELLABLE))
 
@@ -232,10 +282,12 @@ def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
             ride.payment_status = PAYMENT_REFUNDED
         if not ride_repository.update_if_status(session, ride, previous_status):
             # Changed in between (driver started, other cancellation): answer with its new state.
-            return _cancellation_already_settled(session, ride_id)
+            return present(session, [_cancellation_already_settled(session, ride_id)], user_id=user_id, role=role)[0]
+        present(session, [ride], user_id=user_id, role=role)
 
     # No real-time yet (step 4): the driver, if any, sees it at their next reading.
-    logger.info("Ride cancelled", extra={"context": {"rideId": ride.id, "by": role, "hadDriver": ride.driver_id is not None}})
+    context = {"rideId": ride.id, "by": role, "hadDriver": ride.driver_id is not None}
+    logger.info("Ride cancelled", extra={"context": context})
     return ride
 
 
@@ -256,6 +308,7 @@ def rate_ride(*, rider_id: int, ride_id: int, score: int, comment: str | None) -
             # Two sendings at the same moment: the other one was saved.
             raise Conflict(ALREADY_RATED) from None
         ride.rating = rating
+        present(session, [ride], user_id=rider_id, role="rider")
 
     logger.info("Ride rated", extra={"context": {"rideId": ride.id}})
     return ride

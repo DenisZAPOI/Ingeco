@@ -100,3 +100,31 @@ def clean_comment(raw: str | None) -> str | None:
     if len(comment) > RATING_COMMENT_MAX_LENGTH:
         raise ValueError(TOO_LONG_COMMENT)
     return comment
+
+
+# --- Driver side (UC20 to UC27) ----------------------------------------------
+# Immediate rides shown to a driver: within this distance of their position.
+# Covers the whole pilot zone from Cayenne.
+OFFER_RADIUS_KM = 10.0
+# Older, a position says nothing of where the driver is (phone asleep, app in
+# the background): the driver is then treated as without position.
+LOCATION_MAX_AGE = timedelta(minutes=5)
+# A driver holds one active ride at a time; the rides they accept must be at
+# least this far apart (contract 3.3, "course active").
+RIDE_SPACING = timedelta(minutes=60)
+# A scheduled ride can be started this long before its time, not earlier.
+START_WINDOW = RIDE_SPACING
+# Rider and driver may call each other only while the ride is under way.
+CONTACT_STATUSES = (ACCEPTED, IN_PROGRESS)
+# What a driver holds: counts for their timetable.
+HELD_STATUSES = (ACCEPTED, IN_PROGRESS)
+
+
+def ride_time(scheduled_at: datetime | None, at: datetime) -> datetime:
+    """When a ride takes the driver: its scheduled time, or now for an immediate one."""
+    return scheduled_at or at
+
+
+def too_close(new_time: datetime, held_times: list[datetime]) -> bool:
+    """A ride at `new_time` would overlap one already held."""
+    return any(abs(new_time - held) < RIDE_SPACING for held in held_times)

@@ -38,6 +38,7 @@ class UserDto(ApiModel):
     needs_accessible_vehicle: bool | None
     # driver
     vehicle: VehicleDto | None
+    is_available: bool | None
     # partner
     partner_id: int | None
     created_at: datetime
@@ -61,6 +62,7 @@ def user_to_dto(user: User) -> UserDto:
             if vehicle
             else None
         ),
+        is_available=user.is_available if user.role == account_rules.DRIVER else None,
         partner_id=user.partner_id,
         created_at=user.created_at,
     )

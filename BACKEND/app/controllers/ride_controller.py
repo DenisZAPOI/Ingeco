@@ -18,7 +18,7 @@ from ..dtos.ride_dto import (
     ride_to_dto,
 )
 from ..extensions import spec
-from ..services import ride_service
+from ..services import driver_service, ride_service
 from ..utils.access import current_role, current_user_id, require_login
 
 ride_bp = Blueprint("rides", __name__, url_prefix="/rides")
@@ -160,3 +160,57 @@ def rate(ride_id: int):
     body: RateRideBody = request.context.body
     ride = ride_service.rate_ride(rider_id=current_user_id(), ride_id=ride_id, score=body.score, comment=body.comment)
     return jsonify(ride_to_dto(ride).to_json()), 201
+
+
+@ride_bp.post("/<int:ride_id>/accept")
+@require_login("driver")
+@spec.validate(
+    resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=["Chauffeur"],
+)
+def accept(ride_id: int):
+    """Takes a ride waiting for a driver, if online. Accepting again returns it.
+
+    409 if already taken, no longer offered, needing an accessible vehicle,
+    or less than an hour from a ride the driver already holds.
+    """
+    return jsonify(ride_to_dto(driver_service.accept_ride(current_user_id(), ride_id)).to_json()), 200
+
+
+@ride_bp.post("/<int:ride_id>/release")
+@require_login("driver")
+@spec.validate(
+    resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=["Chauffeur"],
+)
+def release(ride_id: int):
+    """The driver gives up a ride not started yet.
+
+    It is offered again to the other drivers; the rider pays nothing more.
+    """
+    return jsonify(ride_to_dto(driver_service.release_ride(current_user_id(), ride_id)).to_json()), 200
+
+
+@ride_bp.post("/<int:ride_id>/start")
+@require_login("driver")
+@spec.validate(
+    resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=["Chauffeur"],
+)
+def start(ride_id: int):
+    """The rider is on board. Starting again returns it.
+
+    A scheduled ride starts at the earliest one hour before its time.
+    """
+    return jsonify(ride_to_dto(driver_service.start_ride(current_user_id(), ride_id)).to_json()), 200
+
+
+@ride_bp.post("/<int:ride_id>/complete")
+@require_login("driver")
+@spec.validate(
+    resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=["Chauffeur"],
+)
+def complete(ride_id: int):
+    """Arrived: the rider is asked to rate the ride. Completing again returns it."""
+    return jsonify(ride_to_dto(driver_service.complete_ride(current_user_id(), ride_id)).to_json()), 200
