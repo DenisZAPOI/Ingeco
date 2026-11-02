@@ -766,7 +766,9 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
   payée en 15 minutes) dont l'échéance est passée devient `expired` ; le bon est rendu, la part
   payée est **remboursée**, l'usager est prévenu (UC62) et peut relancer sa demande.
 - **Règles** : échéance = 15 minutes après la réservation pour une course immédiate, l'heure
-  prévue pour une course programmée (proposition D).
+  prévue pour une course programmée (proposition D). Le SMS ne part que si l'usager avait payé
+  (aucun chauffeur n'est venu) : une réservation pas payée à temps a été abandonnée par
+  l'usager. La page du trajet donne la raison et propose « Réserver à nouveau ce trajet ».
 
 #### UC61 Proposer une course aux chauffeurs proches
 

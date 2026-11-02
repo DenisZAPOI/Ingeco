@@ -57,6 +57,10 @@ class Config:
     # no call to the Internet (tests, CI, development without an account).
     ORS_API_KEY: str | None = os.getenv("ORS_API_KEY") or None
 
+    # Expiry of the rides every minute (UC60). "false" in the tests only:
+    # they run the task themselves, after moving the clock.
+    PERIODIC_TASKS_ENABLED: bool = _optional("PERIODIC_TASKS_ENABLED", "true").lower() != "false"
+
     # --- Authentication (Flask-JWT-Extended) ---------------------------------
     # Tokens live in HttpOnly cookies: JavaScript never reads them, so a
     # script injected in the page cannot steal them.

@@ -195,6 +195,15 @@ def find_page(
         return [_read(ride) for ride in rides[:limit]]
 
 
+def find_due(_session: Session, statuses: tuple[str, ...], now: datetime) -> list[Ride]:
+    """Rides still in one of `statuses` whose deadline (expires_at) is past.
+
+    Served by idx_course_expiration (statut, expire_le). Run every minute.
+    """
+    with _lock:
+        return [_read(ride) for ride in _rides.values() if ride.status in statuses and ride.expires_at < now]
+
+
 def insert_ride(_session: Session, ride: Ride) -> Ride:
     """Stores a new ride and returns it with its id."""
     global _next_id

@@ -42,7 +42,8 @@ BACKEND/
     ├── models/                 Modèles ORM des tables de l'équipe BD (vide pour l'instant)
     ├── sockets/                Événements temps réel ; broadcast.py pour émettre
     └── utils/                  database, errors, logs, request_logs, security_headers,
-                                access (session, rôles), passwords, rate_limit
+                                access (session, rôles), passwords, rate_limit,
+                                periodic (tâches de fond : expiration des courses)
 ```
 
 Chaque dossier de couche a un `__init__.py` qui rappelle ce qu'on y range. **`GET /health` est

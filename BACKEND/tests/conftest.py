@@ -22,6 +22,8 @@ os.environ.setdefault("COOKIE_SECURE", "false")
 # Forced, not a default: a developer's key in .env must not make the tests
 # call OpenRouteService.
 os.environ["ORS_API_KEY"] = ""
+# The tests run the expiry themselves, after moving the clock.
+os.environ["PERIODIC_TASKS_ENABLED"] = "false"
 
 from app.dtos.base import InputModel  # noqa: E402
 from app.extensions import spec  # noqa: E402

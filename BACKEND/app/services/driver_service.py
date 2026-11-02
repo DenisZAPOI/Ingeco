@@ -86,7 +86,7 @@ def list_offers(driver_id: int, *, scheduled: bool) -> Offers:
     with database.session() as session:
         driver = _online_driver(session, driver_id)
         rides = ride_repository.find_pending(session, scheduled=scheduled, accessible_vehicle=_accessible(driver))
-        # The expiry task does not exist yet (UC60): a ride past its time is not offered.
+        # The expiry task runs once a minute (UC60): in between, a ride past its time is not offered.
         now = ride_rules.now()
         rides = [ride for ride in rides if ride.expires_at > now]
         present(session, rides, user_id=driver_id, role=DRIVER)

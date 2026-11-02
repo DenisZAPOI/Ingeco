@@ -228,6 +228,9 @@ bouton radio le dit aussi, sans la couleur.
   note choisie ; ce sont des boutons radio, lus « 3 étoiles sur 5 ». Une ligne explique l'échelle.
   Le commentaire facultatif est une zone de texte (`field-textarea`). `RatingSummary` montre
   ensuite la note donnée.
+- Trajet expiré : la raison en une phrase (« Aucun chauffeur n'était disponible à temps. » ou
+  « Le paiement n'a pas été fait dans les 15 minutes… »), le remboursement s'il y en a un, puis
+  « Réserver à nouveau ce trajet » en bouton principal, qui reprend les adresses et le motif.
 - Un « Réessayer » au milieu d'une phrase est un `link-button` (texte vert souligné).
 - `ConfirmButton` : toute action lourde confirmée sur place (annuler un trajet, se désister d'une
   course), avec la même forme que `CancelRide`.

@@ -20,7 +20,8 @@ from .controllers.ride_controller import ride_bp
 from .controllers.user_controller import user_bp
 from .extensions import jwt, socketio, spec
 from .repository import place_repository
-from .utils import access, database, errors, logs, request_logs, security_headers
+from .services import expiry_service
+from .utils import access, database, errors, logs, periodic, request_logs, security_headers
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ MAX_BODY_SIZE_BYTES = 1024 * 1024
 # browser asks the API for permission (OPTIONS). Kept 2 hours (Chrome's cap),
 # so a write costs one round trip instead of two on a 2G network.
 CORS_PREFLIGHT_MAX_AGE_SECONDS = 2 * 60 * 60
+# Rides expire within a minute of their deadline (contract 6.8).
+EXPIRY_INTERVAL_SECONDS = 60
 
 
 def create_app(config: type[Config] = Config) -> Flask:
@@ -79,6 +82,9 @@ def create_app(config: type[Config] = Config) -> Flask:
 
     # After the Blueprints: the documentation describes the registered routes.
     spec.register(app)
+
+    if config.PERIODIC_TASKS_ENABLED:
+        periodic.start(socketio, "expire_rides", EXPIRY_INTERVAL_SECONDS, expiry_service.expire_due_rides)
 
     logger.info("Application started", extra={"context": {"corsOrigins": config.CORS_ORIGINS}})
     return app

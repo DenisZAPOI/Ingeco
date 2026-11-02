@@ -10,8 +10,9 @@ import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
 import { useRide } from '../hooks/useRides';
 import { formatPrice } from '../lib/format';
-import { RIDES_PATH, paymentPath } from '../lib/paths';
-import { STATUS_HEADLINES, canCancel, canRate, canStillPay, isOver, rideDate, rideFromState } from '../lib/ride';
+import { BOOKING_PATHS, RIDES_PATH, paymentPath } from '../lib/paths';
+import { STATUS_HEADLINES, canCancel, canRate, canStillPay, expiryReason, isOver, rideDate, rideFromState } from '../lib/ride';
+import { draftFromRide, saveBookingDraft } from '../lib/bookingDraft';
 
 /** Where the trip stands, what can still be done (pay, cancel, rate).
  *  The map and the driver come with step 4 (real time). */
@@ -81,6 +82,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
           Actualiser
         </button>
       )}
+      {ride.status === 'expired' && <p>{expiryReason(ride)}</p>}
       {ride.paymentStatus === 'refunded' && (
         <p className="alert alert-info">Vous êtes remboursé de {formatPrice(ride.riderAmountCents)}.</p>
       )}
@@ -108,6 +110,23 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
         priceCents={ride.priceCents}
       />
       {canCancel(ride) && <CancelRide ride={ride} onCancelled={onChange} />}
+      {ride.status === 'expired' && <RebookButton ride={ride} />}
     </>
+  );
+}
+
+/** The same trip again, after an expiry: only the time is left to choose. */
+function RebookButton({ ride }: { ride: Ride }) {
+  const navigate = useNavigate();
+
+  function rebook() {
+    saveBookingDraft(draftFromRide(ride));
+    navigate(BOOKING_PATHS.time);
+  }
+
+  return (
+    <button type="button" className="button button-block" onClick={rebook}>
+      Réserver à nouveau ce trajet
+    </button>
   );
 }

@@ -1,4 +1,4 @@
-import type { Purpose, Stop } from '../api/rides';
+import type { Purpose, Ride, Stop } from '../api/rides';
 
 // The booking being typed, step by step. Kept in sessionStorage: it survives
 // a reload or the phone's Back button, and disappears with the tab (a shared
@@ -52,4 +52,10 @@ export function saveBookingDraft(draft: BookingDraft | null): void {
   } catch {
     // Storage blocked: the draft lives in memory only.
   }
+}
+
+/** A new booking of the same trip (an expired one): same places and purpose,
+ *  the time still to choose. A new request id: it is another booking. */
+export function draftFromRide(ride: Ride): BookingDraft {
+  return { ...EMPTY_DRAFT, pickup: ride.pickup, dropoff: ride.dropoff, purpose: ride.purpose };
 }
