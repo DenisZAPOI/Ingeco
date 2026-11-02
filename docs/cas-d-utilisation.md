@@ -604,7 +604,9 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Acteur** : Chauffeur
 - **Scénario nominal** : il choisit une période (aujourd'hui, semaine, mois) et voit le total et
   le nombre de courses, par jour.
-- **Règles** : prix total des courses terminées, sans commission (hypothèse Q8).
+- **Règles** : prix total des courses terminées, sans commission (hypothèse Q8). Une course
+  compte le jour où elle est terminée, en heure de Guyane. La semaine commence le lundi, le mois
+  le 1er. Seuls les jours avec une course sont listés.
 
 ### Référent partenaire
 

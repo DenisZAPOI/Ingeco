@@ -7,9 +7,12 @@ from ..dtos.base import ErrorDto
 from ..dtos.driver_dto import (
     AvailabilityBody,
     AvailabilityDto,
+    EarningsDto,
+    EarningsQuery,
     LocationBody,
     OfferListDto,
     OffersQuery,
+    earnings_to_dto,
     offers_to_dto,
 )
 from ..extensions import spec
@@ -66,3 +69,21 @@ def list_offers():
     query: OffersQuery = request.context.query
     offers = driver_service.list_offers(current_user_id(), scheduled=query.type == "scheduled")
     return jsonify(offers_to_dto(offers).to_json()), 200
+
+
+@driver_bp.get("/me/earnings")
+@require_login("driver")
+@spec.validate(
+    query=EarningsQuery,
+    resp=Response(HTTP_200=EarningsDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto),
+    tags=_TAGS,
+)
+def earnings():
+    """Total and number of completed rides from `from` to `to` (Guyana days, both included), per day.
+
+    A ride counts on the day it was completed, for its whole price (no
+    commission, H9). Only the days with a ride, the most recent first. A month at most.
+    """
+    query: EarningsQuery = request.context.query
+    result = driver_service.earnings(current_user_id(), query.first_day, query.last_day)
+    return jsonify(earnings_to_dto(result).to_json()), 200

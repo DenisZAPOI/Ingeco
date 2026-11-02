@@ -11,6 +11,7 @@ import { BookingConfirmPage } from '../pages/BookingConfirmPage';
 import { BookingPlacePage } from '../pages/BookingPlacePage';
 import { BookingTimePage } from '../pages/BookingTimePage';
 import { DiagnosticPage } from '../pages/DiagnosticPage';
+import { DriverEarningsPage } from '../pages/DriverEarningsPage';
 import { DriverRidePage } from '../pages/DriverRidePage';
 import { DriverRidesPage } from '../pages/DriverRidesPage';
 import { HomePage } from '../pages/HomePage';
@@ -57,6 +58,7 @@ export function AppRoutes() {
           <Route path="trajets/:id/paiement" element={<RidePaymentPage />} />
           <Route path="courses" element={<DriverRidesPage />} />
           <Route path="courses/:id" element={<DriverRidePage />} />
+          <Route path="revenus" element={<DriverEarningsPage />} />
           <Route path="admin/comptes" element={<AdminAccountsPage />} />
           <Route path="admin/comptes/nouveau" element={<AdminNewAccountPage />} />
           <Route path="admin/comptes/:id" element={<AdminAccountPage />} />

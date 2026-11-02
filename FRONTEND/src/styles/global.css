@@ -944,6 +944,29 @@ a:hover {
 
 /* --- Utilities ----------------------------------------------------------------- */
 
+/* --- Driver's earnings: one line per day ------------------------------------- */
+
+.earnings-days {
+  margin: 0 0 var(--space);
+  padding: 0;
+  list-style: none;
+}
+
+/* The day on the left, its amount on the right, as on a payslip. */
+.earnings-day {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  padding: var(--space-m) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.earnings-day-date {
+  display: block;
+  font-weight: var(--font-weight-strong);
+}
+
 /* --- Administration: activation code, driver photo ---------------------------- */
 
 .activation-code {

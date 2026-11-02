@@ -19,3 +19,10 @@ export function sendLocation(position: Position): Promise<void> {
 export function fetchOffers(type: OfferType): Promise<OfferList> {
   return request<OfferList>('GET', `/drivers/me/ride-offers?type=${type}`);
 }
+
+export type Earnings = components['schemas']['EarningsDto'];
+
+/** Completed rides from `from` to `to` ('YYYY-MM-DD', Guyana days, both included), per day. */
+export function fetchEarnings(from: string, to: string): Promise<Earnings> {
+  return request<Earnings>('GET', `/drivers/me/earnings?${new URLSearchParams({ from, to })}`);
+}

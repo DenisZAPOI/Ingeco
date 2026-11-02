@@ -233,6 +233,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/drivers/me/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Total and number of completed rides from `from` to `to` (Guyana days, both included), per day.
+         * @description A ride counts on the day it was completed, for its whole price (no
+         *     commission, H9). Only the days with a ride, the most recent first. A month at most.
+         */
+        get: operations["earnings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/drivers/me/location": {
         parameters: {
             query?: never;
@@ -715,6 +736,43 @@ export interface components {
             dialect: string | null;
             /** Reachable */
             reachable: boolean;
+        };
+        /** DayEarningsDto */
+        DayEarningsDto: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Ridecount */
+            rideCount: number;
+            /** Totalcents */
+            totalCents: number;
+        };
+        /** EarningsDto */
+        EarningsDto: {
+            /** Days */
+            days: components["schemas"]["DayEarningsDto"][];
+            /** Ridecount */
+            rideCount: number;
+            /** Totalcents */
+            totalCents: number;
+        };
+        /**
+         * EarningsQuery
+         * @description Days in Guyana time, both included: ?from=2026-11-02&to=2026-11-08. A month at most.
+         */
+        EarningsQuery: {
+            /**
+             * From
+             * Format: date
+             */
+            from: string;
+            /**
+             * To
+             * Format: date
+             */
+            to: string;
         };
         /**
          * ErrorDto
@@ -1868,6 +1926,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AvailabilityDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    earnings: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EarningsDto"];
                 };
             };
             /** @description Bad Request */

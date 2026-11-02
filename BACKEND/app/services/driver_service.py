@@ -8,12 +8,13 @@ Every change of a ride is a conditional write on its expected status
 
 import logging
 from dataclasses import dataclass
+from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
 from ..repository import ride_repository, user_repository
 from ..repository.place_repository import straight_distance_km
-from ..repository.ride_repository import Ride
+from ..repository.ride_repository import DayEarnings, Ride
 from ..repository.user_repository import Location, User
 from ..utils import database
 from ..utils.errors import Conflict, Forbidden, NotFound
@@ -100,6 +101,34 @@ def list_offers(driver_id: int, *, scheduled: bool) -> Offers:
     nearby = [offer for offer in offers if offer.distance_to_pickup_km <= ride_rules.OFFER_RADIUS_KM]
     nearby.sort(key=lambda offer: offer.distance_to_pickup_km)
     return Offers(offers=nearby, located=True)
+
+
+# --- Earnings (UC28) ---------------------------------------------------------
+
+@dataclass(frozen=True)
+class Earnings:
+    # Days with at least one completed ride, the most recent first.
+    days: list[DayEarnings]
+    ride_count: int
+    total_cents: int
+
+
+def earnings(driver_id: int, first_day: date, last_day: date) -> Earnings:
+    """Completed rides from `first_day` to `last_day` (included, Guyana days), per day.
+
+    The driver gets the whole price, without commission (H9). A ride counts on
+    the day it was completed.
+    """
+    ride_rules.check_earnings_period(first_day, last_day)
+    start = ride_rules.guyana_day_start(first_day)
+    end = ride_rules.guyana_day_start(last_day + timedelta(days=1))
+    with database.session() as session:
+        days = ride_repository.earnings_by_day(session, driver_id, start, end, ride_rules.GUYANA_TIME)
+    return Earnings(
+        days=days,
+        ride_count=sum(day.ride_count for day in days),
+        total_cents=sum(day.total_cents for day in days),
+    )
 
 
 # --- A ride ------------------------------------------------------------------
