@@ -4,12 +4,11 @@ Fake places and distances (no ORS key in the tests, see conftest.py).
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import pytest
 
 from app.repository.place_repository import PlacesUnavailable
-from app.services import ride_rules
 from tests.test_auth import DRIVER_PHONE, csrf_headers, login
 
 OTHER_RIDER_PHONE = "0694 00 00 02"  # Bruno, needs an accessible vehicle
@@ -41,21 +40,6 @@ def estimate(client, pickup=CAYENNE_TOWN_HALL, dropoff=MATOURY_TOWN_HALL):
 
 def pay(client, ride_id):
     return client.post(f"/rides/{ride_id}/payment", headers=csrf_headers(client))
-
-
-@pytest.fixture
-def clock(monkeypatch):
-    """Moves the API's clock: clock.move(minutes=16)."""
-
-    class Clock:
-        current = datetime.now(timezone.utc)
-
-        def move(self, **delta):
-            self.current += timedelta(**delta)
-
-    fake = Clock()
-    monkeypatch.setattr(ride_rules, "now", lambda: fake.current)
-    return fake
 
 
 # --- Estimate ----------------------------------------------------------------

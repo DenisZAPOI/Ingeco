@@ -1,36 +1,54 @@
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { Ride } from '../api/rides';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { TripSummary } from '../components/booking/TripSummary';
+import { CancelRide } from '../components/rides/CancelRide';
+import { RatingForm, RatingSummary } from '../components/rides/RatingForm';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
 import { useRide } from '../hooks/useRides';
 import { formatPrice } from '../lib/format';
-import { paymentPath } from '../lib/paths';
-import { STATUS_HEADLINES, canStillPay, rideFromState } from '../lib/ride';
+import { RIDES_PATH, paymentPath } from '../lib/paths';
+import { STATUS_HEADLINES, canCancel, canRate, canStillPay, isOver, rideDate, rideFromState } from '../lib/ride';
 
-/** Where the trip stands. The map and the driver come with step 4 (real time). */
+/** Where the trip stands, what can still be done (pay, cancel, rate).
+ *  The map and the driver come with step 4 (real time). */
 export function RidePage() {
   const id = Number(useParams().id);
-  const ride = useRide(id, rideFromState(useLocation().state, id));
+  const location = useLocation();
+  const navigate = useNavigate();
+  const ride = useRide(id, rideFromState(location.state, id));
+
+  // The new state also replaces the one kept in the history: coming back
+  // here later shows the trip as it is now, not as it was.
+  function update(changed: Ride) {
+    ride.setData(changed);
+    navigate(location.pathname, { replace: true, state: { ride: changed } });
+  }
 
   return (
     <section>
       <PageHero title="Mon trajet" />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
-          {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} />}
+          {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} onChange={update} />}
         </RequestState>
-        <Link to="/" className="link-action">
-          Retour à l'accueil
+        <Link to={RIDES_PATH} className="link-action">
+          Voir mes trajets
         </Link>
       </PageSheet>
     </section>
   );
 }
 
-function RideStatus({ ride, onRefresh }: { ride: Ride; onRefresh: () => void }) {
+type RideStatusProps = {
+  ride: Ride;
+  onRefresh: () => void;
+  onChange: (ride: Ride) => void;
+};
+
+function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
   return (
     <>
       <p role="status" className="status">
@@ -52,15 +70,33 @@ function RideStatus({ ride, onRefresh }: { ride: Ride; onRefresh: () => void }) 
           </button>
         </>
       )}
+      {ride.paymentStatus === 'refunded' && (
+        <p className="alert alert-info">Vous êtes remboursé de {formatPrice(ride.riderAmountCents)}.</p>
+      )}
+      {canRate(ride) && (
+        <>
+          <h2>Votre avis</h2>
+          <RatingForm ride={ride} onRated={onChange} />
+          <p className="note">Vous pouvez aussi noter ce trajet plus tard, depuis « Mes trajets ».</p>
+        </>
+      )}
+      {ride.rating && (
+        <>
+          <h2>Votre avis</h2>
+          <RatingSummary score={ride.rating.score} comment={ride.rating.comment} />
+        </>
+      )}
       <h2>Détails</h2>
       <TripSummary
         pickup={ride.pickup.address}
         dropoff={ride.dropoff.address}
         purpose={ride.purpose}
-        scheduledAt={ride.scheduledAt}
+        // Once over, "Dès que possible" would mean nothing: the day it was.
+        scheduledAt={isOver(ride) ? rideDate(ride) : ride.scheduledAt}
         distanceKm={ride.distanceKm}
         priceCents={ride.priceCents}
       />
+      {canCancel(ride) && <CancelRide ride={ride} onCancelled={onChange} />}
     </>
   );
 }

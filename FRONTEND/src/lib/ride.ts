@@ -50,3 +50,41 @@ export function rideFromState(state: unknown, id: number): Ride | null {
   const { ride } = state as { ride: unknown };
   return typeof ride === 'object' && ride !== null && (ride as Ride).id === id ? (ride as Ride) : null;
 }
+
+/** Short state of a trip in a list. */
+export const STATUS_LABELS: Record<RideStatus, string> = {
+  awaiting_payment: 'À payer',
+  pending: "Recherche d'un chauffeur",
+  accepted: 'Chauffeur trouvé',
+  in_progress: 'En route',
+  completed: 'Terminé',
+  cancelled: 'Annulé',
+  expired: 'Expiré',
+};
+
+// Same rule as the API (CANCELLABLE_STATUSES): before the rider is on board.
+const CANCELLABLE: readonly RideStatus[] = ['awaiting_payment', 'pending', 'accepted'];
+
+export function canCancel(ride: Ride): boolean {
+  return CANCELLABLE.includes(ride.status);
+}
+
+export function canRate(ride: Ride): boolean {
+  return ride.status === 'completed' && ride.rating === null;
+}
+
+const OVER: readonly RideStatus[] = ['completed', 'cancelled', 'expired'];
+
+/** Finished, cancelled or expired: nothing more will happen. */
+export function isOver(ride: Ride): boolean {
+  return OVER.includes(ride.status);
+}
+
+/** When the trip leaves: its scheduled time, or its booking time for an immediate one. */
+export function rideDate(ride: Ride): string {
+  return ride.scheduledAt ?? ride.createdAt;
+}
+
+// Same bounds as the API (services/ride_rules.py).
+export const SCORES = [1, 2, 3, 4, 5] as const;
+export const RATING_COMMENT_MAX_LENGTH = 500;

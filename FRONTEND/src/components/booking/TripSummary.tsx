@@ -6,7 +6,7 @@ type TripSummaryProps = {
   pickup: string;
   dropoff: string;
   purpose: Purpose;
-  /** ISO date of a scheduled trip; null to leave as soon as possible. */
+  /** ISO date the trip leaves (scheduled, or past); null to leave as soon as possible. */
   scheduledAt: string | null;
   distanceKm?: number;
   priceCents?: number;
