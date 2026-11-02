@@ -649,7 +649,9 @@ WHERE statut IN ('awaiting_payment', 'pending') AND expire_a < :maintenant;
 
 puis, dans la même transaction, libère le bon de chaque course expirée
 ([6.3](#63-consommer-un-bon)) et passe en `refunded` celles qui étaient `paid`. L'usager est
-prévenu (SMS simulé) et peut refaire sa demande. Le remboursement est simulé dans le MVP ; avec un
+prévenu (SMS simulé) s'il avait payé et attendait un chauffeur ; s'il n'a pas payé à temps, il a
+abandonné de lui-même : pas de SMS. Il peut refaire sa demande (« Réserver à nouveau » reprend
+les adresses et le motif). Le remboursement est simulé dans le MVP ; avec un
 vrai prestataire, l'appel de remboursement se fera après la transaction, avec nouvelle tentative
 en cas d'échec. Besoin : un index qui serve cette requête (statut + `expiresAt`).
 
@@ -724,8 +726,10 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 - Hébergement en HTTPS, obligatoire pour la géolocalisation, l'installation de l'application et
   les cookies de session (`COOKIE_SECURE=true`). Le front et l'API doivent être servis sous le même
   site (même domaine parent), sinon le front ne peut pas lire le cookie CSRF.
-- Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) dans
-  l'architecture. Réglé pour le service externe (H13) : **OpenRouteService** (recherche
+- Emplacement de la tâche périodique ([6.8](#68-expiration-des-courses-sans-chauffeur)) : réglé
+  le 02/11/2026, un fil de fond du processus de l'API (`utils/periodic.py`), lancé au démarrage,
+  sans planificateur à installer. Plusieurs processus peuvent le faire tourner sans risque : la
+  mise à jour est conditionnelle sur le statut. Réglé pour le service externe (H13) : **OpenRouteService** (recherche
   d'adresses et distance par la route), appelé depuis `repository/place_repository.py` ; s'il ne
   répond pas, pas de prix (`503`). Sans effet sur le schéma.
 
