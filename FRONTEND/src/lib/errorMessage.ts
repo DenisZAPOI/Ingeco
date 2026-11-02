@@ -7,6 +7,8 @@ const FALLBACK_BY_STATUS: Record<number, string> = {
   403: "Vous n'avez pas accès à cette page.",
 };
 const GENERIC = "Une erreur s'est produite.";
+/** General message of a form whose fields are in error (charter, part 6). */
+export const CHECK_FIELDS = 'Vérifiez les informations en rouge.';
 
 export function errorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
@@ -20,7 +22,7 @@ export function errorMessage(error: unknown): string {
   }
   if (error.status === 400) {
     // The detail lists the faulty fields: each form shows them next to the field.
-    return 'Vérifiez les informations en rouge.';
+    return CHECK_FIELDS;
   }
   // The API writes its business messages in French, for the user.
   if (typeof error.detail === 'string') {

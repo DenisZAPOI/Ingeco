@@ -317,6 +317,62 @@ a:hover {
   font-weight: var(--font-weight-strong);
 }
 
+/* A field with its button on the same line ("Chercher"). */
+.input-with-button {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.input-with-button .button {
+  flex-shrink: 0;
+  padding: 0 var(--space);
+}
+
+/* Radio buttons as large tiles (ChoiceGroup): the whole tile is touchable. */
+.choices {
+  gap: var(--space-s);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.choices legend {
+  margin-bottom: var(--space-xs);
+  padding: 0;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: var(--touch-target);
+  padding: var(--space-s) var(--space-m);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.choice input {
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+/* The chosen tile also says it with its colors; the dot already says it without. */
+.choice:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  font-weight: var(--font-weight-strong);
+}
+
+.choice:focus-within {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .checkbox {
   display: flex;
   align-items: center;
@@ -430,6 +486,40 @@ a:hover {
 
 .help h2 {
   margin-top: var(--space-s);
+}
+
+/* --- Booking ---------------------------------------------------------------------- */
+
+.step-progress {
+  margin: var(--space-l) 0 0;
+  color: var(--color-muted);
+  font-weight: var(--font-weight-strong);
+}
+
+.step-progress + h1 {
+  margin-top: var(--space-xs);
+}
+
+/* Label above its value: reads well on a narrow screen. */
+.summary {
+  margin: 0 0 var(--space);
+}
+
+.summary dt {
+  color: var(--color-muted);
+}
+
+.summary dd {
+  margin: 0 0 var(--space-m);
+  font-weight: var(--font-weight-strong);
+}
+
+.summary dd:last-child {
+  margin-bottom: 0;
+}
+
+.summary-price {
+  font-size: var(--font-size-h2);
 }
 
 /* --- First screen before the JavaScript (index.html) ---------------------------

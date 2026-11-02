@@ -113,6 +113,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/communes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The served communes (pilot zone). */
+        get: operations["listCommunes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -128,6 +145,104 @@ export interface paths {
         get: operations["health"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Addresses of a served commune matching the text typed, with their position. */
+        get: operations["searchPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Books an immediate or scheduled ride. It waits for the rider's payment.
+         * @description The price is computed again here, never taken from the estimate. Sent again
+         *     with the same clientRequestId, it returns the ride already booked (200)
+         *     instead of booking a second one (201).
+         */
+        post: operations["book"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Road distance and price of a trip. Saves nothing.
+         * @description 422 if the pickup or the drop-off is outside the served zone, 503 if the
+         *     road distance cannot be computed.
+         */
+        post: operations["estimate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{ride_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ride, for its rider, its driver, the call centre or an administrator. 404 for anyone else. */
+        get: operations["get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{ride_id}/payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulated payment of the rider's share: the ride then waits for a driver.
+         * @description Paying a ride already paid returns it as it is. 409 once the 15 minutes
+         *     to pay are over, or if the ride no longer awaits payment.
+         */
+        post: operations["pay"];
         delete?: never;
         options?: never;
         head?: never;
@@ -167,6 +282,41 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /**
+         * BookRideBody
+         * @description The price is not sent: the API computes it.
+         */
+        BookRideBody: {
+            /**
+             * Clientrequestid
+             * Format: uuid
+             */
+            clientRequestId: string;
+            dropoff: components["schemas"]["StopBody"];
+            pickup: components["schemas"]["StopBody"];
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            /**
+             * Scheduledat
+             * @default null
+             */
+            scheduledAt: string | null;
+        };
+        /** CommuneDto */
+        CommuneDto: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /** CommuneListDto */
+        CommuneListDto: {
+            /** Items */
+            items: components["schemas"]["CommuneDto"][];
+        };
         /** DatabaseStateDto */
         DatabaseStateDto: {
             /**
@@ -191,6 +341,22 @@ export interface components {
             /** Error */
             error: string;
         };
+        /** EstimateBody */
+        EstimateBody: {
+            dropoff: components["schemas"]["StopBody"];
+            pickup: components["schemas"]["StopBody"];
+        };
+        /** EstimateDto */
+        EstimateDto: {
+            /** Distancekm */
+            distanceKm: number;
+            /** Pricecents */
+            priceCents: number;
+            /** Rideramountcents */
+            riderAmountCents: number;
+            /** Voucheramountcents */
+            voucherAmountCents: number;
+        };
         /** HealthDto */
         HealthDto: {
             database: components["schemas"]["DatabaseStateDto"];
@@ -206,6 +372,29 @@ export interface components {
             password: string;
             /** Phone */
             phone: string;
+        };
+        /** PlaceDto */
+        PlaceDto: {
+            /** Communeid */
+            communeId: number;
+            /** Label */
+            label: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+        };
+        /** PlaceListDto */
+        PlaceListDto: {
+            /** Items */
+            items: components["schemas"]["PlaceDto"][];
+        };
+        /** PlaceQuery */
+        PlaceQuery: {
+            /** Communeid */
+            communeId: number;
+            /** Search */
+            search: string;
         };
         /** RegisterBody */
         RegisterBody: {
@@ -227,6 +416,82 @@ export interface components {
             password: string;
             /** Phone */
             phone: string;
+        };
+        /** RideDto */
+        RideDto: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "app" | "phone";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Distancekm */
+            distanceKm: number;
+            dropoff: components["schemas"]["StopDto"];
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /** Id */
+            id: number;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean;
+            /** Paidat */
+            paidAt: string | null;
+            /**
+             * Paymentstatus
+             * @enum {string}
+             */
+            paymentStatus: "not_required" | "pending" | "paid" | "refunded";
+            pickup: components["schemas"]["StopDto"];
+            /** Pricecents */
+            priceCents: number;
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            /** Rideramountcents */
+            riderAmountCents: number;
+            /** Scheduledat */
+            scheduledAt: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_payment" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled" | "expired";
+            /** Voucheramountcents */
+            voucherAmountCents: number;
+        };
+        /**
+         * StopBody
+         * @description A pickup or drop-off point, as proposed by GET /places.
+         */
+        StopBody: {
+            /** Address */
+            address: string;
+            /** Communeid */
+            communeId: number;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+        };
+        /** StopDto */
+        StopDto: {
+            /** Address */
+            address: string;
+            /** Communeid */
+            communeId: number;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
         };
         /**
          * UpdateProfileBody
@@ -574,6 +839,42 @@ export interface operations {
             };
         };
     };
+    listCommunes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommuneListDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -606,6 +907,333 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    searchPlaces: {
+        parameters: {
+            query: {
+                search: string;
+                communeId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceListDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BookRideBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    estimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EstimateBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstimateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    pay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
                 };
             };
         };

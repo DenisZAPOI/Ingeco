@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
@@ -11,6 +11,13 @@ export function Layout() {
   const online = useOnline();
   const wasOnline = useRef(online);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const { pathname } = useLocation();
+
+  // A new page starts at its top: the router keeps the scroll of the previous
+  // one, which hides the title of the next booking step.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   // The session could not be read for lack of network: read it again as soon
   // as the network is back, without waiting for the user to tap "Réessayer".
