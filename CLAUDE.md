@@ -167,7 +167,7 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 0. ~~Socle back et front~~ (fait : couches, `/health`, page `/diagnostic`, tests, génération des types)
 1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
 2. Authentification et rôles (fait : inscription, connexion, activation, profil ; reste : administration des comptes, UC51 à UC53)
-3. Parcours de réservation de bout en bout, sur données factices (en cours. Fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet. Reste : mes trajets, annulation, évaluation, côté chauffeur, expiration des courses)
+3. Parcours de réservation de bout en bout, sur données factices (en cours. Fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation. Reste : côté chauffeur, expiration des courses)
 4. Temps réel et carte
 5. Bons solidaires
 6. Écran opérateur
