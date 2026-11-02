@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import type { Role } from '../api/auth';
+import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { NextRide } from '../components/rides/NextRide';
 import { ArrowRightIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
@@ -9,8 +10,7 @@ import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
 // Temporary home of the roles whose screens do not exist yet (steps 3 to 7).
-const COMING: Record<Exclude<Role, 'rider'>, { title: string; coming: string }> = {
-  driver: { title: 'Espace chauffeur', coming: 'Vous pourrez bientôt recevoir et accepter des courses ici.' },
+const COMING: Record<Exclude<Role, 'rider' | 'driver'>, { title: string; coming: string }> = {
   partner: { title: 'Espace partenaire', coming: 'Vous pourrez bientôt émettre des bons solidaires ici.' },
   operator: { title: "Centre d'appel", coming: 'Vous pourrez bientôt réserver pour un usager ici.' },
   admin: { title: 'Administration', coming: 'Vous pourrez bientôt gérer les comptes ici.' },
@@ -45,6 +45,8 @@ export function HomePage() {
               <ArrowRightIcon className="action-card-arrow" />
             </Link>
           </>
+        ) : account.role === 'driver' ? (
+          <DriverHome />
         ) : (
           <>
             <h2>{COMING[account.role].title}</h2>

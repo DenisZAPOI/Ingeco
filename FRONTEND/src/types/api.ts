@@ -130,6 +130,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/drivers/me/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Online or offline. Offline erases the last position; the rides already accepted are kept. */
+        put: operations["setAvailability"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/drivers/me/location": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Last position of an online driver, sent by their phone. Only the last one is kept. 409 if offline. */
+        put: operations["setLocation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/drivers/me/ride-offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rides waiting for a driver that fit their vehicle. 409 if offline.
+         * @description type=immediate: within 10 km of the driver, the nearest first (the whole
+         *     zone if their position is unknown or older than 5 minutes: located=false).
+         *     type=scheduled: all of them, by date.
+         */
+        get: operations["listOffers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -234,6 +290,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{ride_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Takes a ride waiting for a driver, if online. Accepting again returns it.
+         * @description 409 if already taken, no longer offered, needing an accessible vehicle,
+         *     or less than an hour from a ride the driver already holds.
+         */
+        post: operations["accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rides/{ride_id}/cancel": {
         parameters: {
             query?: never;
@@ -249,6 +326,23 @@ export interface paths {
          *     returns it as it is. 409 once the ride has started, is over or expired.
          */
         post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{ride_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Arrived: the rider is asked to rate the ride. Completing again returns it. */
+        post: operations["complete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -296,6 +390,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{ride_id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The driver gives up a ride not started yet.
+         * @description It is offered again to the other drivers; the rider pays nothing more.
+         */
+        post: operations["release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rides/{ride_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The rider is on board. Starting again returns it.
+         * @description A scheduled ride starts at the earliest one hour before its time.
+         */
+        post: operations["start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me": {
         parameters: {
             query?: never;
@@ -328,6 +462,16 @@ export interface components {
             password: string;
             /** Phone */
             phone: string;
+        };
+        /** AvailabilityBody */
+        AvailabilityBody: {
+            /** Isavailable */
+            isAvailable: boolean;
+        };
+        /** AvailabilityDto */
+        AvailabilityDto: {
+            /** Isavailable */
+            isAvailable: boolean;
         };
         /**
          * BookRideBody
@@ -413,12 +557,40 @@ export interface components {
              */
             status: "ok" | "degraded";
         };
+        /** LocationBody */
+        LocationBody: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+        };
         /** LoginBody */
         LoginBody: {
             /** Password */
             password: string;
             /** Phone */
             phone: string;
+        };
+        /** OfferDto */
+        OfferDto: {
+            /** Distancetopickupkm */
+            distanceToPickupKm: number | null;
+            ride: components["schemas"]["RideDto"];
+        };
+        /** OfferListDto */
+        OfferListDto: {
+            /** Items */
+            items: components["schemas"]["OfferDto"][];
+            /** Located */
+            located: boolean;
+        };
+        /** OffersQuery */
+        OffersQuery: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "immediate" | "scheduled";
         };
         /** PlaceDto */
         PlaceDto: {
@@ -486,6 +658,21 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /**
+         * RideDriverDto
+         * @description The driver, for the rider and the staff. Phone only while the ride is under way.
+         */
+        RideDriverDto: {
+            /** Averagescore */
+            averageScore: number | null;
+            /** Firstname */
+            firstName: string;
+            /** Id */
+            id: number;
+            /** Phone */
+            phone: string | null;
+            vehicle: components["schemas"]["RideVehicleDto"];
+        };
         /** RideDto */
         RideDto: {
             /** Acceptedat */
@@ -506,6 +693,7 @@ export interface components {
             createdAt: string;
             /** Distancekm */
             distanceKm: number;
+            driver: components["schemas"]["RideDriverDto"] | null;
             dropoff: components["schemas"]["StopDto"];
             /** Expiredat */
             expiredAt: string | null;
@@ -534,6 +722,7 @@ export interface components {
              */
             purpose: "employment" | "training" | "health" | "administrative" | "other";
             rating: components["schemas"]["RatingDto"] | null;
+            rider: components["schemas"]["RideRiderDto"] | null;
             /** Rideramountcents */
             riderAmountCents: number;
             /** Scheduledat */
@@ -567,6 +756,25 @@ export interface components {
              * @enum {string}
              */
             when: "upcoming" | "past";
+        };
+        /**
+         * RideRiderDto
+         * @description The rider, for their driver while the ride is under way, and for the staff.
+         */
+        RideRiderDto: {
+            /** Firstname */
+            firstName: string;
+            /** Phone */
+            phone: string;
+        };
+        /** RideVehicleDto */
+        RideVehicleDto: {
+            /** Isaccessible */
+            isAccessible: boolean;
+            /** Model */
+            model: string;
+            /** Plate */
+            plate: string;
         };
         /**
          * StopBody
@@ -645,6 +853,8 @@ export interface components {
             firstName: string;
             /** Id */
             id: number;
+            /** Isavailable */
+            isAvailable: boolean | null;
             /** Ispriority */
             isPriority: boolean | null;
             /** Lastname */
@@ -966,6 +1176,173 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    setAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    setLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LocationBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    listOffers: {
+        parameters: {
+            query: {
+                type: "immediate" | "scheduled";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferListDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1323,7 +1700,137 @@ export interface operations {
             };
         };
     };
+    accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    complete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1485,6 +1992,136 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ErrorDto"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

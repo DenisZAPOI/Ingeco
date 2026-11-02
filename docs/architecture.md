@@ -129,11 +129,37 @@ exactement les mêmes règles que les routes HTTP.
   dans les logs. 5 échecs en 15 minutes par numéro bloquent la connexion ou l'activation
   (`utils/rate_limit.py`, en mémoire).
 
+### Ce que chacun voit d'une course
+
+Une course renvoyée par l'API dépend de **qui la demande**. `ride_service.present()` ajoute à
+chaque course ce que l'appelant a le droit de savoir de l'autre partie, et rien d'autre :
+
+- `driver` (prénom, véhicule, note moyenne) pour l'usager de la course et le personnel ; son
+  téléphone seulement pendant la course (`accepted`, `in_progress`) ;
+- `rider` (prénom, téléphone) pour le chauffeur de la course pendant la course, et le personnel ;
+  **jamais** sur une offre.
+
+Tout service qui renvoie des courses passe par `present()`. Les champs `rating`, `driver` et
+`rider` de `Ride` ne sont jamais écrits par le repository (ce sont des jointures).
+
+### Transitions d'une course
+
+Chaque changement de statut est une écriture conditionnelle sur le statut attendu
+(`ride_repository.update_if_status`, contrat 6.2) : de deux actions simultanées (deux chauffeurs
+qui acceptent, une annulation et un démarrage), une seule gagne, l'autre reçoit `409`. Refaire
+une transition déjà faite par le même acteur renvoie la course, pas une erreur (bouton touché
+deux fois en 2G). Règles et délais : `services/ride_rules.py` ; côté chauffeur :
+`services/driver_service.py`.
+
 ### Temps réel
+
+**Pas encore en place (étape 4)** : aujourd'hui, tout passe par HTTP et les écrans ont un bouton
+« Actualiser ». Il restera comme secours quand le temps réel arrivera.
 
 Flask-SocketIO, donc protocole **Socket.IO** : le front utilisera `socket.io-client`, pas un
 `WebSocket` natif. Un salon par course (`ride:{id}`). Les services émettent via
-`sockets/broadcast.py` **après** la validation de leur transaction.
+`sockets/broadcast.py` **après** la validation de leur transaction. Événements prévus par le
+contrat (partie 5) : `ride:updated`, `ride:offer`, `ride:offer-closed`, `driver:location`.
 
 ### Journalisation
 
@@ -213,6 +239,14 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
   `routes/AccessRoutes.tsx` redirige un visiteur vers `/connexion`.
 - **Formulaires** : `components/form/` (`Form`, `TextField`, `PasswordField`, `CheckboxField`) et
   le hook `useSubmit`, qui place les erreurs du back sous chaque champ.
+- **Action lourde** (annuler, se désister) : `components/ui/ConfirmButton`, confirmée sur place.
+- **Écran d'un objet ouvert depuis une liste** : la liste passe l'objet dans l'état de navigation
+  (`state={{ ride }}`), l'écran l'affiche sans appel (`useRide(id, known)`). Après une action,
+  l'écran remplace cet état (`navigate(…, { replace: true, state })`) pour que « Retour » ne
+  montre pas l'ancien état.
+- **Position du chauffeur** : `context/DriverLocationProvider` (monté dans `Layout`) l'envoie en
+  fond tant que le chauffeur est disponible ; règles d'envoi dans `lib/locationSharing.ts`. En
+  PWA, l'envoi s'arrête quand l'application passe en arrière-plan.
 - **Du texte, jamais du HTML** : `dangerouslySetInnerHTML` interdit sur une donnée utilisateur.
 - **Public peu à l'aise avec le numérique** : textes courts et simples, gros boutons
   (`--touch-target`), contraste fort, focus visible, animations coupées si

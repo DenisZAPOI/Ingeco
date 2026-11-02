@@ -8,6 +8,8 @@ import { BookingConfirmPage } from '../pages/BookingConfirmPage';
 import { BookingPlacePage } from '../pages/BookingPlacePage';
 import { BookingTimePage } from '../pages/BookingTimePage';
 import { DiagnosticPage } from '../pages/DiagnosticPage';
+import { DriverRidePage } from '../pages/DriverRidePage';
+import { DriverRidesPage } from '../pages/DriverRidesPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -50,6 +52,8 @@ export function AppRoutes() {
           <Route path="trajets" element={<RidesPage />} />
           <Route path="trajets/:id" element={<RidePage />} />
           <Route path="trajets/:id/paiement" element={<RidePaymentPage />} />
+          <Route path="courses" element={<DriverRidesPage />} />
+          <Route path="courses/:id" element={<DriverRidePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

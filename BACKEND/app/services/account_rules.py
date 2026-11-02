@@ -10,6 +10,7 @@ import re
 
 ROLES = ("rider", "driver", "partner", "operator", "admin")
 RIDER = "rider"
+DRIVER = "driver"
 ACTIVE = "active"
 SUSPENDED = "suspended"
 

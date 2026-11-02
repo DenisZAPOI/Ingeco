@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
+import { DriverLocationProvider } from '../../context/DriverLocationProvider';
 import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
 import { errorMessage } from '../../lib/errorMessage';
@@ -68,7 +69,10 @@ export function Layout() {
               only its failure is shown, the offline message already covers a lost network. */}
           {online && status === 'error' && error && <ErrorAlert message={error} onRetry={retry} />}
         </div>
-        <Outlet />
+        {/* A driver's position is sent from every screen while they are available. */}
+        <DriverLocationProvider>
+          <Outlet />
+        </DriverLocationProvider>
       </main>
     </>
   );

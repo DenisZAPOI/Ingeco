@@ -1,15 +1,22 @@
 import { Link } from 'react-router-dom';
 
 import type { Ride } from '../../api/rides';
+import { DRIVER_STATUS_LABELS } from '../../lib/driver';
 import { formatDateTime } from '../../lib/format';
-import { ridePath } from '../../lib/paths';
+import { driverRidePath, ridePath } from '../../lib/paths';
 import { STATUS_LABELS, canRate, rideDate } from '../../lib/ride';
 import { ArrowRightIcon } from '../ui/icons';
 
-/** A trip in a list: when, where, its state. Opens the trip page without a new call. */
-export function RideCard({ ride }: { ride: Ride }) {
+type RideCardProps = {
+  ride: Ride;
+  /** The driver's card: their words, their ride page, no "À noter". */
+  forDriver?: boolean;
+};
+
+/** A trip in a list: when, where, its state. Opens its page without a new call. */
+export function RideCard({ ride, forDriver = false }: RideCardProps) {
   return (
-    <Link to={ridePath(ride.id)} state={{ ride }} className="ride-card">
+    <Link to={forDriver ? driverRidePath(ride.id) : ridePath(ride.id)} state={{ ride }} className="ride-card">
       <span className="ride-card-text">
         <span className="ride-card-when">{formatDateTime(rideDate(ride))}</span>
         <span>
@@ -18,8 +25,8 @@ export function RideCard({ ride }: { ride: Ride }) {
           {ride.dropoff.address}
         </span>
         <span className="ride-card-status">
-          {STATUS_LABELS[ride.status]}
-          {canRate(ride) && <span className="badge">À noter</span>}
+          {(forDriver ? DRIVER_STATUS_LABELS : STATUS_LABELS)[ride.status]}
+          {!forDriver && canRate(ride) && <span className="badge">À noter</span>}
         </span>
       </span>
       <ArrowRightIcon className="action-card-arrow" />
@@ -28,12 +35,12 @@ export function RideCard({ ride }: { ride: Ride }) {
 }
 
 /** Trips one under the other. */
-export function RideList({ rides }: { rides: Ride[] }) {
+export function RideList({ rides, forDriver = false }: { rides: Ride[]; forDriver?: boolean }) {
   return (
     <ul className="ride-list">
       {rides.map((ride) => (
         <li key={ride.id}>
-          <RideCard ride={ride} />
+          <RideCard ride={ride} forDriver={forDriver} />
         </li>
       ))}
     </ul>

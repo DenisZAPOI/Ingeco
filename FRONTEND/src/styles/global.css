@@ -69,6 +69,7 @@
   /* A star of the rating: as large as any touch target. */
   --star-size: var(--touch-target);
   --textarea-height: 7rem;
+  --status-dot-size: 0.875rem;
 
   /* --- Shadows (soft, tinted with the green) ------------------------------- */
   --shadow-sheet: 0 10px 28px rgb(11 93 59 / 0.12), 0 2px 6px rgb(0 0 0 / 0.04);
@@ -731,18 +732,23 @@ a:hover {
 
 .tabs {
   display: flex;
-  gap: var(--space-s);
+  gap: var(--space-xs);
   margin-bottom: var(--space-l);
 }
 
 .tab {
   flex: 1;
+  /* Three tabs fit on a 360 px phone: they may shrink and wrap their words. */
+  min-width: 0;
   min-height: var(--touch-target);
+  padding: var(--space-xs) 0;
+  font-size: var(--font-size-small);
+  line-height: 1.2;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-background);
   color: var(--color-text);
-  font: inherit;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -895,6 +901,32 @@ a:hover {
   font-weight: var(--font-weight-strong);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* --- Driver: online or offline ------------------------------------------------- */
+
+.availability {
+  margin-bottom: var(--space-l);
+}
+
+/* Grey offline, green online; the sentence next to it says it without the color. */
+.availability-dot {
+  flex-shrink: 0;
+  width: var(--status-dot-size);
+  height: var(--status-dot-size);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.availability-dot-on {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.availability .alert,
+.availability .note {
+  margin-bottom: var(--space);
 }
 
 /* --- First screen before the JavaScript (index.html) ---------------------------

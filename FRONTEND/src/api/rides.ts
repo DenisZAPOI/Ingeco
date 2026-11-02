@@ -50,3 +50,10 @@ export function cancelRide(id: number): Promise<Ride> {
 export function rateRide(id: number, rating: RatingBody): Promise<Ride> {
   return request<Ride>('POST', `/rides/${id}/rating`, rating);
 }
+
+export type RideAction = 'accept' | 'release' | 'start' | 'complete';
+
+/** A driver's action on a ride. Doing it again returns the ride unchanged. */
+export function driveRide(id: number, action: RideAction): Promise<Ride> {
+  return request<Ride>('POST', `/rides/${id}/${action}`);
+}

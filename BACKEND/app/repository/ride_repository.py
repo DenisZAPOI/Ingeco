@@ -36,6 +36,27 @@ class Rating:
 
 
 @dataclass
+class Contact:
+    """Someone the other party of a ride may need to call."""
+
+    first_name: str
+    phone: str | None
+
+
+@dataclass
+class DriverInfo:
+    """The driver as the rider sees them (joins chauffeur, vehicule, evaluation)."""
+
+    id: int
+    first_name: str
+    phone: str | None
+    vehicle_plate: str
+    vehicle_model: str
+    vehicle_is_accessible: bool
+    average_score: float | None
+
+
+@dataclass
 class Ride:
     client_request_id: str
     rider_id: int
@@ -62,6 +83,9 @@ class Ride:
     cancelled_by_id: int | None = None
     # Read with the ride (LEFT JOIN evaluation), written by insert_rating() only.
     rating: Rating | None = None
+    # Added by the services for the caller (who may see whom): never stored.
+    driver: DriverInfo | None = None
+    rider: Contact | None = None
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -111,6 +135,41 @@ def find_upcoming(
         rides = [ride for ride in _rides.values() if _belongs(ride, rider_id, driver_id) and ride.status in statuses]
         rides.sort(key=lambda ride: (ride.scheduled_at or ride.created_at, ride.id))
         return [_read(ride) for ride in rides]
+
+
+def find_pending(_session: Session, *, scheduled: bool, accessible_vehicle: bool) -> list[Ride]:
+    """Rides waiting for a driver: immediate ones, or scheduled ones by date.
+
+    A driver without an accessible vehicle never sees a ride that needs one.
+    Served by the index idx_course_statut_prevue (statut, prevue_le).
+    """
+    with _lock:
+        rides = [
+            ride
+            for ride in _rides.values()
+            if ride.status == "pending"
+            and (ride.scheduled_at is not None) == scheduled
+            and (accessible_vehicle or not ride.needs_accessible_vehicle)
+        ]
+        rides.sort(key=lambda ride: (ride.scheduled_at or ride.created_at, ride.id))
+        return [_read(ride) for ride in rides]
+
+
+def find_driver_rides(_session: Session, driver_id: int, statuses: tuple[str, ...]) -> list[Ride]:
+    """The rides a driver holds in one of `statuses` (to check their timetable)."""
+    with _lock:
+        return [_read(ride) for ride in _rides.values() if ride.driver_id == driver_id and ride.status in statuses]
+
+
+def average_scores(_session: Session, driver_ids: set[int]) -> dict[int, float]:
+    """Average rating of each driver, over their rated rides. A driver never rated is absent."""
+    with _lock:
+        scores: dict[int, list[int]] = {}
+        for ride_id, rating in _ratings.items():
+            driver_id = _rides[ride_id].driver_id
+            if driver_id in driver_ids:
+                scores.setdefault(driver_id, []).append(rating.score)
+        return {driver_id: sum(values) / len(values) for driver_id, values in scores.items()}
 
 
 def find_page(
@@ -188,6 +247,8 @@ def _write(ride: Ride) -> Ride:
     """What is stored of a ride: its rating lives in its own table."""
     stored = copy.deepcopy(ride)
     stored.rating = None
+    stored.driver = None
+    stored.rider = None
     return stored
 
 
