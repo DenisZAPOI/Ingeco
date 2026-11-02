@@ -12,7 +12,7 @@ changes nothing until a write function is called.
 import copy
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone, tzinfo
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
@@ -96,6 +96,13 @@ class Position:
 
     created_at: datetime
     ride_id: int
+
+
+@dataclass(frozen=True)
+class DayEarnings:
+    day: date
+    ride_count: int
+    total_cents: int
 
 
 class DuplicateRequest(Exception):
@@ -202,6 +209,32 @@ def find_due(_session: Session, statuses: tuple[str, ...], now: datetime) -> lis
     """
     with _lock:
         return [_read(ride) for ride in _rides.values() if ride.status in statuses and ride.expires_at < now]
+
+
+def earnings_by_day(
+    _session: Session, driver_id: int, start: datetime, end: datetime, local_time: tzinfo
+) -> list[DayEarnings]:
+    """The driver's completed rides from `start` (included) to `end` (excluded),
+    counted and summed per day of completion in `local_time`, the most recent day first.
+
+    Like `SELECT DATE(terminee_le - INTERVAL 3 HOUR), COUNT(*), SUM(prix_centimes) ...
+    WHERE id_chauffeur = :id AND statut = 'terminee' AND terminee_le >= :start
+    AND terminee_le < :end GROUP BY 1`, served by idx_course_chauffeur.
+    """
+    with _lock:
+        days: dict[date, list[int]] = {}
+        for ride in _rides.values():
+            if ride.driver_id != driver_id or ride.status != "completed" or ride.completed_at is None:
+                continue
+            if not start <= ride.completed_at < end:
+                continue
+            totals = days.setdefault(ride.completed_at.astimezone(local_time).date(), [0, 0])
+            totals[0] += 1
+            totals[1] += ride.price_cents
+        return [
+            DayEarnings(day=day, ride_count=count, total_cents=total)
+            for day, (count, total) in sorted(days.items(), reverse=True)
+        ]
 
 
 def insert_ride(_session: Session, ride: Ride) -> Ride:

@@ -5,7 +5,7 @@ Pure functions and constants, shared by the booking, the DTOs and the tests.
 The delays are API settings, not data (contract 3.3): nothing is stored.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
 # --- Values of the API (contract 3.3) ----------------------------------------
@@ -128,3 +128,26 @@ def ride_time(scheduled_at: datetime | None, at: datetime) -> datetime:
 def too_close(new_time: datetime, held_times: list[datetime]) -> bool:
     """A ride at `new_time` would overlap one already held."""
     return any(abs(new_time - held) < RIDE_SPACING for held in held_times)
+
+
+# --- Driver's earnings (UC28) ------------------------------------------------
+# Guyana time (America/Cayenne): UTC-3 all year, no daylight saving time. A
+# day of earnings is a day there, whatever the server's time zone.
+GUYANA_TIME = timezone(timedelta(hours=-3))
+# A month at most: the screen offers today, this week and this month.
+EARNINGS_MAX_DAYS = 31
+EARNINGS_PERIOD_TOO_LONG = f"La période ne peut pas dépasser {EARNINGS_MAX_DAYS} jours."
+EARNINGS_PERIOD_REVERSED = "La date de fin doit être après la date de début."
+
+
+def check_earnings_period(first_day: date, last_day: date) -> None:
+    """ValueError if the period is reversed or longer than a month."""
+    if last_day < first_day:
+        raise ValueError(EARNINGS_PERIOD_REVERSED)
+    if (last_day - first_day).days + 1 > EARNINGS_MAX_DAYS:
+        raise ValueError(EARNINGS_PERIOD_TOO_LONG)
+
+
+def guyana_day_start(day: date) -> datetime:
+    """Midnight of `day` in Guyana, as an aware datetime."""
+    return datetime.combine(day, datetime.min.time(), tzinfo=GUYANA_TIME)

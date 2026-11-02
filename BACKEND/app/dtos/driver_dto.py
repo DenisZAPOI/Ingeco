@@ -1,11 +1,13 @@
 """Bodies, queries and responses of /drivers/me."""
 
+from datetime import date
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from ..services.driver_service import Offer, Offers
-from .base import ApiModel, InputModel
+from ..services import ride_rules
+from ..services.driver_service import Earnings, Offer, Offers
+from .base import ApiModel, InputModel, field_error
 from .ride_dto import RideDto, ride_to_dto
 
 
@@ -52,4 +54,46 @@ def _offer_to_dto(offer: Offer) -> OfferDto:
     return OfferDto(
         ride=ride_to_dto(offer.ride),
         distance_to_pickup_km=round(distance, _DISTANCE_DECIMALS) if distance is not None else None,
+    )
+
+
+# --- Earnings (UC28) ---------------------------------------------------------
+
+class EarningsQuery(InputModel):
+    """Days in Guyana time, both included: ?from=2026-11-02&to=2026-11-08. A month at most."""
+
+    first_day: date = Field(alias="from", examples=["2026-11-02"])
+    last_day: date = Field(alias="to", examples=["2026-11-08"])
+
+    @model_validator(mode="after")
+    def _period(self) -> "EarningsQuery":
+        try:
+            ride_rules.check_earnings_period(self.first_day, self.last_day)
+        except ValueError as error:
+            raise field_error(str(error)) from None
+        return self
+
+
+class DayEarningsDto(ApiModel):
+    # A day in Guyana time.
+    day: date = Field(examples=["2026-11-02"])
+    ride_count: int
+    total_cents: int
+
+
+class EarningsDto(ApiModel):
+    total_cents: int = Field(examples=[5544])
+    ride_count: int
+    # Only the days with a completed ride, the most recent first.
+    days: list[DayEarningsDto]
+
+
+def earnings_to_dto(earnings: Earnings) -> EarningsDto:
+    return EarningsDto(
+        total_cents=earnings.total_cents,
+        ride_count=earnings.ride_count,
+        days=[
+            DayEarningsDto(day=day.day, ride_count=day.ride_count, total_cents=day.total_cents)
+            for day in earnings.days
+        ],
     )
