@@ -1,7 +1,5 @@
 """Bodies, queries and responses of /rides."""
 
-import base64
-import binascii
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
@@ -12,6 +10,7 @@ from ..repository.ride_repository import DriverInfo, Position, Rating, Ride, Sto
 from ..services import ride_rules
 from ..services.account_rules import clean_name
 from ..services.ride_service import Estimate, RidePage
+from . import cursor
 from .base import ApiModel, InputModel, apply_rule, field_error
 
 ADDRESS_MAX_LENGTH = 255
@@ -225,27 +224,15 @@ def ride_page_to_dto(page: RidePage) -> RideListDto:
 
 
 # --- Cursor ------------------------------------------------------------------
-# Opaque for the phone: it sends it back as is. Inside, the booking time and
-# the id of the last ride of the page.
-_CURSOR_SEPARATOR = "|"
-INVALID_CURSOR = "Lien de page invalide. Rechargez la liste."
-
 
 def encode_cursor(position: Position) -> str:
-    raw = f"{position.created_at.isoformat()}{_CURSOR_SEPARATOR}{position.ride_id}"
-    return base64.urlsafe_b64encode(raw.encode()).decode()
+    return cursor.encode(position.created_at, position.ride_id)
 
 
-def decode_cursor(cursor: str) -> Position:
+def decode_cursor(value: str) -> Position:
     """ValueError if the cursor was not made by encode_cursor()."""
-    try:
-        created_at, ride_id = base64.urlsafe_b64decode(cursor.encode()).decode().split(_CURSOR_SEPARATOR)
-        position = Position(created_at=datetime.fromisoformat(created_at), ride_id=int(ride_id))
-    except (binascii.Error, UnicodeDecodeError, ValueError):
-        raise ValueError(INVALID_CURSOR) from None
-    if position.created_at.tzinfo is None:
-        raise ValueError(INVALID_CURSOR)
-    return position
+    created_at, ride_id = cursor.decode(value)
+    return Position(created_at=created_at, ride_id=ride_id)
 
 
 def _rating_to_dto(rating: Rating) -> RatingDto:

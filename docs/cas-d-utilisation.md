@@ -328,7 +328,7 @@ bons et les structures sont hors du schéma MVP tant qu'il n'est pas fixé
 |---|---|---|---|---|---|
 | UC50 | ~~Valider l'inscription d'un chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
 | UC51 | Gérer les comptes (suspendre, réactiver, marquer prioritaire) | Administrateur | MVP | 2 | `GET /admin/users`, `PATCH /admin/users/{id}` |
-| UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP | 2 | `POST /admin/users`, `PUT /admin/users/{id}/photo` |
+| UC52 | Créer un compte chauffeur, référent, opérateur ou administrateur | Administrateur | MVP (référent : étape 5) | 2 | `POST /admin/users`, `PUT /admin/users/{id}/photo` |
 | UC53 | Générer un code d'activation | Administrateur | MVP | 2 | `POST /admin/users/{id}/activation-code` |
 | UC54 | Gérer les structures partenaires | Administrateur | À trancher (bons) | 5 | `GET`, `POST`, `PATCH /admin/partners` |
 | UC55 | Superviser les courses (filtres, annulation, remboursements) | Administrateur | MVP | 7 | `GET /admin/rides`, `POST /rides/{id}/cancel` |
@@ -709,7 +709,10 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 - **Acteur** : Administrateur
 - **Scénario nominal** : rechercher un compte par nom ou téléphone, filtrer par rôle et statut ;
   suspendre, réactiver, marquer un usager prioritaire (hypothèse Q3).
-- **Règles** : pas de suppression physique ; un compte suspendu ne peut plus se connecter.
+- **Règles** : pas de suppression physique ; un compte suspendu ne peut plus se connecter (au plus
+  tard 15 minutes après, à la fin de son jeton d'accès). Un administrateur ne peut pas suspendre
+  son propre compte. Un chauffeur qui a une course acceptée ou en cours ne peut pas être
+  suspendu ; suspendu, il passe hors ligne et ne peut plus se remettre en ligne.
 
 #### UC52 Créer un compte chauffeur, référent, opérateur ou administrateur
 
@@ -726,7 +729,8 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 - **Acteur** : Administrateur
 - **Scénario nominal** : pour un premier accès ou un mot de passe oublié, il génère un code ;
   le code est affiché **une seule fois**, il le transmet par téléphone ou en main propre.
-- **Règles** : valable 48 h, remplace le précédent.
+- **Règles** : valable 48 h, remplace le précédent. Le mot de passe actuel reste valable jusqu'à
+  ce que la personne en choisisse un nouveau avec le code.
 
 #### UC54 Gérer les structures partenaires
 

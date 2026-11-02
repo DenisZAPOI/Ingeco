@@ -46,6 +46,11 @@ export function onSessionExpired(listener: () => void): void {
   sessionExpiredListener = listener;
 }
 
+/** Full address of an API path, for what the browser loads by itself (an <img>). */
+export function apiUrl(path: string): string {
+  return `${API_URL}${path}`;
+}
+
 export type StoredSession = 'none' | 'expired' | 'active';
 
 /** What the session cookies say, without a call. Each CSRF cookie lives exactly

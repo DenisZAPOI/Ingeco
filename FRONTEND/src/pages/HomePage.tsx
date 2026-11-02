@@ -5,15 +5,14 @@ import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { NextRide } from '../components/rides/NextRide';
 import { ArrowRightIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
-import { RIDES_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
 // Temporary home of the roles whose screens do not exist yet (steps 3 to 7).
-const COMING: Record<Exclude<Role, 'rider' | 'driver'>, { title: string; coming: string }> = {
+const COMING: Record<Exclude<Role, 'rider' | 'driver' | 'admin'>, { title: string; coming: string }> = {
   partner: { title: 'Espace partenaire', coming: 'Vous pourrez bientôt émettre des bons solidaires ici.' },
   operator: { title: "Centre d'appel", coming: 'Vous pourrez bientôt réserver pour un usager ici.' },
-  admin: { title: 'Administration', coming: 'Vous pourrez bientôt gérer les comptes ici.' },
 };
 
 /** Visitor: the welcome screen. Logged in: the home of their role, drawn from
@@ -47,6 +46,17 @@ export function HomePage() {
           </>
         ) : account.role === 'driver' ? (
           <DriverHome />
+        ) : account.role === 'admin' ? (
+          <Link to={ADMIN_ACCOUNTS_PATH} className="action-card action-card-primary">
+            <span className="icon-chip icon-chip-sun">
+              <UserIcon />
+            </span>
+            <span className="action-card-text">
+              <span className="action-card-title">Comptes</span>
+              <span className="action-card-hint">Créer, suspendre, codes d'activation</span>
+            </span>
+            <ArrowRightIcon className="action-card-arrow" />
+          </Link>
         ) : (
           <>
             <h2>{COMING[account.role].title}</h2>

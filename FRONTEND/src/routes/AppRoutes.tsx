@@ -4,6 +4,9 @@ import { Layout } from '../components/layout/Layout';
 import { BookingDraftProvider } from '../context/BookingDraftProvider';
 import { BOOKING_PATHS } from '../lib/paths';
 import { ActivatePage } from '../pages/ActivatePage';
+import { AdminAccountPage } from '../pages/AdminAccountPage';
+import { AdminAccountsPage } from '../pages/AdminAccountsPage';
+import { AdminNewAccountPage } from '../pages/AdminNewAccountPage';
 import { BookingConfirmPage } from '../pages/BookingConfirmPage';
 import { BookingPlacePage } from '../pages/BookingPlacePage';
 import { BookingTimePage } from '../pages/BookingTimePage';
@@ -54,6 +57,9 @@ export function AppRoutes() {
           <Route path="trajets/:id/paiement" element={<RidePaymentPage />} />
           <Route path="courses" element={<DriverRidesPage />} />
           <Route path="courses/:id" element={<DriverRidePage />} />
+          <Route path="admin/comptes" element={<AdminAccountsPage />} />
+          <Route path="admin/comptes/nouveau" element={<AdminNewAccountPage />} />
+          <Route path="admin/comptes/:id" element={<AdminAccountPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

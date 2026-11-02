@@ -24,3 +24,7 @@ export const DRIVER_RIDES_PATH = '/courses';
 export function driverRidePath(id: number): string {
   return `/courses/${id}`;
 }
+
+// Administration: "comptes", the word of its screens.
+export const ADMIN_ACCOUNTS_PATH = '/admin/comptes';
+export const NEW_ACCOUNT_PATH = '/admin/comptes/nouveau';

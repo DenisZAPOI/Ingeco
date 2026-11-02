@@ -82,7 +82,7 @@ partie (6.7, 6.8, H11 à H15).
 | Montants | Entiers, en **centimes d'euro** (`1250` = 12,50 €) | Un type entier, jamais de flottant |
 | Positions | `lat` / `lng` en degrés décimaux (WGS 84) | Deux décimaux, ou un type spatial (PostGIS, etc.) |
 | Champ vide | Envoyé à `null`, jamais omis | Les colonnes facultatives sont `NULL`, pas de chaîne vide |
-| Listes | Réponse `{ items }`. Une liste qui grandit sans fin (trajets passés) est paginée **par curseur** : `?cursor=` (la valeur `nextCursor` de la page précédente), réponse `{ items, nextCursor }`, `nextCursor` à `null` sur la dernière page. Les listes d'administration (étape 7) restent à définir | Un tri stable (date de création, puis `id`) servi par un index ; pas de `COUNT` |
+| Listes | Réponse `{ items }`. Une liste qui grandit sans fin (trajets passés) est paginée **par curseur** : `?cursor=` (la valeur `nextCursor` de la page précédente), réponse `{ items, nextCursor }`, `nextCursor` à `null` sur la dernière page. Même pagination pour la liste des comptes (20 par page) ; les autres listes d'administration (étape 7) restent à définir | Un tri stable (date de création, puis `id`) servi par un index ; pas de `COUNT` |
 | Suppression | Aucune suppression physique dans le MVP : on change un statut | Pas de `DELETE` côté API |
 | Erreurs | `{ "error": "...", "detail": ... }` | Rien |
 
@@ -155,7 +155,7 @@ Selon le rôle, des informations en plus :
 | `driver` | `isAvailable` | booléen | oui | En ligne / hors ligne |
 | `driver` | `lastLat`, `lastLng`, `lastLocationAt` | position + date-heure | non | **Dernière position connue seulement**, pas d'historique. Remise à vide quand le chauffeur passe hors ligne (RGPD) |
 | `driver` | véhicule : `plate`, `model`, `seats`, `isAccessible` | texte, texte, entier, booléen | oui | Un seul véhicule par chauffeur dans le MVP |
-| `driver` | photo | image (voir H19) | non | Photo du visage, prise par l'administrateur lors de la vérification en personne. Montrée au passager pour sa sécurité. Réduite par l'API à une petite image (de l'ordre de 15 Ko) avant d'être enregistrée |
+| `driver` | photo | image (voir H19) | non | Photo du visage, prise par l'administrateur lors de la vérification en personne. Montrée au passager pour sa sécurité. Réduite **par le navigateur de l'administrateur** (JPEG de 320 px au plus, de l'ordre de 15 Ko) avant l'envoi ; l'API vérifie que c'est un JPEG de 100 Ko au plus |
 | `partner` | `partnerId` | référence | oui | La structure à laquelle le référent appartient |
 
 ### 3.2 Structure partenaire (`Partner`)
@@ -380,11 +380,13 @@ Le paiement par lien se fait sur deux routes publiques, protégées par le jeton
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
-| `GET /admin/users` | `admin` | Liste les comptes, filtrables par rôle et statut, recherche par nom ou téléphone | L : comptes |
-| `POST /admin/users` | `admin` | Crée un chauffeur (avec son véhicule, après vérification de ses documents en personne), un référent partenaire, un opérateur ou un administrateur, sans mot de passe | E : un compte |
-| `PATCH /admin/users/{id}` | `admin` | Suspend ou réactive un compte, marque un usager prioritaire, modifie le véhicule d'un chauffeur | E : le compte |
-| `PUT /admin/users/{id}/photo` | `admin` | Enregistre ou remplace la photo d'un chauffeur. L'API la réduit et la recompresse avant de l'écrire | E : photo du chauffeur |
-| `POST /admin/users/{id}/activation-code` | `admin` | Génère un code d'activation (premier accès ou mot de passe oublié). Le code est affiché une seule fois, remplace le précédent | E : code haché, échéance |
+| `GET /admin/users` | `admin` | Liste les comptes, du plus récent au plus ancien, 20 par page (curseur). Filtres `role` et `status` ; `search` : le début d'un numéro (« 0694 12 ») ou une partie du nom, sans tenir compte des accents ni des majuscules | L : comptes (`idx_utilisateur_role`) |
+| `GET /admin/users/{id}` | `admin` | Un compte. *Ajoutée le 02/11/2026* : la fiche d'un compte ouverte directement (lien, rechargement) | L : un compte |
+| `POST /admin/users` | `admin` | Crée un chauffeur (avec son véhicule, après vérification de ses documents en personne), un opérateur ou un administrateur, sans mot de passe. La réponse contient le **code d'activation**, affiché une seule fois. Le référent partenaire viendra avec les bons (étape 5) : sa structure n'est pas dans le schéma MVP | E : un compte, son code haché |
+| `PATCH /admin/users/{id}` | `admin` | Suspend ou réactive un compte, marque un usager prioritaire, modifie le véhicule d'un chauffeur. Un administrateur ne peut pas suspendre son propre compte (`422`). Un chauffeur qui a une course acceptée ou démarrée ne peut pas être suspendu (`409`) ; suspendu, il passe hors ligne | E : le compte |
+| `PUT /admin/users/{id}/photo` | `admin` | Enregistre ou remplace la photo d'un chauffeur : `{ imageBase64 }`, un JPEG déjà réduit par le navigateur (100 Ko au plus) | E : photo du chauffeur, sa date |
+| `GET /admin/users/{id}/photo` | `admin` | *Ajoutée le 02/11/2026* : la photo (`image/jpeg`), pour la vérifier. `404` sans photo | L : photo du chauffeur |
+| `POST /admin/users/{id}/activation-code` | `admin` | Génère un code d'activation (premier accès ou mot de passe oublié), valable 48 h. Le code est affiché une seule fois, remplace le précédent ; le mot de passe actuel reste valable | E : code haché, échéance |
 | `GET /admin/partners` | `admin` | Liste les structures | L : structures |
 | `POST /admin/partners` | `admin` | Crée une structure | E : une structure |
 | `PATCH /admin/partners/{id}` | `admin` | Renomme, suspend ou réactive une structure | E : la structure |

@@ -250,6 +250,19 @@ Côté chauffeur, on parle de « course » (partie 7).
 - Côté usager, `DriverCard` présente le chauffeur dans un `panel` (prénom, véhicule, note) avec
   « Appeler … » tant que la course est en cours.
 
+### Administration
+
+- Liste des comptes : « Créer un compte » en haut, puis la recherche (lancée par « Rechercher »,
+  pas à chaque lettre : un appel par mot sur 2G) et deux listes déroulantes (`SelectField`) pour le
+  rôle et le statut. Un compte est une `ride-card` : nom, rôle et téléphone, puis des pastilles
+  pour ce qui demande une action (« Suspendu », « Pas encore activé », « Prioritaire », « Sans
+  photo »).
+- Code d'activation : un `panel` qui prend le focus, le code en grand et en deux groupes de quatre
+  chiffres (`activation-code-value`), à dicter. Il dit qu'il ne sera plus affiché.
+- Photo du chauffeur : ronde (`driver-photo`), 160 px. Le bouton « Prendre ou choisir une photo »
+  ouvre l'appareil photo sur téléphone ; l'aperçu est montré avant « Enregistrer cette photo ».
+- Suspendre et générer un nouveau code passent par un `ConfirmButton`. Réactiver est direct.
+
 ### Formulaires
 
 | Composant | Rôle |
