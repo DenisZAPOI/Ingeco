@@ -165,7 +165,8 @@ notation sans passer par le côté chauffeur. Les tests partent sans aucun traje
 
 Pour essayer une course de bout en bout : réserver et payer un trajet en Alice, se déconnecter,
 puis se connecter en Chloé, appuyer sur « Je suis disponible » et ouvrir « Courses ». Sans
-position autorisée, Chloé voit les courses de toute la zone.
+position autorisée, Chloé voit les courses de toute la zone. Ses revenus sont dans « Mes
+revenus », sur son accueil : les trajets factices d'Alice comptent comme les siens.
 
 En développement, `COOKIE_SECURE=false` dans `BACKEND/.env` : les cookies de session marqués
 `Secure` ne passent qu'en HTTPS, ce qui bloque Safari sur `http://localhost` et tout téléphone qui

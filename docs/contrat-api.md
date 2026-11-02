@@ -340,7 +340,7 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 | `POST /rides/{id}/release` | `driver` de la course | Se désiste d'une course `accepted` : elle revient en `pending` et est reproposée. `409` s'il l'a déjà rendue | E : statut, `driverId` et `acceptedAt` remis à vide, nouvelle `expiresAt` |
 | `POST /rides/{id}/start` | `driver` de la course | Passager à bord. Une course programmée se démarre au plus tôt une heure avant son horaire (`409` sinon) | E : statut, `startedAt` |
 | `POST /rides/{id}/complete` | `driver` de la course | Clôture la course | E : statut, `completedAt` |
-| `GET /drivers/me/earnings` | `driver` | Ses revenus sur une période (`?from=&to=`) : total et nombre de courses, par jour | L : somme des `priceCents` de ses courses terminées, groupées par jour (heure de Guyane) |
+| `GET /drivers/me/earnings` | `driver` | Ses revenus sur une période (`?from=2026-11-02&to=2026-11-08` : jours en heure de Guyane, bornes incluses, 31 jours au plus, `400` sinon) : `{ totalCents, rideCount, days: [{ day, rideCount, totalCents }] }`. Une course compte le jour où elle est terminée (`completedAt`), pour son prix entier (H9). Seuls les jours avec une course, le plus récent d'abord | L : somme des `priceCents` de ses courses terminées, groupées par jour (heure de Guyane) |
 
 ### 4.4 Bons solidaires (référent partenaire)
 

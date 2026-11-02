@@ -250,6 +250,9 @@ Côté chauffeur, on parle de « course » (partie 7).
   « Le passager est à bord : démarrer », « Arrivé : terminer la course »). Au-dessus, « Appeler
   Alice » (lien `tel:`) et « Itinéraire vers le départ » (ouvre le GPS du téléphone), en boutons
   secondaires. Le désistement est un `ConfirmButton`, en bas.
+- « Mes revenus » (`/revenus`, carte d'action sur l'accueil du chauffeur) : trois onglets
+  (« Aujourd'hui », « Cette semaine », « Ce mois-ci »), le total en grand dans un `panel`, puis une
+  ligne par jour (`earnings-day`) : la date et le nombre de courses à gauche, le montant à droite.
 - Côté usager, `DriverCard` présente le chauffeur dans un `panel` (prénom, véhicule, note) avec
   « Appeler … » tant que la course est en cours.
 
