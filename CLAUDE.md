@@ -63,7 +63,8 @@ FRONTEND/
     routes/        # AppRoutes.tsx
     styles/        # global.css (variables)
 sql/
-  schema-mvp.sql         # schéma v2 + données de référence et de test, chargé dans le conteneur
+  schema-mvp.sql         # schéma v2 + données de référence, chargé dans le conteneur
+  demo-data.sql          # comptes et courses de test (mot de passe public), local seulement
   schema-hors-scope.sql  # bons, structures, documents, formation : pas encore chargé
 compose.yaml             # base MySQL locale (Docker)
 docs/
@@ -86,7 +87,7 @@ Au quotidien :
 ```
 # base MySQL locale (Docker, compose.yaml ; .env à la racine copié de .env.example)
 docker compose up -d
-docker compose down -v                     # efface la base, rechargée depuis sql/schema-mvp.sql au prochain up
+docker compose down -v                     # efface la base, rechargée depuis sql/ au prochain up
 
 # back (http://localhost:5000, Swagger sur /apidoc/swagger)
 cd BACKEND && .venv/Scripts/python -m app
@@ -196,6 +197,9 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec le client** : le partage des numéros de téléphone entre usager et chauffeur pendant une course (fait dans l'application, pour qu'ils puissent s'appeler à la prise en charge).
 - **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
+- **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : l'inscription par code SMS (coût des SMS réels, une étape de plus), le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
+- **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` et la séparation de `sql/demo-data.sql` (README, partie 5).
+- **Au déploiement** : `TRUSTED_PROXY_COUNT` selon l'hébergement ; les inscriptions en attente, les limites d'essais et les verrous sont en mémoire, valables pour un seul processus d'API.
 - **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).
 - **En interne** : les quotas gratuits d'OpenRouteService et l'obligation éventuelle de citer la source (non confirmés : à vérifier sur le compte avant la mise en service), puis valider l'appel réel avec une clé (testé seulement avec de fausses réponses).
 - **En interne** : la géolocalisation en arrière-plan côté chauffeur est peu fiable en PWA. Si elle devient indispensable, il faudra une appli native pour le chauffeur.

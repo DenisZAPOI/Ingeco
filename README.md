@@ -84,7 +84,9 @@ dossier du dépôt, par exemple `/mnt/c/Users/.../Ingeco`).
 ### Base de données (MySQL dans Docker)
 
 Un conteneur MySQL 8.4 local, décrit dans `compose.yaml`. Au premier démarrage, il crée la base
-avec `sql/schema-mvp.sql` (schéma et données de test).
+avec `sql/schema-mvp.sql` (schéma et données de référence), puis `sql/demo-data.sql` (comptes et
+courses de test). Ce second script ne doit **jamais** être chargé ailleurs que sur un poste de
+développement : ses comptes ont un mot de passe public, dont un administrateur.
 
 ```bash
 cp .env.example .env               # puis remplacer les deux mots de passe
@@ -92,7 +94,7 @@ docker compose up -d               # démarre la base sur 127.0.0.1:3307
 docker compose ps                  # « healthy » quand elle est prête
 ```
 
-Le script n'est relu que si la base est vide. Après une modification de `sql/schema-mvp.sql` :
+Les scripts ne sont relus que si la base est vide. Après une modification de `sql/` :
 
 ```bash
 docker compose down -v             # EFFACE la base
@@ -143,10 +145,16 @@ La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API
 ### Comptes de test
 
 Pour l'instant, l'API lit encore les comptes dans des **données factices en mémoire**
-(`BACKEND/app/repository/user_repository.py`) : ils reviennent à cet état à chaque redémarrage de
-l'API. Les mêmes comptes sont dans les données de test de `sql/schema-mvp.sql`, sauf David
-(référent partenaire), qui est dans `sql/schema-hors-scope.sql` avec les bons solidaires. Personnes
-fictives, mot de passe commun **`Trajet-2026!`**.
+(`BACKEND/app/repository/user_repository.py`), chargées seulement avec `LOAD_DEMO_DATA=true` dans
+`BACKEND/.env` (c'est la valeur de `.env.example`) : elles reviennent à cet état à chaque
+redémarrage de l'API. Sans ce réglage, l'API démarre sans aucun compte. Elle refuse de démarrer
+avec ce réglage si `COOKIE_SECURE=true` (serveur en https, donc hébergé). Les mêmes comptes sont
+dans `sql/demo-data.sql`, sauf David (référent partenaire), qui est dans
+`sql/schema-hors-scope.sql` avec les bons solidaires. Personnes fictives, mot de passe commun
+**`Trajet-2026!`**.
+
+**Inscription d'un nouvel usager** : les SMS sont simulés. Avec `LOAD_DEMO_DATA=true`, le code
+reçu par SMS est toujours **`123456`** ; sans, il est tiré au hasard et n'est écrit nulle part.
 
 | Téléphone | Prénom | Rôle |
 |---|---|---|
@@ -269,6 +277,22 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
    Docker (`compose.yaml`, voir la [partie 4](#4-lancer-le-projet)). L'hébergement de la base
    en production sera choisi en fin de projet.
 
+### Demandes de l'audit de sécurité (02/11/2026)
+
+L'[audit](docs/audit-securite-2026-11-02.md) demande deux changements de schéma. Les développeurs
+ne les appliquent pas : à vous de les reprendre dans `sql/`, ou d'en proposer une autre forme.
+
+1. **Une colonne `version_session`** (entier, `NOT NULL DEFAULT 0`) sur `utilisateur`. L'API
+   l'augmente à chaque nouveau mot de passe et à chaque suspension, et la relit à chaque requête
+   (par la clé primaire) : les sessions ouvertes avant prennent fin. Elle vit pour l'instant dans
+   les données factices de l'API.
+2. **Les données de test sont séparées du schéma** : `sql/demo-data.sql`, chargé en local par
+   `compose.yaml` après `sql/schema-mvp.sql`. Merci de garder cette séparation dans vos versions :
+   un environnement hébergé ne charge que le schéma et les données de référence.
+
+Les inscriptions en attente de leur code SMS restent en mémoire de l'API (10 minutes au plus) :
+aucune table n'est demandée pour elles tant que l'API ne tourne que dans un processus.
+
 ### Ce qui nous aiderait (suggestions, pas des obligations)
 
 - **Des noms de tables et de colonnes en minuscules avec des underscores** (`bon_solidaire`,
@@ -296,8 +320,10 @@ de schéma déjà livré doit être annoncé : l'API devra suivre.
   pull request relue par l'autre développeur.
 - **Intégration continue** (GitHub Actions, `.github/workflows/ci.yml`) : chaque pull request
   lance les tests du back (`pytest`), le lint et le build du front, et vérifie que les types de
-  l'API du front sont à jour (`npm run api:types`). **Une pull request ne peut être mergée que si
-  les trois passent.**
+  l'API du front sont à jour (`npm run api:types`). Elle cherche aussi les failles connues des
+  dépendances (`pip-audit`, `npm audit --omit=dev`) et les secrets commités (Gitleaks, valeurs de
+  test publiques listées dans `.gitleaks.toml`). **Une pull request ne peut être mergée que si
+  tout passe.**
 - Messages de commit courts, à l'impératif, préfixés : `feat:`, `fix:`, `perf:`, `docs:`, `refactor:`,
   `test:`, `chore:`.
 - Les secrets (mots de passe, clés) vont dans les fichiers `.env`, jamais sur GitHub.
