@@ -297,14 +297,7 @@ def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
         if ride.status not in ride_rules.CANCELLABLE_STATUSES:
             raise Conflict(_NOT_CANCELLABLE.get(ride.status, NOT_CANCELLABLE))
 
-        previous_status = ride.status
-        ride.status = CANCELLED
-        ride.cancelled_at = ride_rules.now()
-        ride.cancelled_by_id = user_id
-        if ride.payment_status == PAYMENT_PAID:
-            # Simulated (H10): with a real provider, the refund call follows the transaction.
-            ride.payment_status = PAYMENT_REFUNDED
-        if not ride_repository.update_if_status(session, ride, previous_status):
+        if not cancel_in(session, ride, by_id=user_id):
             # Changed in between (driver started, other cancellation): answer with its new state.
             return present(session, [_cancellation_already_settled(session, ride_id)], user_id=user_id, role=role)[0]
         present(session, [ride], user_id=user_id, role=role)
@@ -313,6 +306,21 @@ def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
     context = {"rideId": ride.id, "by": role, "hadDriver": ride.driver_id is not None}
     logger.info("Ride cancelled", extra={"context": context})
     return ride
+
+
+def cancel_in(session: Session, ride: Ride, *, by_id: int) -> bool:
+    """Cancels `ride`, read in `session`, and refunds its paid share. False if its status changed meanwhile.
+
+    The write of cancel_ride, shared with the suspension of a rider (admin_service).
+    """
+    previous_status = ride.status
+    ride.status = CANCELLED
+    ride.cancelled_at = ride_rules.now()
+    ride.cancelled_by_id = by_id
+    if ride.payment_status == PAYMENT_PAID:
+        # Simulated (H10): with a real provider, the refund call follows the transaction.
+        ride.payment_status = PAYMENT_REFUNDED
+    return ride_repository.update_if_status(session, ride, previous_status)
 
 
 def rate_ride(*, rider_id: int, ride_id: int, score: int, comment: str | None) -> Ride:

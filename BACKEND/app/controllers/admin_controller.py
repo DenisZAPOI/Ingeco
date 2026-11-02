@@ -105,7 +105,9 @@ def update_user(user_id: int):
     """Suspends or reactivates, marks a rider as priority, changes a driver's vehicle.
 
     Only the fields sent are changed. A driver holding an accepted or started
-    ride cannot be suspended (409); a suspended driver goes offline.
+    ride cannot be suspended (409); a suspended driver goes offline. A rider's
+    rides not taken yet are cancelled and refunded; one accepted by a driver or
+    started blocks the suspension (409).
     """
     body: UpdateAccountBody = request.context.body
     changes = AccountChanges(**{name: getattr(body, name) for name in body.model_fields_set})

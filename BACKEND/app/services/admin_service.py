@@ -19,6 +19,7 @@ from ..utils import database
 from ..utils.errors import Conflict, NotFound, UnprocessableEntity
 from ..utils.passwords import hash_secret
 from . import account_rules, ride_rules
+from . import ride_service
 from .driver_service import driver_locks
 from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVATION_CODE_VALIDITY_HOURS, ACTIVE, DRIVER, RIDER, SUSPENDED
 from .auth_service import EMAIL_TAKEN
@@ -34,6 +35,10 @@ VEHICLE_REQUIRED = "Indiquez le véhicule du chauffeur."
 DRIVERS_ONLY = "Seul un chauffeur a un véhicule et une photo."
 RIDERS_ONLY = "Seul un usager peut être prioritaire."
 NOT_YOURSELF = "Vous ne pouvez pas changer le statut de votre propre compte."
+RIDER_HAS_RIDE = (
+    "Cet usager a un trajet accepté par un chauffeur ou en cours. Attendez qu'il soit terminé, "
+    "ou annulez-le, avant de suspendre son compte."
+)
 DRIVER_HAS_RIDE = (
     "Ce chauffeur a une course acceptée ou en cours. Attendez qu'elle soit terminée, "
     "ou annulez-la, avant de suspendre son compte."
@@ -145,8 +150,9 @@ def create_account(
 def update_account(*, admin_id: int, user_id: int, changes: AccountChanges) -> User:
     """Suspends or reactivates, marks a rider as priority, changes a driver's vehicle."""
     # The driver's lock: a suspension and an acceptance at the same moment must
-    # not leave a suspended driver holding a ride (audit F15).
-    with driver_locks.hold(user_id), database.session() as session:
+    # not leave a suspended driver holding a ride (audit F15). The rider's lock:
+    # no booking slips in while their rides are cancelled.
+    with driver_locks.hold(user_id), ride_service.rider_locks.hold(user_id), database.session() as session:
         user = _find(session, user_id)
 
         if changes.is_priority is not _UNCHANGED:
@@ -186,8 +192,12 @@ def _suspend(session, admin_id: int, user: User) -> None:
     """A suspended account cannot log in any more; a driver also goes offline.
 
     Its sessions end at once, and stay ended once reactivated. A driver
-    holding a ride is refused: the rider would wait for nobody.
+    holding a ride is refused: the rider would wait for nobody. A rider's
+    rides not taken yet are cancelled and refunded; one a driver took is
+    refused: the driver would come for nobody.
     """
+    if user.role == RIDER:
+        _cancel_rides_of_suspended_rider(session, admin_id, user)
     if user.role == DRIVER:
         if ride_repository.find_driver_rides(session, user.id, ride_rules.HELD_STATUSES):
             raise Conflict(DRIVER_HAS_RIDE)
@@ -196,6 +206,22 @@ def _suspend(session, admin_id: int, user: User) -> None:
         user.location = None
     user.status = SUSPENDED
     user.session_version += 1
+
+
+def _cancel_rides_of_suspended_rider(session, admin_id: int, rider: User) -> None:
+    rides = ride_repository.find_upcoming(
+        session, rider_id=rider.id, driver_id=None, statuses=ride_rules.UPCOMING_STATUSES
+    )
+    if any(ride.status in ride_rules.HELD_STATUSES for ride in rides):
+        raise Conflict(RIDER_HAS_RIDE)
+    for ride in rides:
+        if not ride_service.cancel_in(session, ride, by_id=admin_id):
+            # A driver took it in between: the suspension waits for that ride.
+            raise Conflict(RIDER_HAS_RIDE)
+        logger.info("Ride cancelled", extra={"context": {"rideId": ride.id, "by": "suspension"}})
+    if rides:
+        # One SMS for all of them (simulated, UC62).
+        sms_repository.send(session, user_id=rider.id, kind=sms_repository.SUSPENDED_RIDES_CANCELLED)
 
 
 # --- Photo of a driver -------------------------------------------------------
