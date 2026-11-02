@@ -4,6 +4,7 @@ import type { Ride } from '../api/rides';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { TripSummary } from '../components/booking/TripSummary';
 import { CancelRide } from '../components/rides/CancelRide';
+import { DriverCard } from '../components/rides/DriverCard';
 import { RatingForm, RatingSummary } from '../components/rides/RatingForm';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
@@ -48,6 +49,9 @@ type RideStatusProps = {
   onChange: (ride: Ride) => void;
 };
 
+// A driver is on the way, or the rider is on board.
+const UNDER_WAY: readonly Ride['status'][] = ['accepted', 'in_progress'];
+
 function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
   return (
     <>
@@ -69,6 +73,13 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
             Actualiser
           </button>
         </>
+      )}
+      {ride.driver && UNDER_WAY.includes(ride.status) && <DriverCard driver={ride.driver} />}
+      {UNDER_WAY.includes(ride.status) && (
+        // No real time yet (step 4): the driver may have started meanwhile.
+        <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
+          Actualiser
+        </button>
       )}
       {ride.paymentStatus === 'refunded' && (
         <p className="alert alert-info">Vous êtes remboursé de {formatPrice(ride.riderAmountCents)}.</p>

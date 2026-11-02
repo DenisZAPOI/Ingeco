@@ -8,6 +8,7 @@ const CENTS_PER_EURO = 100;
 
 const PRICE = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const DISTANCE = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+const SCORE = DISTANCE;
 const DAY = new Intl.DateTimeFormat('fr-FR', { timeZone: GUYANA_TIME_ZONE, weekday: 'long', day: 'numeric', month: 'long' });
 const DAY_WITH_YEAR = new Intl.DateTimeFormat('fr-FR', {
   timeZone: GUYANA_TIME_ZONE,
@@ -24,6 +25,11 @@ const YEAR = new Intl.DateTimeFormat('fr-FR', { timeZone: GUYANA_TIME_ZONE, year
 /** 1848 → '18,48 €' */
 export function formatPrice(cents: number): string {
   return PRICE.format(cents / CENTS_PER_EURO);
+}
+
+/** 4.7 → '4,7 sur 5'; null: never rated. */
+export function formatScore(score: number | null): string {
+  return score === null ? 'Pas encore noté' : `${SCORE.format(score)} sur 5`;
 }
 
 /** 11.4 → '11,4 km' */
