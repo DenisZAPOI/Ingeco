@@ -11,14 +11,18 @@ from dataclasses import dataclass
 from ..repository import user_repository
 from ..repository.user_repository import DuplicateValue, User
 from ..utils import database
-from ..utils.errors import Conflict, UnprocessableEntity
+from ..utils.errors import Conflict, TooManyRequests, UnprocessableEntity
 from ..utils.passwords import hash_secret, verify_secret
+from ..utils.rate_limit import AttemptLimiter
 from .account_rules import RIDER
-from .auth_service import EMAIL_TAKEN, session_user
+from .auth_service import ATTEMPT_WINDOW_SECONDS, EMAIL_TAKEN, MAX_FAILED_ATTEMPTS, TOO_MANY_ATTEMPTS, session_user
 
 logger = logging.getLogger(__name__)
 
 WRONG_CURRENT_PASSWORD = "Le mot de passe actuel est incorrect."
+
+# A phone left unlocked must not allow trying passwords without end (audit F14).
+current_password_attempts = AttemptLimiter(MAX_FAILED_ATTEMPTS, ATTEMPT_WINDOW_SECONDS)
 RIDERS_ONLY = "Ce réglage ne concerne que les usagers."
 
 # Marks a field the caller did not send: different from null, which empties it.
@@ -44,9 +48,16 @@ def update_profile(user_id: int, changes: ProfileChanges) -> User:
     if changes.new_password is not None:
         # Asking for the current password: a phone left unlocked must not be
         # enough to take over the account.
+        key = str(user_id)
+        if not current_password_attempts.try_record(key):
+            raise TooManyRequests(TOO_MANY_ATTEMPTS)
         if changes.current_password is None or not verify_secret(user.password_hash, changes.current_password):
             raise UnprocessableEntity(WRONG_CURRENT_PASSWORD)
+        current_password_attempts.reset(key)
         user.password_hash = hash_secret(changes.new_password)
+        # Ends the sessions of the other phones (a lost or shared one); the
+        # controller opens a new session on this one.
+        user.session_version += 1
 
     for name in ("first_name", "last_name", "email", "needs_accessible_vehicle"):
         value = getattr(changes, name)

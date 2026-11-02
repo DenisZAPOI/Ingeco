@@ -4,6 +4,7 @@ from pydantic import Field, field_validator
 
 from ..repository.commune_repository import Commune
 from ..repository.place_repository import Place
+from ..services import place_service
 from ..services.account_rules import clean_name
 from .base import ApiModel, InputModel, apply_rule, field_error
 
@@ -38,6 +39,8 @@ class PlaceDto(ApiModel):
     lat: float
     lng: float
     commune_id: int
+    # Sent back as is with the stop of an estimate or a booking (StopBody.token).
+    token: str
 
 
 class PlaceListDto(ApiModel):
@@ -49,4 +52,10 @@ def commune_to_dto(commune: Commune) -> CommuneDto:
 
 
 def place_to_dto(place: Place) -> PlaceDto:
-    return PlaceDto(label=place.label, lat=place.lat, lng=place.lng, commune_id=place.commune_id)
+    return PlaceDto(
+        label=place.label,
+        lat=place.lat,
+        lng=place.lng,
+        commune_id=place.commune_id,
+        token=place_service.place_token(place.label, place.lat, place.lng, place.commune_id),
+    )

@@ -7,7 +7,7 @@ from ..dtos.base import ErrorDto
 from ..dtos.place_dto import CommuneListDto, PlaceListDto, PlaceQuery, commune_to_dto, place_to_dto
 from ..extensions import spec
 from ..services import place_service
-from ..utils.access import require_login
+from ..utils.access import current_user_id, require_login
 
 place_bp = Blueprint("places", __name__)
 
@@ -27,11 +27,16 @@ def list_communes():
 @require_login()
 @spec.validate(
     query=PlaceQuery,
-    resp=Response(HTTP_200=PlaceListDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_422=ErrorDto, HTTP_503=ErrorDto),
+    resp=Response(
+        HTTP_200=PlaceListDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_422=ErrorDto, HTTP_429=ErrorDto, HTTP_503=ErrorDto
+    ),
     tags=_TAGS,
 )
 def search_places():
-    """Addresses of a served commune matching the text typed, with their position."""
+    """Addresses of a served commune matching the text typed, with their position.
+
+    429 beyond 60 searches and estimates in 10 minutes for an account.
+    """
     query: PlaceQuery = request.context.query
-    places = [place_to_dto(place) for place in place_service.search_places(query.search, query.commune_id)]
+    places = [place_to_dto(place) for place in place_service.search_places(query.search, query.commune_id, user_id=current_user_id())]
     return jsonify(PlaceListDto(items=places).to_json()), 200

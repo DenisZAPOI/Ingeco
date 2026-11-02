@@ -14,6 +14,7 @@ import copy
 import threading
 import unicodedata
 from dataclasses import dataclass, field
+from functools import cache
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
@@ -59,6 +60,9 @@ class User:
     photo_updated_at: datetime | None = None
     # partner
     partner_id: int | None = None
+    # Changed by a new password or a suspension: the sessions opened with an
+    # older version end (column to add, see README part 5).
+    session_version: int = 0
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -217,16 +221,22 @@ def _fold(text: str) -> str:
 
 # --- Development accounts ----------------------------------------------------
 # Fictitious people only (GDPR). Listed in the README, part "Comptes de test".
+# Their password is public: loaded only with LOAD_DEMO_DATA=true (see main.py),
+# never in a hosted environment.
 DEV_PASSWORD = "Trajet-2026!"
 DEV_ACTIVATION_CODE = "12345678"
 _DEV_ACTIVATION_CODE_VALIDITY = timedelta(days=365)
 
-# Hashing is slow on purpose: done once, not at every reset of the tests.
-_DEV_PASSWORD_HASH = hash_secret(DEV_PASSWORD)
-_DEV_ACTIVATION_CODE_HASH = hash_secret(DEV_ACTIVATION_CODE)
+
+@cache
+def _dev_hashes() -> tuple[str, str]:
+    """Hashing is slow on purpose: done once, and only if the demo is loaded."""
+    return hash_secret(DEV_PASSWORD), hash_secret(DEV_ACTIVATION_CODE)
 
 
 def _dev_accounts() -> list[User]:
+    password_hash, activation_code_hash = _dev_hashes()
+
     def account(role: str, first_name: str, number: str, **profile) -> User:
         return User(
             role=role,
@@ -234,7 +244,7 @@ def _dev_accounts() -> list[User]:
             first_name=first_name,
             last_name="Démo",
             phone=f"+59469400000{number}",
-            password_hash=profile.pop("password_hash", _DEV_PASSWORD_HASH),
+            password_hash=profile.pop("password_hash", password_hash),
             **profile,
         )
 
@@ -252,22 +262,24 @@ def _dev_accounts() -> list[User]:
         account(
             "rider", "Gaëlle", "7",
             password_hash=None,
-            activation_code_hash=_DEV_ACTIVATION_CODE_HASH,
+            activation_code_hash=activation_code_hash,
             activation_code_expires_at=datetime.now(timezone.utc) + _DEV_ACTIVATION_CODE_VALIDITY,
         ),
         account("rider", "Hugo", "8", status="suspended"),
     ]
 
 
-def reset() -> None:
-    """Back to the development accounts only. Called at startup and by the tests."""
+def reset(*, demo_accounts: bool = False) -> None:
+    """Empties the store, then adds the development accounts if asked.
+
+    Called at startup with LOAD_DEMO_DATA, and by the tests. The store starts
+    empty: without the flag, no account with a public password exists.
+    """
     global _next_id
     with _lock:
         _users.clear()
         _photos.clear()
         _next_id = 1
-    for user in _dev_accounts():
-        insert_user(None, user)  # type: ignore[arg-type]
-
-
-reset()
+    if demo_accounts:
+        for user in _dev_accounts():
+            insert_user(None, user)  # type: ignore[arg-type]

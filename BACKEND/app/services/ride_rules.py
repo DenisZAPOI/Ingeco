@@ -80,6 +80,12 @@ UPCOMING_STATUSES = (AWAITING_PAYMENT, PENDING, ACCEPTED, IN_PROGRESS)
 PAST_STATUSES = (COMPLETED, CANCELLED, EXPIRED)
 PAST_PAGE_SIZE = 20
 
+# --- Open rides of a rider (audit F6) ----------------------------------------
+# Not finished yet, at the same time: a trip now, and a few booked ahead (an
+# appointment and its return). To confirm with the client.
+MAX_OPEN_IMMEDIATE_RIDES = 1
+MAX_OPEN_SCHEDULED_RIDES = 3
+
 # --- Cancellation (UC16) -----------------------------------------------------
 # Before the rider is on board (contract 3.3).
 CANCELLABLE_STATUSES = (AWAITING_PAYMENT, PENDING, ACCEPTED)

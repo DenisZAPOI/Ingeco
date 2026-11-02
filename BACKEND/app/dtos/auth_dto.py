@@ -102,6 +102,21 @@ class RegisterBody(_PhoneField):
         return apply_rule(account_rules.clean_email, value)
 
 
+class RegistrationCodeDto(ApiModel):
+    """The SMS code was sent (or, if the number already has an account, a message saying so)."""
+
+    expires_at: datetime
+
+
+class ConfirmRegistrationBody(_PhoneField):
+    code: str = Field(max_length=CODE_MAX_LENGTH, examples=["123 456"])
+
+    @field_validator("code")
+    @classmethod
+    def _code(cls, value: str) -> str:
+        return apply_rule(account_rules.clean_registration_code, value)
+
+
 class LoginBody(_PhoneField):
     # No strength rule here: only the stored hash decides.
     password: str = Field(min_length=1, max_length=PASSWORD_MAX_LENGTH)

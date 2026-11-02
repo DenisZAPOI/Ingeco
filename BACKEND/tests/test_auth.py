@@ -7,7 +7,7 @@ each test (see conftest.py).
 """
 
 from app.repository.user_repository import DEV_ACTIVATION_CODE, DEV_PASSWORD
-from app.services.auth_service import MAX_FAILED_ATTEMPTS
+from app.services.auth_service import DEMO_REGISTRATION_CODE, MAX_FAILED_ATTEMPTS
 
 RIDER_PHONE = "0694 00 00 01"
 DRIVER_PHONE = "0694 00 00 03"
@@ -42,8 +42,15 @@ def new_rider(**changes):
 #  Registration
 # ---------------------------------------------------------------------------
 
+def register(client, **changes):
+    """Both steps of a registration, with the demo code (see conftest.py)."""
+    body = new_rider(**changes)
+    assert client.post("/auth/register", json=body).status_code == 202
+    return client.post("/auth/register/confirm", json={"phone": body["phone"], "code": DEMO_REGISTRATION_CODE})
+
+
 def test_a_visitor_registers_as_a_rider_and_is_logged_in(client):
-    response = client.post("/auth/register", json=new_rider())
+    response = register(client)
 
     assert response.status_code == 201
     user = response.get_json()
@@ -53,7 +60,7 @@ def test_a_visitor_registers_as_a_rider_and_is_logged_in(client):
 
 
 def test_the_session_cookies_are_http_only(client):
-    response = client.post("/auth/register", json=new_rider())
+    response = register(client)
 
     cookies = response.headers.getlist("Set-Cookie")
     access = next(cookie for cookie in cookies if cookie.startswith("access_token_cookie="))
@@ -66,13 +73,6 @@ def test_registration_cannot_choose_another_role(client):
     response = client.post("/auth/register", json=new_rider(role="admin"))
 
     assert response.status_code == 400
-
-
-def test_a_number_already_registered_is_refused(client):
-    response = client.post("/auth/register", json=new_rider(phone=TO_ACTIVATE_PHONE))
-
-    assert response.status_code == 409
-    assert "J'ai reçu un code" in response.get_json()["detail"]
 
 
 def test_a_weak_password_is_refused_with_a_french_message_on_the_field(client):
@@ -202,8 +202,19 @@ def test_a_suspended_account_loses_its_session_at_renewal(client):
 def test_logout_erases_the_session(client):
     login(client)
 
-    assert client.post("/auth/logout").status_code == 204
+    assert client.post("/auth/logout", headers=csrf_headers(client)).status_code == 204
     assert client.get("/auth/me").status_code == 401
+
+
+def test_a_logout_forged_by_another_site_is_refused(client):
+    login(client)
+
+    assert client.post("/auth/logout").status_code == 401
+    assert client.get("/auth/me").status_code == 200
+
+
+def test_logout_works_without_any_session(client):
+    assert client.post("/auth/logout").status_code == 204
 
 
 def test_a_role_not_allowed_is_refused(client):

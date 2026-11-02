@@ -13,12 +13,13 @@ import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from ..repository import ride_repository, user_repository
+from ..repository import ride_repository, sms_repository, user_repository
 from ..repository.user_repository import DuplicateValue, Position, User, Vehicle
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, UnprocessableEntity
 from ..utils.passwords import hash_secret
 from . import account_rules, ride_rules
+from .driver_service import driver_locks
 from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVATION_CODE_VALIDITY_HOURS, ACTIVE, DRIVER, RIDER, SUSPENDED
 from .auth_service import EMAIL_TAKEN
 
@@ -32,7 +33,7 @@ PLATE_TAKEN = "Cette immatriculation est déjà celle d'un autre chauffeur."
 VEHICLE_REQUIRED = "Indiquez le véhicule du chauffeur."
 DRIVERS_ONLY = "Seul un chauffeur a un véhicule et une photo."
 RIDERS_ONLY = "Seul un usager peut être prioritaire."
-NOT_YOURSELF = "Vous ne pouvez pas suspendre votre propre compte."
+NOT_YOURSELF = "Vous ne pouvez pas changer le statut de votre propre compte."
 DRIVER_HAS_RIDE = (
     "Ce chauffeur a une course acceptée ou en cours. Attendez qu'elle soit terminée, "
     "ou annulez-la, avant de suspendre son compte."
@@ -143,7 +144,9 @@ def create_account(
 
 def update_account(*, admin_id: int, user_id: int, changes: AccountChanges) -> User:
     """Suspends or reactivates, marks a rider as priority, changes a driver's vehicle."""
-    with database.session() as session:
+    # The driver's lock: a suspension and an acceptance at the same moment must
+    # not leave a suspended driver holding a ride (audit F15).
+    with driver_locks.hold(user_id), database.session() as session:
         user = _find(session, user_id)
 
         if changes.is_priority is not _UNCHANGED:
@@ -155,6 +158,11 @@ def update_account(*, admin_id: int, user_id: int, changes: AccountChanges) -> U
             if user.role != DRIVER:
                 raise UnprocessableEntity(DRIVERS_ONLY)
             user.vehicle = changes.vehicle
+
+        # Neither way: a suspended administrator still holding a page open
+        # must not be able to reactivate themselves.
+        if changes.status is not _UNCHANGED and user.id == admin_id:
+            raise UnprocessableEntity(NOT_YOURSELF)
 
         if changes.status == SUSPENDED and user.status != SUSPENDED:
             _suspend(session, admin_id, user)
@@ -177,11 +185,9 @@ def update_account(*, admin_id: int, user_id: int, changes: AccountChanges) -> U
 def _suspend(session, admin_id: int, user: User) -> None:
     """A suspended account cannot log in any more; a driver also goes offline.
 
-    It loses access at the latest when its 15-minute token ends. A driver
+    Its sessions end at once, and stay ended once reactivated. A driver
     holding a ride is refused: the rider would wait for nobody.
     """
-    if user.id == admin_id:
-        raise UnprocessableEntity(NOT_YOURSELF)
     if user.role == DRIVER:
         if ride_repository.find_driver_rides(session, user.id, ride_rules.HELD_STATUSES):
             raise Conflict(DRIVER_HAS_RIDE)
@@ -189,6 +195,7 @@ def _suspend(session, admin_id: int, user: User) -> None:
         user.is_available = False
         user.location = None
     user.status = SUSPENDED
+    user.session_version += 1
 
 
 # --- Photo of a driver -------------------------------------------------------
@@ -228,6 +235,10 @@ def new_activation_code(*, admin_id: int, user_id: int) -> ActivationCode:
         user.activation_code_hash = code_hash
         user.activation_code_expires_at = expires_at
         user_repository.update_user(session, user)
+        if user.password_hash is not None:
+            # Whoever holds the code may choose the password: the holder of an
+            # account already in use is warned, by SMS (audit F19).
+            sms_repository.send(session, user_id=user.id, kind=sms_repository.NEW_ACTIVATION_CODE)
     # Never the code itself (it would open the account).
     logger.info("Activation code issued", extra={"context": {"userId": user_id, "byAdminId": admin_id}})
     return ActivationCode(code=code, expires_at=expires_at)

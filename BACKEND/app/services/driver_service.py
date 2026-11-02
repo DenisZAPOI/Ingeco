@@ -18,6 +18,7 @@ from ..repository.ride_repository import DayEarnings, Ride
 from ..repository.user_repository import Location, User
 from ..utils import database
 from ..utils.errors import Conflict, Forbidden, NotFound
+from ..utils.locks import KeyedLock
 from . import ride_rules
 from .account_rules import DRIVER, SUSPENDED
 from .auth_service import ACCOUNT_SUSPENDED
@@ -39,6 +40,11 @@ NOT_YOUR_RIDE = "Vous n'êtes plus le chauffeur de cette course."
 NOT_ACCEPTED = "Cette course n'est pas en attente de départ."
 TOO_EARLY = "Cette course est programmée plus tard : vous pourrez la démarrer une heure avant."
 NOT_IN_PROGRESS = "Cette course n'a pas encore démarré."
+
+# The timetable check reads the other rides of the driver, then the acceptance
+# writes one: two acceptances of the same driver at the same moment must not
+# both pass the check. Held by a suspension too (admin_service). Audit F15.
+driver_locks = KeyedLock()
 
 
 @dataclass(frozen=True)
@@ -135,7 +141,7 @@ def earnings(driver_id: int, first_day: date, last_day: date) -> Earnings:
 
 def accept_ride(driver_id: int, ride_id: int) -> Ride:
     """Takes a ride waiting for a driver. Accepting again a ride already taken by the same driver returns it."""
-    with database.session() as session:
+    with driver_locks.hold(driver_id), database.session() as session:
         driver = _online_driver(session, driver_id)
         ride = _find(session, ride_id)
         if ride.driver_id == driver_id and ride.status in ride_rules.HELD_STATUSES:

@@ -24,6 +24,9 @@ class Stop:
     lat: float
     lng: float
     commune_id: int
+    # Signature sent by the phone with a stop it books (place_service): checked,
+    # never stored.
+    token: str | None = None
 
 
 @dataclass
@@ -294,8 +297,8 @@ def _write(ride: Ride) -> Ride:
     return stored
 
 
-def reset(*, dev_rides: bool = True) -> None:
-    """Back to the development rides. The tests start without any (dev_rides=False)."""
+def reset(*, dev_rides: bool = False) -> None:
+    """Empties the store, then adds the development rides if asked (LOAD_DEMO_DATA)."""
     global _next_id
     with _lock:
         _rides.clear()
@@ -370,5 +373,3 @@ def _dev_rides() -> list[tuple[Ride, Rating | None]]:
         (completed(1, "training"), None),
     ]
 
-
-reset()

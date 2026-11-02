@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from app.repository.place_repository import PlacesUnavailable
+from app.services import place_service
 from tests.test_auth import DRIVER_PHONE, csrf_headers, login
 
 OTHER_RIDER_PHONE = "0694 00 00 02"  # Bruno, needs an accessible vehicle
@@ -19,6 +20,14 @@ MATOURY_TOWN_HALL = {"address": "Mairie de Matoury", "lat": 4.8470, "lng": -52.3
 KOUROU = {"address": "Kourou", "lat": 5.1600, "lng": -52.6500, "communeId": 1}
 
 
+def signed(stop: dict) -> dict:
+    """A stop as GET /places proposes it: with its token (audit F9)."""
+    if "token" in stop:
+        return stop
+    token = place_service.place_token(stop["address"], stop["lat"], stop["lng"], stop["communeId"])
+    return stop | {"token": token}
+
+
 def booking(**changes):
     body = {
         "clientRequestId": str(uuid.uuid4()),
@@ -26,8 +35,8 @@ def booking(**changes):
         "pickup": CAYENNE_TOWN_HALL,
         "dropoff": MATOURY_TOWN_HALL,
         "scheduledAt": None,
-    }
-    return body | changes
+    } | changes
+    return body | {"pickup": signed(body["pickup"]), "dropoff": signed(body["dropoff"])}
 
 
 def book(client, body=None):
@@ -35,7 +44,8 @@ def book(client, body=None):
 
 
 def estimate(client, pickup=CAYENNE_TOWN_HALL, dropoff=MATOURY_TOWN_HALL):
-    return client.post("/rides/estimate", json={"pickup": pickup, "dropoff": dropoff}, headers=csrf_headers(client))
+    body = {"pickup": signed(pickup), "dropoff": signed(dropoff)}
+    return client.post("/rides/estimate", json=body, headers=csrf_headers(client))
 
 
 def pay(client, ride_id):
