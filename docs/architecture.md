@@ -42,7 +42,7 @@ BACKEND/
     ├── models/                 Modèles ORM des tables de l'équipe BD (vide pour l'instant)
     ├── sockets/                Événements temps réel ; broadcast.py pour émettre
     └── utils/                  database, errors, logs, request_logs, security_headers,
-                                access (session, rôles), passwords, rate_limit,
+                                access (session, rôles), passwords, rate_limit, locks,
                                 periodic (tâches de fond : expiration des courses)
 ```
 
@@ -122,13 +122,30 @@ exactement les mêmes règles que les routes HTTP.
   `csrf_refresh_token`) ; `api/client.ts` les recopie dans l'en-tête `X-CSRF-TOKEN` de chaque
   écriture. Un site tiers ne peut pas lire ces cookies, donc pas forger la requête.
 - **Renouvellement** : sur un `401`, `api/client.ts` appelle une fois `POST /auth/refresh`, puis
-  rejoue l'appel. Le renouvellement relit le compte : un compte suspendu perd l'accès en 15 minutes
-  au plus.
+  rejoue l'appel.
+- **Compte relu à chaque requête** : `@require_login` relit le compte (`auth_service.check_session`,
+  branché par `access.configure` dans `create_app`). Un compte suspendu, ou une session dont la
+  `session_version` est plus ancienne que celle du compte, reçoit `401` tout de suite. La version
+  augmente à chaque nouveau mot de passe et à chaque suspension ; après un changement de mot de
+  passe, la route repose les cookies du téléphone qui l'a fait (`start_session`).
 - **Rôles** : `@require_login("admin", ...)` dans le contrôleur, **au-dessus** de `@spec.validate`.
-  Sans argument : n'importe quel utilisateur connecté. `current_user_id()` donne l'appelant.
+  Sans argument : n'importe quel utilisateur connecté. `current_user_id()` donne l'appelant,
+  `current_role()` son rôle tel qu'il est en base. Personne ne change son propre statut.
 - **Mots de passe et codes** : hachés en scrypt (`utils/passwords.py`), jamais en clair, jamais
-  dans les logs. 5 échecs en 15 minutes par numéro bloquent la connexion ou l'activation
-  (`utils/rate_limit.py`, en mémoire).
+  dans les logs. Au plus 4 hachages en même temps, sinon `429` : chacun coûte environ 110 ms et
+  32 Mo.
+- **Limites** (`utils/rate_limit.py`, en mémoire) : un essai est compté **avant** le travail
+  coûteux (`try_record`), puis rendu s'il réussit. 5 échecs en 15 minutes par numéro, 30 par
+  adresse réseau, pour la connexion et l'activation ; 3 codes SMS d'inscription par heure et par
+  numéro, 10 par adresse ; 5 mots de passe actuels faux par compte ; 60 recherches d'adresse et
+  estimations par compte en 10 minutes ; 1 course immédiate et 3 programmées non terminées par
+  usager. Derrière un proxy, `TRUSTED_PROXY_COUNT` dit combien de `X-Forwarded-For` croire.
+- **Inscription** : `POST /auth/register` envoie un code SMS et garde l'inscription en mémoire
+  (`repository/registration_repository.py`, 10 minutes) ; `POST /auth/register/confirm` crée le
+  compte. Même réponse que le numéro ait un compte ou non.
+- **Démarrage refusé** (`main.check_safety`) : clé de moins de 32 caractères ou d'exemple ;
+  `LOAD_DEMO_DATA` ou `FLASK_DEBUG` avec `COOKIE_SECURE=true`. `/apidoc` n'existe qu'avec
+  `API_DOCS_ENABLED=true`.
 
 ### Ce que chacun voit d'une course
 
@@ -143,6 +160,14 @@ chaque course ce que l'appelant a le droit de savoir de l'autre partie, et rien 
 Tout service qui renvoie des courses passe par `present()`. Les champs `rating`, `driver` et
 `rider` de `Ride` ne sont jamais écrits par le repository (ce sont des jointures).
 
+Une offre (course `pending`) n'est lisible que par un chauffeur **en ligne** dont le véhicule
+convient, comme dans la liste des offres.
+
+**Lieux signés.** `GET /places` et chaque course renvoient les lieux avec un `token` (HMAC du
+libellé, de la position et de la commune, `place_service.place_token`). Estimation et réservation
+n'acceptent un lieu qu'avec son `token` intact : le libellé montré au chauffeur est toujours celui
+de la position. Le `token` n'est jamais stocké.
+
 ### Transitions d'une course
 
 Chaque changement de statut est une écriture conditionnelle sur le statut attendu
@@ -151,6 +176,12 @@ qui acceptent, une annulation et un démarrage), une seule gagne, l'autre reçoi
 une transition déjà faite par le même acteur renvoie la course, pas une erreur (bouton touché
 deux fois en 2G). Règles et délais : `services/ride_rules.py` ; côté chauffeur :
 `services/driver_service.py`.
+
+Quand une vérification lit **d'autres lignes** que celle qu'on écrit (l'horaire du chauffeur avant
+d'accepter, le nombre de courses ouvertes avant de réserver), l'écriture conditionnelle ne suffit
+plus : un verrou par chauffeur ou par usager (`utils/locks.py`) entoure la vérification et
+l'écriture. Il est en mémoire ; avec les repositories MySQL, le remplacer par
+`SELECT … FOR UPDATE` sur la ligne du chauffeur (ou de l'usager) dans la même transaction.
 
 ### Temps réel
 

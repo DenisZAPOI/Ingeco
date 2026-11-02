@@ -34,12 +34,18 @@ export function readBookingDraft(): BookingDraft {
   try {
     const parsed: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null');
     if (typeof parsed === 'object' && parsed !== null) {
-      return { ...EMPTY_DRAFT, ...(parsed as Partial<BookingDraft>) };
+      const draft = { ...EMPTY_DRAFT, ...(parsed as Partial<BookingDraft>) };
+      // A stop kept by an older version of the app has no token: chosen again.
+      return { ...draft, pickup: signedOrNull(draft.pickup), dropoff: signedOrNull(draft.dropoff) };
     }
   } catch {
     // Storage blocked or corrupted: start again.
   }
   return EMPTY_DRAFT;
+}
+
+function signedOrNull(stop: Stop | null): Stop | null {
+  return stop && typeof stop.token === 'string' ? stop : null;
 }
 
 export function saveBookingDraft(draft: BookingDraft | null): void {

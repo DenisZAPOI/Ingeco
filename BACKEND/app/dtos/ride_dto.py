@@ -7,13 +7,14 @@ from uuid import UUID
 from pydantic import AwareDatetime, Field, field_validator, model_validator
 
 from ..repository.ride_repository import DriverInfo, Position, Rating, Ride, Stop
-from ..services import ride_rules
+from ..services import place_service, ride_rules
 from ..services.account_rules import clean_name
 from ..services.ride_service import Estimate, RidePage
 from . import cursor
 from .base import ApiModel, InputModel, apply_rule, field_error
 
 ADDRESS_MAX_LENGTH = 255
+TOKEN_MAX_LENGTH = 100
 
 Purpose = Literal["employment", "training", "health", "administrative", "other"]
 RideStatus = Literal["awaiting_payment", "pending", "accepted", "in_progress", "completed", "cancelled", "expired"]
@@ -29,6 +30,9 @@ class StopBody(InputModel):
     lat: float = Field(ge=-90, le=90, examples=[4.847])
     lng: float = Field(ge=-180, le=180, examples=[-52.331])
     commune_id: int = Field(ge=1)
+    # The token of the place, as GET /places (or a ride) sent it: a stop
+    # changed or typed by hand is refused (422).
+    token: str = Field(max_length=TOKEN_MAX_LENGTH)
 
     @field_validator("address")
     @classmethod
@@ -36,7 +40,7 @@ class StopBody(InputModel):
         return apply_rule(clean_name, value)
 
     def to_stop(self) -> Stop:
-        return Stop(address=self.address, lat=self.lat, lng=self.lng, commune_id=self.commune_id)
+        return Stop(address=self.address, lat=self.lat, lng=self.lng, commune_id=self.commune_id, token=self.token)
 
 
 class EstimateBody(InputModel):
@@ -109,6 +113,8 @@ class StopDto(ApiModel):
     lat: float
     lng: float
     commune_id: int
+    # To book the same trip again with this stop (see StopBody).
+    token: str
 
 
 class RatingDto(ApiModel):
@@ -240,7 +246,13 @@ def _rating_to_dto(rating: Rating) -> RatingDto:
 
 
 def _stop_to_dto(stop: Stop) -> StopDto:
-    return StopDto(address=stop.address, lat=stop.lat, lng=stop.lng, commune_id=stop.commune_id)
+    return StopDto(
+        address=stop.address,
+        lat=stop.lat,
+        lng=stop.lng,
+        commune_id=stop.commune_id,
+        token=place_service.place_token(stop.address, stop.lat, stop.lng, stop.commune_id),
+    )
 
 
 def _driver_to_dto(driver: DriverInfo) -> RideDriverDto:

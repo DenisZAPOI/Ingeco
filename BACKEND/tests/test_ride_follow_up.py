@@ -127,6 +127,7 @@ def test_a_driver_sees_the_rides_they_took(client):
     login(client)
     taken = paid_ride(client)
     move_to(taken, ride_rules.ACCEPTED)
+    login(client, phone=OTHER_RIDER_PHONE)
     paid_ride(client)  # waiting for a driver: not theirs
 
     login(client, phone=DRIVER_PHONE)
@@ -282,7 +283,7 @@ def test_only_the_rider_of_the_ride_rates_it(client):
 # --- Development rides -------------------------------------------------------
 
 def test_the_development_rides_let_alice_try_the_lists_and_the_rating(client):
-    ride_repository.reset()
+    ride_repository.reset(dev_rides=True)
     login(client)
 
     past = list_rides(client, "past").get_json()["items"]

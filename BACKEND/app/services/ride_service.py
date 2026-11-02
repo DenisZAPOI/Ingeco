@@ -32,8 +32,9 @@ from ..repository.ride_repository import (
 )
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
+from ..utils.locks import KeyedLock
 from . import ride_rules
-from .place_service import check_served
+from .place_service import check_proposed, check_served, count_lookup
 from .ride_rules import (
     APP_CHANNEL,
     AWAITING_PAYMENT,
@@ -68,6 +69,18 @@ _NOT_CANCELLABLE = {
 }
 NOT_FINISHED = "Vous pourrez noter ce trajet une fois arrivé."
 ALREADY_RATED = "Vous avez déjà noté ce trajet. Merci !"
+TOO_MANY_IMMEDIATE = (
+    "Vous avez déjà un trajet en cours ou qui attend un chauffeur. "
+    "Attendez qu'il soit terminé, ou annulez-le, avant d'en réserver un autre."
+)
+TOO_MANY_SCHEDULED = (
+    f"Vous avez déjà {ride_rules.MAX_OPEN_SCHEDULED_RIDES} trajets programmés. "
+    "Attendez que l'un d'eux soit passé, ou annulez-en un."
+)
+
+# Counting the open rides then inserting one: two bookings sent at the same
+# moment must not both pass the count (audit F15).
+rider_locks = KeyedLock()
 
 # Who sees any ride (contract 4.2): the call centre and the administrators.
 STAFF_ROLES = ("operator", "admin")
@@ -81,8 +94,9 @@ class Estimate:
     rider_amount_cents: int
 
 
-def estimate(pickup: Stop, dropoff: Stop) -> Estimate:
+def estimate(pickup: Stop, dropoff: Stop, *, user_id: int) -> Estimate:
     """Distance and price, without saving anything."""
+    count_lookup(user_id)
     with database.session() as session:
         return _estimate(session, pickup, dropoff)
 
@@ -101,14 +115,17 @@ def book_ride(
     Sent again with the same client_request_id (network cut during the
     sending), it returns the ride already booked instead of a second one.
     """
-    with database.session() as session:
+    with rider_locks.hold(rider_id), database.session() as session:
         already_booked = _replayed_booking(session, client_request_id, rider_id)
         if already_booked is not None:
             return already_booked, False
+        _check_open_rides(session, rider_id, scheduled=scheduled_at is not None)
 
         rider = user_repository.find_by_id(session, rider_id)
         price = _estimate(session, pickup, dropoff)
         created_at = ride_rules.now()
+        # The signatures were checked by _estimate: not stored with the ride.
+        pickup, dropoff = _unsigned(pickup), _unsigned(dropoff)
         ride = Ride(
             client_request_id=client_request_id,
             rider_id=rider_id,
@@ -180,12 +197,13 @@ def _payment_already_settled(session: Session, ride_id: int) -> Ride:
 def get_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
     """A ride, for its rider, its driver, the call centre or an administrator.
 
-    A driver also sees a ride waiting for a driver (an offer), without its
-    rider's contact. Anyone else gets 404, as if it did not exist.
+    A driver also sees a ride waiting for a driver that they could take (an
+    offer: online, with a fitting vehicle), without its rider's contact.
+    Anyone else gets 404, as if it did not exist.
     """
     with database.session() as session:
         ride = ride_repository.find_by_id(session, ride_id)
-        if ride is None or not _may_see(ride, user_id, role):
+        if ride is None or not _may_see(session, ride, user_id, role):
             raise NotFound(RIDE_NOT_FOUND)
         return present(session, [ride], user_id=user_id, role=role)[0]
 
@@ -222,10 +240,16 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
     return rides
 
 
-def _may_see(ride: Ride, user_id: int, role: str) -> bool:
+def _may_see(session: Session, ride: Ride, user_id: int, role: str) -> bool:
     if role in STAFF_ROLES or user_id in (ride.rider_id, ride.driver_id):
         return True
-    return role == "driver" and ride.status == PENDING
+    if role != "driver" or ride.status != PENDING:
+        return False
+    # The rules of the offers list (audit F10): an offline driver, or one whose
+    # vehicle does not fit, cannot read the addresses of the rides waiting.
+    driver = user_repository.find_by_id(session, user_id)
+    fits = not ride.needs_accessible_vehicle or (driver.vehicle is not None and driver.vehicle.is_accessible)
+    return driver.is_available and fits
 
 
 @dataclass(frozen=True)
@@ -329,8 +353,9 @@ def _cancellation_already_settled(session: Session, ride_id: int) -> Ride:
 
 
 def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:
-    check_served(session, pickup.lat, pickup.lng, pickup.commune_id)
-    check_served(session, dropoff.lat, dropoff.lng, dropoff.commune_id)
+    for stop in (pickup, dropoff):
+        check_proposed(stop.address, stop.lat, stop.lng, stop.commune_id, stop.token)
+        check_served(session, stop.lat, stop.lng, stop.commune_id)
 
     try:
         road_km = road_distance_km(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng)
@@ -346,6 +371,22 @@ def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:
     price = ride_rules.price_cents(tariff.base_fare_cents, tariff.per_km_cents, distance_km)
     # No voucher yet: the rider's share is the whole price.
     return Estimate(distance_km=distance_km, price_cents=price, voucher_amount_cents=0, rider_amount_cents=price)
+
+
+def _unsigned(stop: Stop) -> Stop:
+    return Stop(address=stop.address, lat=stop.lat, lng=stop.lng, commune_id=stop.commune_id)
+
+
+def _check_open_rides(session: Session, rider_id: int, *, scheduled: bool) -> None:
+    """422 beyond 1 immediate ride and 3 scheduled ones not finished yet (audit F6)."""
+    open_rides = ride_repository.find_upcoming(
+        session, rider_id=rider_id, driver_id=None, statuses=ride_rules.UPCOMING_STATUSES
+    )
+    same_kind = [ride for ride in open_rides if (ride.scheduled_at is not None) == scheduled]
+    if scheduled and len(same_kind) >= ride_rules.MAX_OPEN_SCHEDULED_RIDES:
+        raise UnprocessableEntity(TOO_MANY_SCHEDULED)
+    if not scheduled and len(same_kind) >= ride_rules.MAX_OPEN_IMMEDIATE_RIDES:
+        raise UnprocessableEntity(TOO_MANY_IMMEDIATE)
 
 
 def _replayed_booking(session: Session, client_request_id: str, rider_id: int) -> Ride | None:

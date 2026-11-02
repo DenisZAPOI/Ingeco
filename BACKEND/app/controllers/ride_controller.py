@@ -31,7 +31,13 @@ _TAGS = ["Réservation"]
 @spec.validate(
     body=EstimateBody,
     resp=Response(
-        HTTP_200=EstimateDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_422=ErrorDto, HTTP_503=ErrorDto
+        HTTP_200=EstimateDto,
+        HTTP_400=ErrorDto,
+        HTTP_401=ErrorDto,
+        HTTP_403=ErrorDto,
+        HTTP_422=ErrorDto,
+        HTTP_429=ErrorDto,
+        HTTP_503=ErrorDto,
     ),
     tags=_TAGS,
 )
@@ -39,10 +45,12 @@ def estimate():
     """Road distance and price of a trip. Saves nothing.
 
     422 if the pickup or the drop-off is outside the served zone, 503 if the
-    road distance cannot be computed.
+    road distance cannot be computed, 429 beyond 60 searches and estimates in
+    10 minutes for an account.
     """
     body: EstimateBody = request.context.body
-    return jsonify(estimate_to_dto(ride_service.estimate(body.pickup.to_stop(), body.dropoff.to_stop())).to_json()), 200
+    result = ride_service.estimate(body.pickup.to_stop(), body.dropoff.to_stop(), user_id=current_user_id())
+    return jsonify(estimate_to_dto(result).to_json()), 200
 
 
 @ride_bp.post("")
@@ -66,7 +74,8 @@ def book():
 
     The price is computed again here, never taken from the estimate. Sent again
     with the same clientRequestId, it returns the ride already booked (200)
-    instead of booking a second one (201).
+    instead of booking a second one (201). 422 beyond 1 immediate ride and 3
+    scheduled ones not finished yet.
     """
     body: BookRideBody = request.context.body
     ride, created = ride_service.book_ride(

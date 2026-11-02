@@ -38,6 +38,7 @@ points : la zone du pilote et la photo du chauffeur (H18, H19).
 | Zone du pilote (première visio) | Seules Cayenne, Rémire-Montjoly et Matoury sont desservies au départ ; Kourou viendra ensuite. Départ et arrivée doivent être dans une commune desservie (H18) | Les données de référence des communes changent |
 | Profil du chauffeur (première visio) | Le passager voit la photo du chauffeur. Le contenu du reste du profil (« mini CV ») est à préciser avec la cliente (H19) | **Un champ photo sur le chauffeur** |
 | Côté chauffeur (développement, 02/11/2026) | La course porte `driver` (avec son **téléphone** tant qu'elle est `accepted` ou `in_progress`) et `rider` (prénom et téléphone, pour son chauffeur pendant la course). `GET /auth/me` donne `isAvailable` au chauffeur. Précisions sur les offres, le désistement et le démarrage ([4.3](#43-chauffeur)). **Le partage des numéros est à confirmer avec la cliente** | Aucun : `telephone` est déjà sur le compte |
+| Sécurité (audit du 02/11/2026, [audit-securite-2026-11-02.md](audit-securite-2026-11-02.md)) | Inscription en deux étapes avec un code SMS (`POST /auth/register` puis `/auth/register/confirm`) ; une nouvelle version de session coupe les sessions ouvertes avant un changement de mot de passe ou une suspension ; les lieux portent une signature (`token`) ; limites sur les réservations ouvertes, les recherches et les essais ([4.1](#41-compte-et-connexion), [4.2](#42-réservation-usager)) | **Un champ `sessionVersion` sur le compte** (entier, 0 par défaut). Inscriptions en attente : rien en base |
 | Liste des trajets (développement, 02/11/2026) | `GET /rides` sépare les trajets à venir (`when=upcoming`) des trajets passés (`when=past`), paginés par curseur plutôt que par numéro de page ([1](#1-conventions), [4.2](#42-réservation-usager)) | Aucun : les index `idx_course_usager` et `idx_course_chauffeur` servent déjà ce tri |
 
 ### Changements de la version 0 à la version 1
@@ -128,6 +129,7 @@ veut dire que l'API en fournira toujours une valeur.
 | mot de passe haché | texte (prévoir 255) | non | Jamais en clair. Vide tant que le compte n'est pas activé |
 | code d'activation haché | texte (prévoir 255) | non | Jamais en clair. Vide hors période d'activation |
 | `activationCodeExpiresAt` | date-heure | non | Fin de validité du code (48 h après sa création) |
+| `sessionVersion` | entier | oui | 0 à la création. Augmente à chaque nouveau mot de passe (profil, activation) et à chaque suspension : les sessions ouvertes avant prennent fin. Jamais envoyé au front |
 | `createdAt` | date-heure | oui | |
 
 **Activation.** Un compte créé par quelqu'un d'autre (usager créé par l'opérateur, chauffeur,
@@ -137,9 +139,18 @@ avec `POST /auth/activate`. Le même mécanisme sert au mot de passe oublié : p
 réinitialisation en libre-service tant que les SMS sont simulés (H12). Le code fait 8 chiffres,
 facile à dicter.
 
+**Inscription.** Un usager s'inscrit en deux temps : `POST /auth/register` envoie un code de
+6 chiffres par SMS, valable 10 minutes ; `POST /auth/register/confirm` avec ce code crée le compte.
+Rien n'est enregistré en base avant le code : un numéro tapé par erreur, ou celui de quelqu'un
+d'autre, ne bloque personne. La réponse est la même que le numéro ait déjà un compte ou non (le
+SMS, lui, le dit). Les inscriptions en attente vivent en mémoire de l'API.
+
 **Session.** Deux JWT dans des cookies `HttpOnly` : un jeton d'accès de 15 minutes et un jeton de
-renouvellement de 30 jours. Protection CSRF par double envoi : un cookie lisible porte un jeton
-que le front recopie dans l'en-tête `X-CSRF-TOKEN` de chaque écriture. Rien à stocker en base.
+renouvellement de 30 jours, qui portent tous deux la `sessionVersion` du compte. Le compte est
+relu **à chaque requête** : un compte suspendu, ou une session ouverte avant le dernier changement
+de mot de passe, reçoit `401` tout de suite. Protection CSRF par double envoi : un cookie lisible
+porte un jeton que le front recopie dans l'en-tête `X-CSRF-TOKEN` de chaque écriture, y compris
+la déconnexion.
 
 **Saisie.** Le téléphone est saisi comme l'usager le connaît (`0694 12 34 56`) et enregistré au
 format international (`+594694123456`). Mot de passe : au moins 8 caractères, dont une
@@ -303,25 +314,29 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
-| `POST /auth/register` | public | Crée un compte `rider` actif et ouvre la session. Jamais un autre rôle. `409` si le téléphone existe déjà, y compris pour un compte créé par l'opérateur : il faut alors l'activer | L : téléphone ou e-mail déjà pris ? E : un compte |
-| `POST /auth/activate` | public | Téléphone + code d'activation + nouveau mot de passe, puis ouvre la session. Efface le code. `422` si le code est faux ou expiré, `429` après 5 échecs en 15 minutes | L : compte par téléphone. E : mot de passe, code remis à vide |
-| `POST /auth/login` | public | Connexion par téléphone + mot de passe. `429` après 5 échecs en 15 minutes pour le même numéro | L : compte par téléphone |
-| `POST /auth/refresh` | connecté | Renouvelle le jeton d'accès (15 min) à partir du jeton de renouvellement (30 jours). Relit le compte : un compte suspendu est déconnecté ici | L : compte par id |
-| `POST /auth/logout` | public | Efface les cookies de session | Rien |
+| `POST /auth/register` | public | Première étape : envoie un code de 6 chiffres par SMS, valable 10 minutes (`202`, `{ expiresAt }`). Ne crée rien. Même réponse si le numéro a déjà un compte. `429` après 3 codes en une heure pour un numéro, ou 10 depuis une même adresse réseau | L : téléphone déjà pris ? |
+| `POST /auth/register/confirm` | public | Téléphone + code reçu : crée le compte `rider` actif et ouvre la session (`201`). Jamais un autre rôle. `422` si le code est faux ou expiré (après 5 erreurs, il faut un nouveau code) ; `409` si l'e-mail est déjà pris | L : e-mail déjà pris ? E : un compte |
+| `POST /auth/activate` | public | Téléphone + code d'activation + nouveau mot de passe, puis ouvre la session. Efface le code et coupe les autres sessions. `422` si le code est faux ou expiré, `429` après 5 échecs en 15 minutes pour un numéro, ou 30 depuis une même adresse réseau | L : compte par téléphone. E : mot de passe, code remis à vide, `sessionVersion + 1` |
+| `POST /auth/login` | public | Connexion par téléphone + mot de passe. `429` après 5 échecs en 15 minutes pour le même numéro, ou 30 depuis une même adresse réseau, ou quand trop de connexions arrivent en même temps | L : compte par téléphone |
+| `POST /auth/refresh` | connecté | Renouvelle le jeton d'accès (15 min) à partir du jeton de renouvellement (30 jours). Relit le compte : un compte suspendu, ou une session plus ancienne que le dernier mot de passe, est déconnecté ici | L : compte par id |
+| `POST /auth/logout` | public | Efface les cookies de session. Demande l'en-tête CSRF quand une session existe (`401` sinon) | Rien |
 | `GET /auth/me` | connecté | Renvoie le compte connecté et son profil | L : compte par id |
-| `PATCH /users/me` | connecté | Modifie son nom, son e-mail, son mot de passe, ses besoins d'accessibilité | E : le compte |
+| `PATCH /users/me` | connecté | Modifie son nom, son e-mail, son mot de passe, ses besoins d'accessibilité. Un nouveau mot de passe coupe les sessions des autres téléphones (celui-ci reçoit de nouveaux cookies). `429` après 5 mots de passe actuels faux en 15 minutes | E : le compte, `sessionVersion + 1` si nouveau mot de passe |
+
+Toute route connectée relit le compte par son id (statut et `sessionVersion`) : c'est la requête
+la plus fréquente de l'API, servie par la clé primaire.
 
 ### 4.2 Réservation (usager)
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
 | `GET /communes` | connecté | Liste des communes desservies | L : communes |
-| `GET /places` | connecté | Cherche une adresse dans une commune desservie (`?search=&communeId=`) et renvoie des propositions avec leur position | Rien (service externe, H13) |
+| `GET /places` | connecté | Cherche une adresse dans une commune desservie (`?search=&communeId=`) et renvoie des propositions avec leur position et leur signature (`token`). `429` au-delà de 60 recherches et estimations en 10 minutes pour un compte | Rien (service externe, H13) |
 | `POST /vouchers/check` | `rider`, `operator`, `admin` | Vérifie un code de bon et renvoie sa prise en charge. L'opérateur précise le `riderId` | L : bon par code, structure |
-| `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId` | L : tarif, bon par code |
-| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle. `422` si le départ ou l'arrivée est hors de la zone desservie (H18) | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
+| `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId`. Chaque lieu porte le `token` reçu de `GET /places` (ou d'une course) : un lieu modifié ou tapé à la main reçoit `422`. `429` comme `GET /places` | L : tarif, bon par code |
+| `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle. `422` si le départ ou l'arrivée est hors de la zone desservie (H18), si un lieu n'a pas sa signature, ou si l'usager a déjà 1 course immédiate ou 3 programmées non terminées (à confirmer avec la cliente) | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
 | `GET /rides` | `rider`, `driver` | Ses propres courses (réservées par l'usager, ou prises par le chauffeur). `?when=upcoming` : celles qui ne sont pas finies (`awaiting_payment`, `pending`, `accepted`, `in_progress`), toutes, la plus proche d'abord. `?when=past` : terminées, annulées ou expirées, la plus récente d'abord, 20 par page avec `cursor` ([1](#1-conventions)). Chaque course porte son évaluation (`rating`) | L : courses par usager ou par chauffeur et par statut, triées par date de création, avec leur évaluation |
-| `GET /rides/{id}` | participant, `operator`, `admin`, et tout `driver` pour une course `pending` (une offre) | Détail d'une course. `driver` (pour l'usager et le personnel) : prénom, véhicule, note moyenne, et téléphone tant que la course est `accepted` ou `in_progress` ; l'adresse de sa photo et sa position viendront à l'étape 4. `rider` (pour son chauffeur pendant la course, et le personnel) : prénom et téléphone ; jamais sur une offre | L : course + chauffeur + véhicule + moyenne des évaluations |
+| `GET /rides/{id}` | participant, `operator`, `admin`, et un `driver` en ligne dont le véhicule convient, pour une course `pending` (une offre) | Détail d'une course. Chaque lieu porte son `token`, pour réserver à nouveau le même trajet. `driver` (pour l'usager et le personnel) : prénom, véhicule, note moyenne, et téléphone tant que la course est `accepted` ou `in_progress` ; l'adresse de sa photo et sa position viendront à l'étape 4. `rider` (pour son chauffeur pendant la course, et le personnel) : prénom et téléphone ; jamais sur une offre | L : course + chauffeur + véhicule + moyenne des évaluations |
 | `GET /rides/{id}/driver-photo` | participant, `operator`, `admin` | Photo du chauffeur de la course. Pour l'usager, seulement tant que la course est `accepted` ou `in_progress`. Mise en cache par le téléphone | L : photo du chauffeur |
 | `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted`. Annuler une course déjà annulée la renvoie telle quelle ; `409` si elle a démarré, est terminée ou a expiré | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
 | `POST /rides/{id}/payment` | `rider` de la course | Paiement simulé de la part de l'usager, sur une course `awaiting_payment`. La fait passer en `pending` et la propose aux chauffeurs | E : `paymentStatus`, `paidAt`, statut, nouvelle `expiresAt` |

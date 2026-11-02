@@ -100,6 +100,19 @@ def clean_activation_code(raw: str) -> str:
     return code
 
 
+# --- Registration code (audit F4) --------------------------------------------
+# Sent by SMS: the usual length of a verification code, quick to type.
+REGISTRATION_CODE_LENGTH = 6
+_REGISTRATION_CODE = re.compile(rf"[0-9]{{{REGISTRATION_CODE_LENGTH}}}")
+
+
+def clean_registration_code(raw: str) -> str:
+    code = _PHONE_SEPARATORS.sub("", raw)
+    if not _REGISTRATION_CODE.fullmatch(code):
+        raise ValueError(f"Le code reçu par SMS contient {REGISTRATION_CODE_LENGTH} chiffres.")
+    return code
+
+
 # --- Accounts created by an administrator (UC52) -----------------------------
 STAFF_ROLES = ("driver", "operator", "admin")
 OPERATOR = "operator"

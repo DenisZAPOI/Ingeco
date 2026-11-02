@@ -13,7 +13,14 @@ const NO_CONTENT = 204;
 const REFRESH_PATH = '/auth/refresh';
 // These answer 401 for a wrong password or an ended session: renewing the
 // session there would make no sense.
-const NO_RENEWAL_PATHS = new Set(['/auth/login', '/auth/register', '/auth/activate', '/auth/logout', REFRESH_PATH]);
+const NO_RENEWAL_PATHS = new Set([
+  '/auth/login',
+  '/auth/register',
+  '/auth/register/confirm',
+  '/auth/activate',
+  '/auth/logout',
+  REFRESH_PATH,
+]);
 
 // The session tokens are HttpOnly cookies, out of JavaScript's reach. Next to
 // them the API sets readable CSRF cookies, copied into this header on every

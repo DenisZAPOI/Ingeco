@@ -19,6 +19,10 @@ class MissingConfiguration(RuntimeError):
     """Raised at startup when a required variable is missing."""
 
 
+class UnsafeConfiguration(RuntimeError):
+    """Raised at startup when the settings would expose a hosted server."""
+
+
 def _required(name: str) -> str:
     """Reads an environment variable, or fails with an explicit message.
 
@@ -60,6 +64,20 @@ class Config:
     # Expiry of the rides every minute (UC60). "false" in the tests only:
     # they run the task themselves, after moving the clock.
     PERIODIC_TASKS_ENABLED: bool = _optional("PERIODIC_TASKS_ENABLED", "true").lower() != "false"
+
+    # Development accounts and rides, whose password is public (README).
+    # "true" in local development only: refused with Secure cookies (https).
+    LOAD_DEMO_DATA: bool = _optional("LOAD_DEMO_DATA", "false").lower() == "true"
+
+    # Swagger and the OpenAPI schema (/apidoc). "true" in development and in
+    # the CI, which generates the front-end types from it. Off by default: in
+    # production the page would load CDN scripts on the API's own origin.
+    API_DOCS_ENABLED: bool = _optional("API_DOCS_ENABLED", "false").lower() == "true"
+
+    # Number of reverse proxies in front of the API, whose X-Forwarded-For is
+    # trusted for the client address (limits per address). 0: none, the
+    # header is ignored (otherwise anyone could choose their own address).
+    TRUSTED_PROXY_COUNT: int = int(_optional("TRUSTED_PROXY_COUNT", "0"))
 
     # --- Authentication (Flask-JWT-Extended) ---------------------------------
     # Tokens live in HttpOnly cookies: JavaScript never reads them, so a

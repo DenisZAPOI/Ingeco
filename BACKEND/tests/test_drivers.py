@@ -115,7 +115,7 @@ def test_only_a_driver_has_an_availability(client, phone):
 
 def test_immediate_offers_are_near_the_driver_nearest_first(client):
     farther = waiting_ride(client, pickup={**CAYENNE_TOWN_HALL, "lat": 4.9300, "lng": -52.3100})
-    nearer = waiting_ride(client)
+    nearer = waiting_ride(client, phone=OTHER_RIDER_PHONE)
     go_online(client)
     send_position(client)
 
@@ -180,7 +180,7 @@ def test_an_offer_hides_the_rider(client):
 def test_a_ride_not_paid_or_past_its_time_is_not_offered(client, clock):
     login(client)
     book(client)  # awaiting payment
-    paid = waiting_ride(client)
+    paid = waiting_ride(client, phone=OTHER_RIDER_PHONE)
     go_online(client)
     clock.move(minutes=16)  # no driver in 15 minutes: expired (UC60 not done yet)
 
@@ -239,7 +239,7 @@ def test_an_offline_driver_cannot_accept(client):
 
 def test_a_driver_holds_one_active_ride_at_a_time(client):
     first = waiting_ride(client)
-    second = waiting_ride(client)
+    second = waiting_ride(client, phone=OTHER_RIDER_PHONE)
     go_online(client)
     act(client, first, "accept")
 
@@ -394,11 +394,11 @@ def test_a_started_ride_is_no_longer_cancellable_by_the_rider(client):
 
 def test_a_driver_sees_an_offer_but_not_another_driver_s_ride(client, second_driver):
     offered = waiting_ride(client)
-    taken = waiting_ride(client)
+    taken = waiting_ride(client, phone=OTHER_RIDER_PHONE)
     go_online(client)
     act(client, taken, "accept")
 
-    login(client, phone=SECOND_DRIVER_PHONE)
+    go_online(client, phone=SECOND_DRIVER_PHONE)
 
     assert client.get(f"/rides/{offered}").status_code == 200
     assert client.get(f"/rides/{taken}").status_code == 404
