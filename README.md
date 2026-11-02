@@ -159,6 +159,10 @@ fictives, mot de passe commun **`Trajet-2026!`**.
 | 0694 00 00 07 | Gaëlle | Usager créé par le centre d'appel, **à activer** avec le code `12345678` (« J'ai reçu un code ») |
 | 0694 00 00 08 | Hugo | Usager suspendu |
 
+Alice a aussi quatre trajets passés, factices eux aussi (`BACKEND/app/repository/ride_repository.py`) :
+trois terminés, dont un déjà noté, et un annulé. Ils servent à essayer « Mes trajets » et la
+notation tant que le côté chauffeur n'existe pas. Les tests partent sans aucun trajet.
+
 En développement, `COOKIE_SECURE=false` dans `BACKEND/.env` : les cookies de session marqués
 `Secure` ne passent qu'en HTTPS, ce qui bloque Safari sur `http://localhost` et tout téléphone qui
 teste l'appli par l'adresse IP de l'ordinateur. Une fois déployé, toujours `true` (HTTPS).

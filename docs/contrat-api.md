@@ -37,6 +37,7 @@ points : la zone du pilote et la photo du chauffeur (H18, H19).
 | Session | Routes `POST /auth/refresh` et code `429`, règles du mot de passe et du téléphone ([4.1](#41-compte-et-connexion)) | Aucun |
 | Zone du pilote (première visio) | Seules Cayenne, Rémire-Montjoly et Matoury sont desservies au départ ; Kourou viendra ensuite. Départ et arrivée doivent être dans une commune desservie (H18) | Les données de référence des communes changent |
 | Profil du chauffeur (première visio) | Le passager voit la photo du chauffeur. Le contenu du reste du profil (« mini CV ») est à préciser avec la cliente (H19) | **Un champ photo sur le chauffeur** |
+| Liste des trajets (développement, 02/11/2026) | `GET /rides` sépare les trajets à venir (`when=upcoming`) des trajets passés (`when=past`), paginés par curseur plutôt que par numéro de page ([1](#1-conventions), [4.2](#42-réservation-usager)) | Aucun : les index `idx_course_usager` et `idx_course_chauffeur` servent déjà ce tri |
 
 ### Changements de la version 0 à la version 1
 
@@ -80,7 +81,7 @@ partie (6.7, 6.8, H11 à H15).
 | Montants | Entiers, en **centimes d'euro** (`1250` = 12,50 €) | Un type entier, jamais de flottant |
 | Positions | `lat` / `lng` en degrés décimaux (WGS 84) | Deux décimaux, ou un type spatial (PostGIS, etc.) |
 | Champ vide | Envoyé à `null`, jamais omis | Les colonnes facultatives sont `NULL`, pas de chaîne vide |
-| Listes | Paginées : `?page=1&pageSize=20`, réponse `{ items, page, pageSize, total }` | Chaque liste a besoin d'un tri stable et d'un `COUNT` |
+| Listes | Réponse `{ items }`. Une liste qui grandit sans fin (trajets passés) est paginée **par curseur** : `?cursor=` (la valeur `nextCursor` de la page précédente), réponse `{ items, nextCursor }`, `nextCursor` à `null` sur la dernière page. Les listes d'administration (étape 7) restent à définir | Un tri stable (date de création, puis `id`) servi par un index ; pas de `COUNT` |
 | Suppression | Aucune suppression physique dans le MVP : on change un statut | Pas de `DELETE` côté API |
 | Erreurs | `{ "error": "...", "detail": ... }` | Rien |
 
@@ -318,12 +319,12 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 | `POST /vouchers/check` | `rider`, `operator`, `admin` | Vérifie un code de bon et renvoie sa prise en charge. L'opérateur précise le `riderId` | L : bon par code, structure |
 | `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId` | L : tarif, bon par code |
 | `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle. `422` si le départ ou l'arrivée est hors de la zone desservie (H18) | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
-| `GET /rides` | `rider`, `driver` | Ses propres courses, filtrables par `status`, les plus récentes d'abord | L : courses par usager ou par chauffeur |
+| `GET /rides` | `rider`, `driver` | Ses propres courses (réservées par l'usager, ou prises par le chauffeur). `?when=upcoming` : celles qui ne sont pas finies (`awaiting_payment`, `pending`, `accepted`, `in_progress`), toutes, la plus proche d'abord. `?when=past` : terminées, annulées ou expirées, la plus récente d'abord, 20 par page avec `cursor` ([1](#1-conventions)). Chaque course porte son évaluation (`rating`) | L : courses par usager ou par chauffeur et par statut, triées par date de création, avec leur évaluation |
 | `GET /rides/{id}` | participant, `operator`, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule, sa note moyenne et l'adresse de sa photo. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
 | `GET /rides/{id}/driver-photo` | participant, `operator`, `admin` | Photo du chauffeur de la course. Pour l'usager, seulement tant que la course est `accepted` ou `in_progress`. Mise en cache par le téléphone | L : photo du chauffeur |
-| `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted` | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
+| `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted`. Annuler une course déjà annulée la renvoie telle quelle ; `409` si elle a démarré, est terminée ou a expiré | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
 | `POST /rides/{id}/payment` | `rider` de la course | Paiement simulé de la part de l'usager, sur une course `awaiting_payment`. La fait passer en `pending` et la propose aux chauffeurs | E : `paymentStatus`, `paidAt`, statut, nouvelle `expiresAt` |
-| `POST /rides/{id}/rating` | `rider` de la course | Évalue une course terminée | E : une évaluation (409 s'il y en a déjà une) |
+| `POST /rides/{id}/rating` | `rider` de la course | Évalue une course terminée : `score` de 1 à 5, `comment` facultatif (500 caractères, vide = `null`). Renvoie la course avec son évaluation (`201`). `409` si elle n'est pas terminée | E : une évaluation (409 s'il y en a déjà une) |
 
 « Participant » : l'usager ou le chauffeur de la course. Quelqu'un d'autre reçoit `404`.
 

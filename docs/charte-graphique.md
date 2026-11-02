@@ -123,6 +123,8 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--icon-chip-size` | 49,5 px | Pastille arrondie autour d'une icône (`icon-chip`) |
 | `--sheet-overlap` | 36 px | Part de la feuille qui chevauche le bandeau |
 | `--progress-height` | 6,75 px | Épaisseur de la barre de progression d'une réservation |
+| `--star-size` | 58,5 px | Une étoile de la note : aussi grande qu'une cible tactile |
+| `--textarea-height` | 126 px | Hauteur de départ d'une zone de texte (commentaire) |
 
 Ombres, douces et teintées de vert, jamais noires et dures :
 
@@ -208,6 +210,24 @@ bouton radio le dit aussi, sans la couleur.
   `panel`.
 - L'état d'un trajet (`status`) : une pastille « soleil » avec la voiture, puis la phrase en gras
   (« Nous cherchons un chauffeur »).
+
+### Mes trajets
+
+- Onglets (`tabs`, `tab`) : deux gros boutons côte à côte (« À venir », « Passés »). L'onglet
+  choisi est vert plein et en gras ; l'onglet est aussi dans l'adresse (`?onglet=passes`), pour
+  que « Retour » y ramène.
+- `RideCard` (`ride-card`) : un trajet dans une liste, même famille que les cartes d'action. Date
+  et heure en gras, puis « départ vers arrivée », puis l'état en gris. Une pastille jaune pâle
+  (`badge`) signale ce qui attend l'usager (« À noter »). Toute la carte est le lien.
+- `CancelRide` : « Annuler ce trajet » (bouton secondaire, en bas de la page du trajet). La
+  confirmation s'ouvre **sur place**, sans fenêtre surgissante : la question reçoit le focus, le
+  remboursement prévu est annoncé, puis « Oui, annuler » (principal) et « Non, garder le
+  trajet ».
+- `RatingForm` : cinq étoiles de la taille d'une cible tactile (`--star-size`), remplies jusqu'à la
+  note choisie ; ce sont des boutons radio, lus « 3 étoiles sur 5 ». Une ligne explique l'échelle.
+  Le commentaire facultatif est une zone de texte (`field-textarea`). `RatingSummary` montre
+  ensuite la note donnée.
+- Un « Réessayer » au milieu d'une phrase est un `link-button` (texte vert souligné).
 
 ### Formulaires
 
