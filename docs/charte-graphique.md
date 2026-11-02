@@ -125,6 +125,7 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--progress-height` | 6,75 px | Épaisseur de la barre de progression d'une réservation |
 | `--star-size` | 58,5 px | Une étoile de la note : aussi grande qu'une cible tactile |
 | `--textarea-height` | 126 px | Hauteur de départ d'une zone de texte (commentaire) |
+| `--status-dot-size` | 15,75 px | Voyant « disponible » du chauffeur |
 
 Ombres, douces et teintées de vert, jamais noires et dures :
 
@@ -228,6 +229,26 @@ bouton radio le dit aussi, sans la couleur.
   Le commentaire facultatif est une zone de texte (`field-textarea`). `RatingSummary` montre
   ensuite la note donnée.
 - Un « Réessayer » au milieu d'une phrase est un `link-button` (texte vert souligné).
+- `ConfirmButton` : toute action lourde confirmée sur place (annuler un trajet, se désister d'une
+  course), avec la même forme que `CancelRide`.
+
+### Chauffeur
+
+Côté chauffeur, on parle de « course » (partie 7).
+
+- `AvailabilityToggle` : un voyant rond (gris hors ligne, vert en ligne, `availability-dot`), la
+  phrase en gras (« Vous êtes disponible »), une ligne d'explication, puis **un seul gros bouton** :
+  principal pour se mettre disponible, secondaire pour arrêter. Un encadré `alert-info` dit quand
+  la position manque et comment l'autoriser.
+- Courses : trois onglets courts (« Maintenant », « Plus tard », « Mes courses ») qui tiennent sur
+  un téléphone de 360 px. Une offre est une `ride-card` : horaire et distance, trajet, prix, et la
+  pastille « Véhicule adapté » si besoin. « Actualiser » en bas, tant qu'il n'y a pas de temps réel.
+- Page d'une course : l'action principale est un verbe qui dit le moment (« Accepter la course »,
+  « Le passager est à bord : démarrer », « Arrivé : terminer la course »). Au-dessus, « Appeler
+  Alice » (lien `tel:`) et « Itinéraire vers le départ » (ouvre le GPS du téléphone), en boutons
+  secondaires. Le désistement est un `ConfirmButton`, en bas.
+- Côté usager, `DriverCard` présente le chauffeur dans un `panel` (prénom, véhicule, note) avec
+  « Appeler … » tant que la course est en cours.
 
 ### Formulaires
 

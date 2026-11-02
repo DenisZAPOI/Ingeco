@@ -167,7 +167,7 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 0. ~~Socle back et front~~ (fait : couches, `/health`, page `/diagnostic`, tests, génération des types)
 1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
 2. Authentification et rôles (fait : inscription, connexion, activation, profil ; reste : administration des comptes, UC51 à UC53)
-3. Parcours de réservation de bout en bout, sur données factices (en cours. Fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation. Reste : côté chauffeur, expiration des courses)
+3. Parcours de réservation de bout en bout, sur données factices (en cours. Fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation, côté chauffeur (disponibilité, position, offres, accepter, se désister, démarrer, terminer). Reste : revenus du chauffeur, expiration des courses)
 4. Temps réel et carte
 5. Bons solidaires
 6. Écran opérateur
@@ -193,6 +193,7 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec le client** : le centre d'appel est tenu par des personnes dédiées, et tout le monde peut réserver par téléphone (donnés comme confirmés le 13/10/2026, mais absents de la première visio : retrouver la trace écrite de cette réponse). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
 - **Avec le client** : les limites exactes de la zone du pilote (communes, rayon) et ce qu'on répond à une demande hors zone.
 - **Avec le client** : le contenu du profil du chauffeur montré au passager, en plus de la photo (« mini CV »).
+- **Avec le client** : le partage des numéros de téléphone entre usager et chauffeur pendant une course (fait dans l'application, pour qu'ils puissent s'appeler à la prise en charge).
 - **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
 - **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).

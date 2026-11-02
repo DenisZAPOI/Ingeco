@@ -161,7 +161,11 @@ fictives, mot de passe commun **`Trajet-2026!`**.
 
 Alice a aussi quatre trajets passés, factices eux aussi (`BACKEND/app/repository/ride_repository.py`) :
 trois terminés, dont un déjà noté, et un annulé. Ils servent à essayer « Mes trajets » et la
-notation tant que le côté chauffeur n'existe pas. Les tests partent sans aucun trajet.
+notation sans passer par le côté chauffeur. Les tests partent sans aucun trajet.
+
+Pour essayer une course de bout en bout : réserver et payer un trajet en Alice, se déconnecter,
+puis se connecter en Chloé, appuyer sur « Je suis disponible » et ouvrir « Courses ». Sans
+position autorisée, Chloé voit les courses de toute la zone.
 
 En développement, `COOKIE_SECURE=false` dans `BACKEND/.env` : les cookies de session marqués
 `Secure` ne passent qu'en HTTPS, ce qui bloque Safari sur `http://localhost` et tout téléphone qui

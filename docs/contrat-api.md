@@ -37,6 +37,7 @@ points : la zone du pilote et la photo du chauffeur (H18, H19).
 | Session | Routes `POST /auth/refresh` et code `429`, règles du mot de passe et du téléphone ([4.1](#41-compte-et-connexion)) | Aucun |
 | Zone du pilote (première visio) | Seules Cayenne, Rémire-Montjoly et Matoury sont desservies au départ ; Kourou viendra ensuite. Départ et arrivée doivent être dans une commune desservie (H18) | Les données de référence des communes changent |
 | Profil du chauffeur (première visio) | Le passager voit la photo du chauffeur. Le contenu du reste du profil (« mini CV ») est à préciser avec la cliente (H19) | **Un champ photo sur le chauffeur** |
+| Côté chauffeur (développement, 02/11/2026) | La course porte `driver` (avec son **téléphone** tant qu'elle est `accepted` ou `in_progress`) et `rider` (prénom et téléphone, pour son chauffeur pendant la course). `GET /auth/me` donne `isAvailable` au chauffeur. Précisions sur les offres, le désistement et le démarrage ([4.3](#43-chauffeur)). **Le partage des numéros est à confirmer avec la cliente** | Aucun : `telephone` est déjà sur le compte |
 | Liste des trajets (développement, 02/11/2026) | `GET /rides` sépare les trajets à venir (`when=upcoming`) des trajets passés (`when=past`), paginés par curseur plutôt que par numéro de page ([1](#1-conventions), [4.2](#42-réservation-usager)) | Aucun : les index `idx_course_usager` et `idx_course_chauffeur` servent déjà ce tri |
 
 ### Changements de la version 0 à la version 1
@@ -320,7 +321,7 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 | `POST /rides/estimate` | `rider`, `operator`, `admin` | Calcule distance et prix, avec ou sans bon. N'enregistre rien. L'opérateur précise le `riderId` | L : tarif, bon par code |
 | `POST /rides` | `rider` | Réserve une course immédiate ou programmée, avec ou sans bon. Recalcule le prix : celui de l'estimation n'est jamais repris tel quel. Crée la course en `awaiting_payment`, ou en `pending` si la part usager est nulle. `422` si le départ ou l'arrivée est hors de la zone desservie (H18) | L : tarif, bon, course par `clientRequestId`. E : une course, **et** `usedRides + 1` sur le bon, dans la même transaction |
 | `GET /rides` | `rider`, `driver` | Ses propres courses (réservées par l'usager, ou prises par le chauffeur). `?when=upcoming` : celles qui ne sont pas finies (`awaiting_payment`, `pending`, `accepted`, `in_progress`), toutes, la plus proche d'abord. `?when=past` : terminées, annulées ou expirées, la plus récente d'abord, 20 par page avec `cursor` ([1](#1-conventions)). Chaque course porte son évaluation (`rating`) | L : courses par usager ou par chauffeur et par statut, triées par date de création, avec leur évaluation |
-| `GET /rides/{id}` | participant, `operator`, `admin` | Détail d'une course, avec le prénom du chauffeur, son véhicule, sa note moyenne et l'adresse de sa photo. La position du chauffeur n'est renvoyée que si la course est active | L : course + chauffeur + véhicule + moyenne des évaluations |
+| `GET /rides/{id}` | participant, `operator`, `admin`, et tout `driver` pour une course `pending` (une offre) | Détail d'une course. `driver` (pour l'usager et le personnel) : prénom, véhicule, note moyenne, et téléphone tant que la course est `accepted` ou `in_progress` ; l'adresse de sa photo et sa position viendront à l'étape 4. `rider` (pour son chauffeur pendant la course, et le personnel) : prénom et téléphone ; jamais sur une offre | L : course + chauffeur + véhicule + moyenne des évaluations |
 | `GET /rides/{id}/driver-photo` | participant, `operator`, `admin` | Photo du chauffeur de la course. Pour l'usager, seulement tant que la course est `accepted` ou `in_progress`. Mise en cache par le téléphone | L : photo du chauffeur |
 | `POST /rides/{id}/cancel` | `rider` de la course, `operator`, `admin` | Annule une course `awaiting_payment`, `pending` ou `accepted`. Annuler une course déjà annulée la renvoie telle quelle ; `409` si elle a démarré, est terminée ou a expiré | E : statut, `usedRides − 1` sur le bon s'il y en avait un, `paymentStatus = refunded` si elle était payée |
 | `POST /rides/{id}/payment` | `rider` de la course | Paiement simulé de la part de l'usager, sur une course `awaiting_payment`. La fait passer en `pending` et la propose aux chauffeurs | E : `paymentStatus`, `paidAt`, statut, nouvelle `expiresAt` |
@@ -332,12 +333,12 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 
 | Route | Rôle | Ce qu'elle fait | En base |
 |---|---|---|---|
-| `PUT /drivers/me/availability` | `driver` | Se met en ligne ou hors ligne | E : `isAvailable`, et position remise à vide s'il passe hors ligne |
-| `PUT /drivers/me/location` | `driver` | Envoie sa position (toutes les quelques secondes quand il est en ligne) | E : dernière position. **Écriture très fréquente** |
-| `GET /drivers/me/ride-offers` | `driver` | `?type=immediate` : courses immédiates en attente proches de lui. `?type=scheduled` : toutes les courses programmées en attente, par date. Dans les deux cas, compatibles avec son véhicule | L : voir [6.1](#61-trouver-les-chauffeurs-et-les-courses-proches) |
-| `POST /rides/{id}/accept` | `driver` | Prend une course en attente. `409` si elle est déjà prise, ou s'il a déjà une course active ou trop proche | E : voir [6.2](#62-deux-chauffeurs-acceptent-la-même-course) |
-| `POST /rides/{id}/release` | `driver` de la course | Se désiste d'une course `accepted` : elle revient en `pending` et est reproposée | E : statut, `driverId` et `acceptedAt` remis à vide, nouvelle `expiresAt` |
-| `POST /rides/{id}/start` | `driver` de la course | Passager à bord | E : statut, `startedAt` |
+| `PUT /drivers/me/availability` | `driver` | Se met en ligne ou hors ligne (`{ isAvailable }`). Il garde ses courses acceptées. L'état est aussi dans `GET /auth/me` (`isAvailable`, `null` pour les autres rôles) | E : `isAvailable`, et position remise à vide s'il passe hors ligne |
+| `PUT /drivers/me/location` | `driver` | Envoie sa position quand il est en ligne : au plus toutes les 30 s s'il a bougé de 50 m, et au moins toutes les 4 min. Une position de plus de 5 min compte comme absente. `204`, ou `409` s'il est hors ligne | E : dernière position. **Écriture très fréquente** |
+| `GET /drivers/me/ride-offers` | `driver` en ligne (`409` sinon) | `?type=immediate` : courses immédiates en attente à moins de 10 km de lui (à vol d'oiseau), la plus proche d'abord ; sans position récente, toutes celles de la zone (`located: false`). `?type=scheduled` : toutes les courses programmées en attente, par date. Dans les deux cas, compatibles avec son véhicule, et pas encore échues (`expiresAt`). Réponse `{ items: [{ ride, distanceToPickupKm }], located }` | L : voir [6.1](#61-trouver-les-chauffeurs-et-les-courses-proches) |
+| `POST /rides/{id}/accept` | `driver` en ligne | Prend une course en attente. `409` si elle est déjà prise, échue, demande un véhicule adapté qu'il n'a pas, ou tombe à moins d'une heure d'une course qu'il a déjà (une course immédiate compte pour « maintenant ») | E : voir [6.2](#62-deux-chauffeurs-acceptent-la-même-course) |
+| `POST /rides/{id}/release` | `driver` de la course | Se désiste d'une course `accepted` : elle revient en `pending` et est reproposée. `409` s'il l'a déjà rendue | E : statut, `driverId` et `acceptedAt` remis à vide, nouvelle `expiresAt` |
+| `POST /rides/{id}/start` | `driver` de la course | Passager à bord. Une course programmée se démarre au plus tôt une heure avant son horaire (`409` sinon) | E : statut, `startedAt` |
 | `POST /rides/{id}/complete` | `driver` de la course | Clôture la course | E : statut, `completedAt` |
 | `GET /drivers/me/earnings` | `driver` | Ses revenus sur une période (`?from=&to=`) : total et nombre de courses, par jour | L : somme des `priceCents` de ses courses terminées, groupées par jour (heure de Guyane) |
 
@@ -426,11 +427,13 @@ Une course (`GET /rides/42`) :
   "driver": {
     "id": 15,
     "firstName": "Prénom",
+    "phone": "+594694000000",
     "averageScore": 4.7,
     "photoUrl": "/rides/42/driver-photo",
     "vehicle": { "plate": "AA-000-AA", "model": "Modèle fictif", "isAccessible": false },
     "location": { "lat": 4.9301, "lng": -52.3255, "updatedAt": "2026-10-13T14:31:10Z" }
   },
+  "rider": null,
   "rating": null,
   "createdAt": "2026-10-13T14:30:00Z",
   "paidAt": "2026-10-13T14:30:20Z",
