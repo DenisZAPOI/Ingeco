@@ -1,16 +1,18 @@
-"""Bodies and responses of /rides."""
+"""Bodies, queries and responses of /rides."""
 
+import base64
+import binascii
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, field_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 
-from ..repository.ride_repository import Ride, Stop
+from ..repository.ride_repository import Position, Rating, Ride, Stop
 from ..services import ride_rules
 from ..services.account_rules import clean_name
-from ..services.ride_service import Estimate
-from .base import ApiModel, InputModel, apply_rule
+from ..services.ride_service import Estimate, RidePage
+from .base import ApiModel, InputModel, apply_rule, field_error
 
 ADDRESS_MAX_LENGTH = 255
 
@@ -60,6 +62,40 @@ class BookRideBody(InputModel):
         return apply_rule(ride_rules.check_scheduled_at, value)
 
 
+class RideListQuery(InputModel):
+    # upcoming: not finished, all of them. past: finished, by pages.
+    when: Literal["upcoming", "past"]
+    # nextCursor of the previous page of past rides; absent for the first one.
+    cursor: str | None = None
+
+    @field_validator("cursor")
+    @classmethod
+    def _cursor(cls, value: str | None) -> str | None:
+        if value is not None:
+            apply_rule(decode_cursor, value)
+        return value
+
+    @model_validator(mode="after")
+    def _cursor_for_past_only(self) -> "RideListQuery":
+        if self.cursor is not None and self.when != "past":
+            raise field_error("Seuls les trajets passés sont envoyés par pages.")
+        return self
+
+    def position(self) -> Position | None:
+        return decode_cursor(self.cursor) if self.cursor is not None else None
+
+
+class RateRideBody(InputModel):
+    score: int = Field(ge=ride_rules.MIN_SCORE, le=ride_rules.MAX_SCORE, examples=[5])
+    # Optional: empty or blank is stored as null.
+    comment: str | None = Field(None, examples=["Chauffeur ponctuel et aimable."])
+
+    @field_validator("comment")
+    @classmethod
+    def _comment(cls, value: str | None) -> str | None:
+        return apply_rule(ride_rules.clean_comment, value)
+
+
 # --- Responses ---------------------------------------------------------------
 
 class EstimateDto(ApiModel):
@@ -76,6 +112,12 @@ class StopDto(ApiModel):
     commune_id: int
 
 
+class RatingDto(ApiModel):
+    score: int = Field(examples=[5])
+    comment: str | None
+    created_at: datetime
+
+
 class RideDto(ApiModel):
     id: int
     status: RideStatus
@@ -90,9 +132,21 @@ class RideDto(ApiModel):
     voucher_amount_cents: int
     rider_amount_cents: int
     payment_status: PaymentStatus
+    rating: RatingDto | None
     created_at: datetime
     paid_at: datetime | None
     expires_at: datetime
+    accepted_at: datetime | None
+    started_at: datetime | None
+    completed_at: datetime | None
+    cancelled_at: datetime | None
+    expired_at: datetime | None
+
+
+class RideListDto(ApiModel):
+    items: list[RideDto]
+    # To send back as `cursor` for the next page; null on the last page (and for upcoming rides).
+    next_cursor: str | None
 
 
 def estimate_to_dto(estimate: Estimate) -> EstimateDto:
@@ -120,10 +174,55 @@ def ride_to_dto(ride: Ride) -> RideDto:
         voucher_amount_cents=0,
         rider_amount_cents=ride.price_cents,
         payment_status=ride.payment_status,
+        rating=_rating_to_dto(ride.rating) if ride.rating else None,
         created_at=ride.created_at,
         paid_at=ride.paid_at,
         expires_at=ride.expires_at,
+        accepted_at=ride.accepted_at,
+        started_at=ride.started_at,
+        completed_at=ride.completed_at,
+        cancelled_at=ride.cancelled_at,
+        expired_at=ride.expired_at,
     )
+
+
+def ride_list_to_dto(rides: list[Ride], next_position: Position | None = None) -> RideListDto:
+    return RideListDto(
+        items=[ride_to_dto(ride) for ride in rides],
+        next_cursor=encode_cursor(next_position) if next_position else None,
+    )
+
+
+def ride_page_to_dto(page: RidePage) -> RideListDto:
+    return ride_list_to_dto(page.rides, page.next_position)
+
+
+# --- Cursor ------------------------------------------------------------------
+# Opaque for the phone: it sends it back as is. Inside, the booking time and
+# the id of the last ride of the page.
+_CURSOR_SEPARATOR = "|"
+INVALID_CURSOR = "Lien de page invalide. Rechargez la liste."
+
+
+def encode_cursor(position: Position) -> str:
+    raw = f"{position.created_at.isoformat()}{_CURSOR_SEPARATOR}{position.ride_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+
+def decode_cursor(cursor: str) -> Position:
+    """ValueError if the cursor was not made by encode_cursor()."""
+    try:
+        created_at, ride_id = base64.urlsafe_b64decode(cursor.encode()).decode().split(_CURSOR_SEPARATOR)
+        position = Position(created_at=datetime.fromisoformat(created_at), ride_id=int(ride_id))
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        raise ValueError(INVALID_CURSOR) from None
+    if position.created_at.tzinfo is None:
+        raise ValueError(INVALID_CURSOR)
+    return position
+
+
+def _rating_to_dto(rating: Rating) -> RatingDto:
+    return RatingDto(score=rating.score, comment=rating.comment, created_at=rating.created_at)
 
 
 def _stop_to_dto(stop: Stop) -> StopDto:

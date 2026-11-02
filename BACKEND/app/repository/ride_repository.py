@@ -1,5 +1,5 @@
 """
-Rides (table `course` of the DB team).
+Rides (table `course` of the DB team) and their ratings (table `evaluation`).
 
 FAKE DATA until the repositories switch to the database: rides live in memory
 and are lost at every restart. The signatures are those the real repository
@@ -12,7 +12,7 @@ changes nothing until a write function is called.
 import copy
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
@@ -24,6 +24,15 @@ class Stop:
     lat: float
     lng: float
     commune_id: int
+
+
+@dataclass
+class Rating:
+    """Table `evaluation`: one at most per ride, its key is the ride."""
+
+    score: int
+    comment: str | None
+    created_at: datetime
 
 
 @dataclass
@@ -45,29 +54,86 @@ class Ride:
     expires_at: datetime
     driver_id: int | None = None
     paid_at: datetime | None = None
+    accepted_at: datetime | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    cancelled_at: datetime | None = None
+    expired_at: datetime | None = None
+    cancelled_by_id: int | None = None
+    # Read with the ride (LEFT JOIN evaluation), written by insert_rating() only.
+    rating: Rating | None = None
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass(frozen=True)
+class Position:
+    """Where a page of rides stopped: the next page starts after this ride."""
+
+    created_at: datetime
+    ride_id: int
 
 
 class DuplicateRequest(Exception):
     """client_request_id already used: what the unique constraint raises in a real database."""
 
 
+class AlreadyRated(Exception):
+    """The ride already has a rating: what the primary key of `evaluation` raises."""
+
+
 _lock = threading.Lock()
 _rides: dict[int, Ride] = {}
+_ratings: dict[int, Rating] = {}
 _next_id = 1
 
 
 def find_by_id(_session: Session, ride_id: int) -> Ride | None:
     with _lock:
         ride = _rides.get(ride_id)
-        return copy.deepcopy(ride) if ride else None
+        return _read(ride) if ride else None
 
 
 def find_by_client_request_id(_session: Session, client_request_id: str) -> Ride | None:
     with _lock:
         ride = next((ride for ride in _rides.values() if ride.client_request_id == client_request_id), None)
-        return copy.deepcopy(ride) if ride else None
+        return _read(ride) if ride else None
+
+
+def find_upcoming(
+    _session: Session, *, rider_id: int | None, driver_id: int | None, statuses: tuple[str, ...]
+) -> list[Ride]:
+    """Rides of a rider (or of a driver) in one of `statuses`, the soonest first.
+
+    The soonest: by scheduled time, or by booking time for an immediate ride.
+    """
+    with _lock:
+        rides = [ride for ride in _rides.values() if _belongs(ride, rider_id, driver_id) and ride.status in statuses]
+        rides.sort(key=lambda ride: (ride.scheduled_at or ride.created_at, ride.id))
+        return [_read(ride) for ride in rides]
+
+
+def find_page(
+    _session: Session,
+    *,
+    rider_id: int | None,
+    driver_id: int | None,
+    statuses: tuple[str, ...],
+    after: Position | None,
+    limit: int,
+) -> list[Ride]:
+    """Rides of a rider (or of a driver) in one of `statuses`, the most recently booked first.
+
+    At most `limit` rides, starting after `after`: keyset pagination, so a ride
+    booked between two pages neither repeats nor hides another one. Served by
+    the indexes idx_course_usager and idx_course_chauffeur (…, cree_le).
+    """
+    with _lock:
+        rides = [ride for ride in _rides.values() if _belongs(ride, rider_id, driver_id) and ride.status in statuses]
+        rides.sort(key=lambda ride: (ride.created_at, ride.id), reverse=True)
+        if after is not None:
+            rides = [ride for ride in rides if (ride.created_at, ride.id) < (after.created_at, after.ride_id)]
+        return [_read(ride) for ride in rides[:limit]]
 
 
 def insert_ride(_session: Session, ride: Ride) -> Ride:
@@ -76,11 +142,11 @@ def insert_ride(_session: Session, ride: Ride) -> Ride:
     with _lock:
         if any(other.client_request_id == ride.client_request_id for other in _rides.values()):
             raise DuplicateRequest
-        stored = copy.deepcopy(ride)
+        stored = _write(ride)
         stored.id = _next_id
         _rides[stored.id] = stored
         _next_id += 1
-        return copy.deepcopy(stored)
+        return _read(stored)
 
 
 def update_if_status(_session: Session, ride: Ride, expected_status: str) -> bool:
@@ -94,13 +160,112 @@ def update_if_status(_session: Session, ride: Ride, expected_status: str) -> boo
         stored = _rides.get(ride.id)
         if stored is None or stored.status != expected_status:
             return False
-        _rides[ride.id] = copy.deepcopy(ride)
+        _rides[ride.id] = _write(ride)
         return True
 
 
-def reset() -> None:
-    """No ride. Called by the tests."""
+def insert_rating(_session: Session, ride_id: int, rating: Rating) -> None:
+    with _lock:
+        if ride_id in _ratings:
+            raise AlreadyRated
+        _ratings[ride_id] = copy.deepcopy(rating)
+
+
+def _belongs(ride: Ride, rider_id: int | None, driver_id: int | None) -> bool:
+    return (rider_id is not None and ride.rider_id == rider_id) or (
+        driver_id is not None and ride.driver_id == driver_id
+    )
+
+
+def _read(ride: Ride) -> Ride:
+    """A copy of the stored ride with its rating, as a join would return it."""
+    read = copy.deepcopy(ride)
+    read.rating = copy.deepcopy(_ratings.get(ride.id))
+    return read
+
+
+def _write(ride: Ride) -> Ride:
+    """What is stored of a ride: its rating lives in its own table."""
+    stored = copy.deepcopy(ride)
+    stored.rating = None
+    return stored
+
+
+def reset(*, dev_rides: bool = True) -> None:
+    """Back to the development rides. The tests start without any (dev_rides=False)."""
     global _next_id
     with _lock:
         _rides.clear()
+        _ratings.clear()
         _next_id = 1
+    if dev_rides:
+        for ride, rating in _dev_rides():
+            stored = insert_ride(None, ride)  # type: ignore[arg-type]
+            if rating is not None:
+                insert_rating(None, stored.id, rating)  # type: ignore[arg-type]
+
+
+# --- Development rides -------------------------------------------------------
+# Past rides of Alice (account 1), so that "Mes trajets" and the rating can be
+# tried before the driver side exists. Fictitious places (GDPR).
+_DEV_RIDER_ID = 1
+_DEV_DRIVER_ID = 3
+_DEV_TARIFF_ID = 1
+_DEV_DISTANCE_KM = Decimal("13.1")
+_DEV_PRICE_CENTS = 1848  # 800 + 80 × 13.1, provisional tariff
+_DEV_PAYMENT_DELAY = timedelta(minutes=15)
+_CAYENNE = Stop(address="Mairie de Cayenne", lat=4.9372, lng=-52.3260, commune_id=1)
+_MATOURY = Stop(address="Mairie de Matoury", lat=4.8470, lng=-52.3310, commune_id=3)
+
+
+def _dev_rides() -> list[tuple[Ride, Rating | None]]:
+    now = datetime.now(timezone.utc)
+
+    def past_ride(days_ago: int, purpose: str) -> Ride:
+        booked_at = now - timedelta(days=days_ago)
+        return Ride(
+            client_request_id=f"00000000-0000-4000-8000-{days_ago:012d}",
+            rider_id=_DEV_RIDER_ID,
+            booked_by_id=_DEV_RIDER_ID,
+            channel="app",
+            status="completed",
+            purpose=purpose,
+            pickup=_CAYENNE,
+            dropoff=_MATOURY,
+            scheduled_at=None,
+            needs_accessible_vehicle=False,
+            distance_km=_DEV_DISTANCE_KM,
+            tariff_id=_DEV_TARIFF_ID,
+            price_cents=_DEV_PRICE_CENTS,
+            payment_status="paid",
+            expires_at=booked_at + _DEV_PAYMENT_DELAY,
+            paid_at=booked_at,
+            created_at=booked_at,
+        )
+
+    def completed(days_ago: int, purpose: str) -> Ride:
+        ride = past_ride(days_ago, purpose)
+        ride.driver_id = _DEV_DRIVER_ID
+        ride.accepted_at = ride.created_at + timedelta(minutes=2)
+        ride.started_at = ride.created_at + timedelta(minutes=10)
+        ride.completed_at = ride.created_at + timedelta(minutes=35)
+        return ride
+
+    def cancelled(days_ago: int) -> Ride:
+        ride = past_ride(days_ago, "administrative")
+        ride.status = "cancelled"
+        ride.payment_status = "refunded"
+        ride.cancelled_at = ride.created_at + timedelta(minutes=5)
+        ride.cancelled_by_id = _DEV_RIDER_ID
+        return ride
+
+    first = completed(10, "employment")
+    return [
+        (first, Rating(score=5, comment=None, created_at=first.completed_at)),
+        (cancelled(6), None),
+        (completed(2, "health"), None),
+        (completed(1, "training"), None),
+    ]
+
+
+reset()

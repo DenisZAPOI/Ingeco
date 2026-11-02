@@ -1,6 +1,7 @@
 """
-Booking a ride (UC10, UC11), its estimate (UC12) and the simulated payment of
-the rider's share (UC14).
+Booking a ride (UC10, UC11), its estimate (UC12), the simulated payment of
+the rider's share (UC14), then its follow-up: lists (UC17), cancellation
+(UC16) and rating (UC18).
 
 The price is always computed here, from the active tariff and the road
 distance: the price shown by the estimate is never taken back as is.
@@ -19,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from ..repository import ride_repository, tariff_repository, user_repository
 from ..repository.place_repository import PlacesUnavailable, road_distance_km
-from ..repository.ride_repository import DuplicateRequest, Ride, Stop
+from ..repository.ride_repository import AlreadyRated, DuplicateRequest, Position, Rating, Ride, Stop
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
 from . import ride_rules
@@ -27,10 +28,15 @@ from .place_service import check_served
 from .ride_rules import (
     APP_CHANNEL,
     AWAITING_PAYMENT,
+    CANCELLED,
+    COMPLETED,
     DRIVER_SEARCH_DELAY,
+    EXPIRED,
+    IN_PROGRESS,
     PAYMENT_DELAY,
     PAYMENT_PAID,
     PAYMENT_PENDING,
+    PAYMENT_REFUNDED,
     PENDING,
 )
 
@@ -45,6 +51,14 @@ REQUEST_ID_TAKEN = "Cette réservation a déjà été envoyée depuis un autre c
 DISTANCE_UNAVAILABLE = "Le calcul du trajet ne répond pas pour le moment. Réessayez dans quelques minutes."
 PAYMENT_TOO_LATE = "Le délai de paiement de 15 minutes est dépassé. Refaites la réservation."
 NOT_AWAITING_PAYMENT = "Ce trajet n'attend pas de paiement."
+NOT_CANCELLABLE = "Ce trajet ne peut plus être annulé."
+_NOT_CANCELLABLE = {
+    IN_PROGRESS: "Le trajet a déjà commencé : il ne peut plus être annulé.",
+    COMPLETED: "Ce trajet est terminé : il ne peut plus être annulé.",
+    EXPIRED: "Ce trajet a expiré : il n'y a plus rien à annuler.",
+}
+NOT_FINISHED = "Vous pourrez noter ce trajet une fois arrivé."
+ALREADY_RATED = "Vous avez déjà noté ce trajet. Merci !"
 
 # Who sees any ride (contract 4.2): the call centre and the administrators.
 STAFF_ROLES = ("operator", "admin")
@@ -164,6 +178,101 @@ def get_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
     if ride is None or not (role in STAFF_ROLES or user_id in (ride.rider_id, ride.driver_id)):
         raise NotFound(RIDE_NOT_FOUND)
     return ride
+
+
+@dataclass(frozen=True)
+class RidePage:
+    rides: list[Ride]
+    # Where the next page starts; None on the last page.
+    next_position: Position | None
+
+
+def list_upcoming(*, user_id: int, role: str) -> list[Ride]:
+    """The caller's rides not finished yet, the soonest first (UC17, "À venir")."""
+    with database.session() as session:
+        return ride_repository.find_upcoming(session, **_owner(user_id, role), statuses=ride_rules.UPCOMING_STATUSES)
+
+
+def list_past(*, user_id: int, role: str, after: Position | None) -> RidePage:
+    """A page of the caller's finished rides, the most recent first (UC17, "Passés")."""
+    page_size = ride_rules.PAST_PAGE_SIZE
+    with database.session() as session:
+        # One more than the page: tells whether there is a next page, without counting.
+        rides = ride_repository.find_page(
+            session, **_owner(user_id, role), statuses=ride_rules.PAST_STATUSES, after=after, limit=page_size + 1
+        )
+    if len(rides) <= page_size:
+        return RidePage(rides=rides, next_position=None)
+    last = rides[page_size - 1]
+    return RidePage(rides=rides[:page_size], next_position=Position(created_at=last.created_at, ride_id=last.id))
+
+
+def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
+    """Cancels a ride before the rider is on board (UC16, UC43).
+
+    Refunds the paid share in full (H17, to confirm with the client).
+    Cancelling a ride already cancelled returns it as it is: the button tapped
+    twice on a slow network is not an error.
+    """
+    with database.session() as session:
+        ride = ride_repository.find_by_id(session, ride_id)
+        if ride is None or not (role in STAFF_ROLES or ride.rider_id == user_id):
+            raise NotFound(RIDE_NOT_FOUND)
+        if ride.status == CANCELLED:
+            return ride
+        if ride.status not in ride_rules.CANCELLABLE_STATUSES:
+            raise Conflict(_NOT_CANCELLABLE.get(ride.status, NOT_CANCELLABLE))
+
+        previous_status = ride.status
+        ride.status = CANCELLED
+        ride.cancelled_at = ride_rules.now()
+        ride.cancelled_by_id = user_id
+        if ride.payment_status == PAYMENT_PAID:
+            # Simulated (H10): with a real provider, the refund call follows the transaction.
+            ride.payment_status = PAYMENT_REFUNDED
+        if not ride_repository.update_if_status(session, ride, previous_status):
+            # Changed in between (driver started, other cancellation): answer with its new state.
+            return _cancellation_already_settled(session, ride_id)
+
+    # No real-time yet (step 4): the driver, if any, sees it at their next reading.
+    logger.info("Ride cancelled", extra={"context": {"rideId": ride.id, "by": role, "hadDriver": ride.driver_id is not None}})
+    return ride
+
+
+def rate_ride(*, rider_id: int, ride_id: int, score: int, comment: str | None) -> Ride:
+    """The rider rates a finished ride, once (UC18)."""
+    with database.session() as session:
+        ride = ride_repository.find_by_id(session, ride_id)
+        if ride is None or ride.rider_id != rider_id:
+            raise NotFound(RIDE_NOT_FOUND)
+        if ride.status != COMPLETED:
+            raise Conflict(NOT_FINISHED)
+        if ride.rating is not None:
+            raise Conflict(ALREADY_RATED)
+        rating = Rating(score=score, comment=comment, created_at=ride_rules.now())
+        try:
+            ride_repository.insert_rating(session, ride.id, rating)
+        except AlreadyRated:
+            # Two sendings at the same moment: the other one was saved.
+            raise Conflict(ALREADY_RATED) from None
+        ride.rating = rating
+
+    logger.info("Ride rated", extra={"context": {"rideId": ride.id}})
+    return ride
+
+
+def _owner(user_id: int, role: str) -> dict[str, int | None]:
+    """Whose rides: those booked by a rider, or those taken by a driver."""
+    if role == "driver":
+        return {"rider_id": None, "driver_id": user_id}
+    return {"rider_id": user_id, "driver_id": None}
+
+
+def _cancellation_already_settled(session: Session, ride_id: int) -> Ride:
+    ride = ride_repository.find_by_id(session, ride_id)
+    if ride.status == CANCELLED:
+        return ride
+    raise Conflict(_NOT_CANCELLABLE.get(ride.status, NOT_CANCELLABLE))
 
 
 def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:

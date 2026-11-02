@@ -1,10 +1,22 @@
-"""Booking a ride, its estimate, its simulated payment and its detail."""
+"""Booking a ride, its estimate, its simulated payment, its detail, then lists, cancellation and rating."""
 
 from flask import Blueprint, jsonify, request
 from flask_pydantic_spec import Response
 
 from ..dtos.base import ErrorDto
-from ..dtos.ride_dto import BookRideBody, EstimateBody, EstimateDto, RideDto, estimate_to_dto, ride_to_dto
+from ..dtos.ride_dto import (
+    BookRideBody,
+    EstimateBody,
+    EstimateDto,
+    RateRideBody,
+    RideDto,
+    RideListDto,
+    RideListQuery,
+    estimate_to_dto,
+    ride_list_to_dto,
+    ride_page_to_dto,
+    ride_to_dto,
+)
 from ..extensions import spec
 from ..services import ride_service
 from ..utils.access import current_role, current_user_id, require_login
@@ -68,6 +80,29 @@ def book():
     return jsonify(ride_to_dto(ride).to_json()), 201 if created else 200
 
 
+@ride_bp.get("")
+@require_login("rider", "driver")
+@spec.validate(
+    query=RideListQuery,
+    resp=Response(HTTP_200=RideListDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto),
+    tags=_TAGS,
+)
+def list_rides():
+    """The caller's rides: booked by a rider, or taken by a driver.
+
+    when=upcoming: not finished yet, all of them, the soonest first.
+    when=past: finished, cancelled or expired, the most recent first, 20 per
+    page; send nextCursor back as cursor for the next page.
+    """
+    query: RideListQuery = request.context.query
+    user_id, role = current_user_id(), current_role()
+    if query.when == "upcoming":
+        dto = ride_list_to_dto(ride_service.list_upcoming(user_id=user_id, role=role))
+    else:
+        dto = ride_page_to_dto(ride_service.list_past(user_id=user_id, role=role, after=query.position()))
+    return jsonify(dto.to_json()), 200
+
+
 @ride_bp.get("/<int:ride_id>")
 @require_login()
 @spec.validate(resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_404=ErrorDto), tags=_TAGS)
@@ -90,3 +125,38 @@ def pay(ride_id: int):
     to pay are over, or if the ride no longer awaits payment.
     """
     return jsonify(ride_to_dto(ride_service.pay_ride(rider_id=current_user_id(), ride_id=ride_id)).to_json()), 200
+
+
+@ride_bp.post("/<int:ride_id>/cancel")
+@require_login("rider", "operator", "admin")
+@spec.validate(
+    resp=Response(HTTP_200=RideDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=_TAGS,
+)
+def cancel(ride_id: int):
+    """Cancels a ride before the rider is on board, and refunds its paid share in full.
+
+    By its rider, the call centre or an administrator. Cancelling it again
+    returns it as it is. 409 once the ride has started, is over or expired.
+    """
+    ride = ride_service.cancel_ride(user_id=current_user_id(), role=current_role(), ride_id=ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200
+
+
+@ride_bp.post("/<int:ride_id>/rating")
+@require_login("rider")
+@spec.validate(
+    body=RateRideBody,
+    resp=Response(
+        HTTP_201=RideDto, HTTP_400=ErrorDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto
+    ),
+    tags=_TAGS,
+)
+def rate(ride_id: int):
+    """The rider rates a finished ride: a score from 1 to 5, an optional comment.
+
+    Returns the ride with its rating. 409 if it is not finished, or already rated.
+    """
+    body: RateRideBody = request.context.body
+    ride = ride_service.rate_ride(rider_id=current_user_id(), ride_id=ride_id, score=body.score, comment=body.comment)
+    return jsonify(ride_to_dto(ride).to_json()), 201

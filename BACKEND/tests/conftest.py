@@ -7,6 +7,7 @@ they run without any database server.
 """
 
 import os
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from flask import Blueprint, jsonify
@@ -26,7 +27,7 @@ from app.dtos.base import InputModel  # noqa: E402
 from app.extensions import spec  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.repository import ride_repository, user_repository  # noqa: E402
-from app.services import auth_service  # noqa: E402
+from app.services import auth_service, ride_rules  # noqa: E402
 from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
 
@@ -83,8 +84,23 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def fresh_state():
-    """Every test starts from the development accounts, no ride, and no failed attempt counted."""
+    """Every test starts from the development accounts, no ride (not even the development ones), and no failed attempt counted."""
     user_repository.reset()
-    ride_repository.reset()
+    ride_repository.reset(dev_rides=False)
     auth_service.login_attempts.clear()
     auth_service.activation_attempts.clear()
+
+
+@pytest.fixture
+def clock(monkeypatch):
+    """Moves the API's clock: clock.move(minutes=16)."""
+
+    class Clock:
+        current = datetime.now(timezone.utc)
+
+        def move(self, **delta):
+            self.current += timedelta(**delta)
+
+    fake = Clock()
+    monkeypatch.setattr(ride_rules, "now", lambda: fake.current)
+    return fake

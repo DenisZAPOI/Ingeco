@@ -71,3 +71,32 @@ def round_distance(distance_km: float) -> Decimal:
 def price_cents(base_fare_cents: int, per_km_cents: int, distance_km: Decimal) -> int:
     """Pick-up fare + price per kilometre, rounded to the nearest cent."""
     return base_fare_cents + int((per_km_cents * distance_km).quantize(_CENT, rounding=ROUND_HALF_UP))
+
+
+# --- Lists of rides (UC17) ---------------------------------------------------
+# Not finished yet: the "À venir" tab. Few at a time, so never paginated.
+UPCOMING_STATUSES = (AWAITING_PAYMENT, PENDING, ACCEPTED, IN_PROGRESS)
+# Over: the "Passés" tab, paginated.
+PAST_STATUSES = (COMPLETED, CANCELLED, EXPIRED)
+PAST_PAGE_SIZE = 20
+
+# --- Cancellation (UC16) -----------------------------------------------------
+# Before the rider is on board (contract 3.3).
+CANCELLABLE_STATUSES = (AWAITING_PAYMENT, PENDING, ACCEPTED)
+
+# --- Rating (UC18) -----------------------------------------------------------
+MIN_SCORE = 1
+MAX_SCORE = 5
+RATING_COMMENT_MAX_LENGTH = 500
+
+TOO_LONG_COMMENT = f"Le commentaire ne doit pas dépasser {RATING_COMMENT_MAX_LENGTH} caractères."
+
+
+def clean_comment(raw: str | None) -> str | None:
+    """An empty comment means "no comment": stored as null, never as ''."""
+    if raw is None or not raw.strip():
+        return None
+    comment = raw.strip()
+    if len(comment) > RATING_COMMENT_MAX_LENGTH:
+        raise ValueError(TOO_LONG_COMMENT)
+    return comment
