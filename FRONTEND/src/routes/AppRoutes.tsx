@@ -15,6 +15,7 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RidePage } from '../pages/RidePage';
 import { RidePaymentPage } from '../pages/RidePaymentPage';
+import { RidesPage } from '../pages/RidesPage';
 import { LoggedInRoutes, VisitorRoutes } from './AccessRoutes';
 
 // Paths in French: users see them in the address bar.
@@ -46,6 +47,7 @@ export function AppRoutes() {
             <Route path="horaire" element={<BookingTimePage />} />
             <Route path="confirmation" element={<BookingConfirmPage />} />
           </Route>
+          <Route path="trajets" element={<RidesPage />} />
           <Route path="trajets/:id" element={<RidePage />} />
           <Route path="trajets/:id/paiement" element={<RidePaymentPage />} />
         </Route>

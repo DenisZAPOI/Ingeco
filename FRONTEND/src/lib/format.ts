@@ -42,7 +42,8 @@ export function formatDay(iso: string): string {
 export function formatTime(iso: string): string {
   const parts = TIME.formatToParts(new Date(iso));
   const part = (type: string) => parts.find((entry) => entry.type === type)?.value ?? '';
-  return `${part('hour')} h ${part('minute')}`;
+  // Non-breaking spaces: "14 h 30" never splits over two lines.
+  return `${part('hour')}\u00a0h\u00a0${part('minute')}`;
 }
 
 /** 'mercredi 14 octobre à 14 h 30' */

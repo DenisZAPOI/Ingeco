@@ -15,3 +15,5 @@ export function ridePath(id: number): string {
 export function paymentPath(id: number): string {
   return `/trajets/${id}/paiement`;
 }
+
+export const RIDES_PATH = '/trajets';

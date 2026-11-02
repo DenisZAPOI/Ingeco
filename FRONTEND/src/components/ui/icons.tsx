@@ -78,3 +78,30 @@ export function UserIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Filled when `filled`: the stars of a rating. */
+export function StarIcon({ className, filled = false }: IconProps & { filled?: boolean }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      {...STROKE}
+      fill={filled ? 'currentColor' : 'none'}
+    >
+      <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
+    </svg>
+  );
+}
+
+export function CalendarIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}

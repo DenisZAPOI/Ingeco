@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom';
 
 import type { Role } from '../api/auth';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { ArrowRightIcon, CarIcon, UserIcon } from '../components/ui/icons';
+import { NextRide } from '../components/rides/NextRide';
+import { ArrowRightIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
+import { RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -30,16 +32,19 @@ export function HomePage() {
       </PageHero>
       <PageSheet>
         {account.role === 'rider' ? (
-          <Link to="/reserver" className="action-card action-card-primary">
-            <span className="icon-chip icon-chip-sun">
-              <CarIcon />
-            </span>
-            <span className="action-card-text">
-              <span className="action-card-title">Réserver un trajet</span>
-              <span className="action-card-hint">Emploi, formation, soins, démarches</span>
-            </span>
-            <ArrowRightIcon className="action-card-arrow" />
-          </Link>
+          <>
+            <NextRide />
+            <Link to="/reserver" className="action-card action-card-primary">
+              <span className="icon-chip icon-chip-sun">
+                <CarIcon />
+              </span>
+              <span className="action-card-text">
+                <span className="action-card-title">Réserver un trajet</span>
+                <span className="action-card-hint">Emploi, formation, soins, démarches</span>
+              </span>
+              <ArrowRightIcon className="action-card-arrow" />
+            </Link>
+          </>
         ) : (
           <>
             <h2>{COMING[account.role].title}</h2>
@@ -47,6 +52,18 @@ export function HomePage() {
           </>
         )}
         <div className="stack">
+          {account.role === 'rider' && (
+            <Link to={RIDES_PATH} className="action-card">
+              <span className="icon-chip">
+                <CalendarIcon />
+              </span>
+              <span className="action-card-text">
+                <span className="action-card-title">Mes trajets</span>
+                <span className="action-card-hint">À venir et passés</span>
+              </span>
+              <ArrowRightIcon className="action-card-arrow" />
+            </Link>
+          )}
           <Link to="/profil" className="action-card">
             <span className="icon-chip">
               <UserIcon />
