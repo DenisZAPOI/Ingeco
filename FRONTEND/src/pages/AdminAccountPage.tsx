@@ -229,7 +229,8 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
             details={
               <p>
                 {account.firstName} ne pourra plus se connecter, et ses sessions ouvertes prennent fin tout de suite.
-                {account.role === 'driver' && ' Le chauffeur passe hors ligne et ne reçoit plus de course.'} Vous pourrez réactiver
+                {account.role === 'driver' && ' Le chauffeur passe hors ligne et ne reçoit plus de course.'}
+                {account.role === 'rider' && ' Ses trajets pas encore pris par un chauffeur sont annulés et remboursés.'} Vous pourrez réactiver
                 le compte.
               </p>
             }

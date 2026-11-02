@@ -25,6 +25,8 @@ ALREADY_REGISTERED = "already_registered"
 # An administrator issued a new activation code for an account that already
 # has a password (audit F19): its holder is warned.
 NEW_ACTIVATION_CODE = "new_activation_code"
+# A rider was suspended: their rides not taken yet are cancelled and refunded.
+SUSPENDED_RIDES_CANCELLED = "suspended_rides_cancelled"
 
 
 def send(_session: Session, *, user_id: int, kind: str, ride_id: int | None = None) -> None:
