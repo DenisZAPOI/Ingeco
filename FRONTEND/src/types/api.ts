@@ -4,6 +4,92 @@
  */
 
 export interface paths {
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Accounts, the newest first, 20 per page; send nextCursor back as cursor for the next page.
+         * @description search: the start of a phone number (« 0694 12 ») or part of a name.
+         */
+        get: operations["listUsers"];
+        put?: never;
+        /**
+         * Creates a driver (with their vehicle), an operator or an administrator, without password.
+         * @description The answer carries the activation code, valid 48 h, shown once: the
+         *     person activates the account with it (POST /auth/activate).
+         */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An account. */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Suspends or reactivates, marks a rider as priority, changes a driver's vehicle.
+         * @description Only the fields sent are changed. A driver holding an accepted or started
+         *     ride cannot be suspended (409); a suspended driver goes offline.
+         */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/admin/users/{user_id}/activation-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A new activation code (first access or forgotten password), valid 48 h, shown once.
+         * @description It replaces the previous one. The current password keeps working until
+         *     the person chooses a new one with the code.
+         */
+        post: operations["newActivationCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user_id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The driver's photo (image/jpeg), to check it. 404 without one. */
+        get: operations["getPhoto"];
+        /** Saves or replaces a driver's face photo: a JPEG already reduced by the browser (100 KB at most). */
+        put: operations["putPhoto"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/activate": {
         parameters: {
             query?: never;
@@ -454,6 +540,82 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AccountDto
+         * @description An account seen by an administrator: the user, and where its access stands.
+         */
+        AccountDto: {
+            /** Activationcodeexpiresat */
+            activationCodeExpiresAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Email */
+            email: string | null;
+            /** Firstname */
+            firstName: string;
+            /** Id */
+            id: number;
+            /** Isactivated */
+            isActivated: boolean;
+            /** Isavailable */
+            isAvailable: boolean | null;
+            /** Ispriority */
+            isPriority: boolean | null;
+            /** Lastname */
+            lastName: string;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean | null;
+            /** Partnerid */
+            partnerId: number | null;
+            /** Phone */
+            phone: string;
+            /** Photoupdatedat */
+            photoUpdatedAt: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "rider" | "driver" | "partner" | "operator" | "admin";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended";
+            vehicle: components["schemas"]["VehicleDto"] | null;
+        };
+        /** AccountListDto */
+        AccountListDto: {
+            /** Items */
+            items: components["schemas"]["AccountDto"][];
+            /** Nextcursor */
+            nextCursor: string | null;
+        };
+        /** AccountListQuery */
+        AccountListQuery: {
+            /**
+             * Cursor
+             * @default null
+             */
+            cursor: string | null;
+            /**
+             * Role
+             * @default null
+             */
+            role: ("rider" | "driver" | "partner" | "operator" | "admin") | null;
+            /**
+             * Search
+             * @default null
+             */
+            search: string | null;
+            /**
+             * Status
+             * @default null
+             */
+            status: ("active" | "suspended") | null;
+        };
         /** ActivateBody */
         ActivateBody: {
             /** Code */
@@ -462,6 +624,16 @@ export interface components {
             password: string;
             /** Phone */
             phone: string;
+        };
+        /** ActivationCodeDto */
+        ActivationCodeDto: {
+            /** Code */
+            code: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
         };
         /** AvailabilityBody */
         AvailabilityBody: {
@@ -507,6 +679,32 @@ export interface components {
         CommuneListDto: {
             /** Items */
             items: components["schemas"]["CommuneDto"][];
+        };
+        /** CreateAccountBody */
+        CreateAccountBody: {
+            /**
+             * Email
+             * @default null
+             */
+            email: string | null;
+            /** Firstname */
+            firstName: string;
+            /** Lastname */
+            lastName: string;
+            /** Phone */
+            phone: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "driver" | "operator" | "admin";
+            /** @default null */
+            vehicle: components["schemas"]["VehicleBody"] | null;
+        };
+        /** CreatedAccountDto */
+        CreatedAccountDto: {
+            account: components["schemas"]["AccountDto"];
+            activation: components["schemas"]["ActivationCodeDto"];
         };
         /** DatabaseStateDto */
         DatabaseStateDto: {
@@ -591,6 +789,11 @@ export interface components {
              * @enum {string}
              */
             type: "immediate" | "scheduled";
+        };
+        /** PhotoBody */
+        PhotoBody: {
+            /** Imagebase64 */
+            imageBase64: string;
         };
         /** PlaceDto */
         PlaceDto: {
@@ -802,6 +1005,24 @@ export interface components {
             lng: number;
         };
         /**
+         * UpdateAccountBody
+         * @description Only the fields sent are changed.
+         */
+        UpdateAccountBody: {
+            /**
+             * Ispriority
+             * @default null
+             */
+            isPriority: boolean | null;
+            /**
+             * Status
+             * @default null
+             */
+            status: ("active" | "suspended") | null;
+            /** @default null */
+            vehicle: components["schemas"]["VehicleBody"] | null;
+        };
+        /**
          * UpdateProfileBody
          * @description Only the fields sent are changed. email: null removes the address.
          */
@@ -877,6 +1098,17 @@ export interface components {
             status: "active" | "suspended";
             vehicle: components["schemas"]["VehicleDto"] | null;
         };
+        /** VehicleBody */
+        VehicleBody: {
+            /** Isaccessible */
+            isAccessible: boolean;
+            /** Model */
+            model: string;
+            /** Plate */
+            plate: string;
+            /** Seats */
+            seats: number;
+        };
         /** VehicleDto */
         VehicleDto: {
             /** Isaccessible */
@@ -897,6 +1129,437 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listUsers: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                role?: ("rider" | "driver" | "partner" | "operator" | "admin") | null;
+                status?: ("active" | "suspended") | null;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountListDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateAccountBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedAccountDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateAccountBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    newActivationCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivationCodeDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    getPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    putPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PhotoBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     activate: {
         parameters: {
             query?: never;

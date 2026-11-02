@@ -944,6 +944,35 @@ a:hover {
 
 /* --- Utilities ----------------------------------------------------------------- */
 
+/* --- Administration: activation code, driver photo ---------------------------- */
+
+.activation-code {
+  margin-bottom: var(--space-l);
+}
+
+/* Read aloud on the phone, digit by digit: large and spaced. */
+.activation-code-value {
+  margin: 0 0 var(--space);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-title);
+  letter-spacing: 0.15em;
+  font-variant-numeric: tabular-nums;
+}
+
+.driver-photo {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: var(--border-width) solid var(--color-primary-soft);
+}
+
+/* The file input is hidden behind its label-button: the focus shows on the button. */
+.button:has(+ .visually-hidden:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-width);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
