@@ -16,9 +16,10 @@ from ..repository.place_repository import straight_distance_km
 from ..repository.ride_repository import Ride
 from ..repository.user_repository import Location, User
 from ..utils import database
-from ..utils.errors import Conflict, NotFound
+from ..utils.errors import Conflict, Forbidden, NotFound
 from . import ride_rules
-from .account_rules import DRIVER
+from .account_rules import DRIVER, SUSPENDED
+from .auth_service import ACCOUNT_SUSPENDED
 from .ride_rules import ACCEPTED, COMPLETED, IN_PROGRESS, PENDING
 from .ride_service import RIDE_NOT_FOUND, present
 
@@ -58,6 +59,10 @@ class Offers:
 def set_availability(driver_id: int, available: bool) -> None:
     """Online or offline. Offline erases the position; the rides held are kept."""
     with database.session() as session:
+        # A suspended driver keeps a valid token for up to 15 minutes: it
+        # must not be enough to come back online.
+        if available and user_repository.find_by_id(session, driver_id).status == SUSPENDED:
+            raise Forbidden(ACCOUNT_SUSPENDED)
         user_repository.set_availability(session, driver_id, available)
     logger.info("Driver availability", extra={"context": {"driverId": driver_id, "available": available}})
 

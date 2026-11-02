@@ -12,6 +12,7 @@ changes nothing until update_user() is called.
 
 import copy
 import threading
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
@@ -54,18 +55,31 @@ class User:
     vehicle: Vehicle | None = None
     # Last known position only, no history (H6); None when offline.
     location: Location | None = None
+    # When the photo was last saved (the photo itself: find_photo); None without one.
+    photo_updated_at: datetime | None = None
     # partner
     partner_id: int | None = None
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+@dataclass(frozen=True)
+class Position:
+    """Where a page of accounts stopped: the next page starts after this account."""
+
+    created_at: datetime
+    user_id: int
+
+
 class DuplicateValue(Exception):
-    """Phone or e-mail already used: what a unique constraint raises in a real database."""
+    """Phone, e-mail or plate already used: what a unique constraint raises in a real database."""
 
 
 _lock = threading.Lock()
 _users: dict[int, User] = {}
+# Apart from the accounts, like the BLOB column read only by the photo route:
+# a list of accounts never carries the images.
+_photos: dict[int, bytes] = {}
 _next_id = 1
 
 
@@ -84,6 +98,14 @@ def find_by_phone(_session: Session, phone: str) -> User | None:
 def email_taken(_session: Session, email: str, except_user_id: int | None = None) -> bool:
     with _lock:
         return any(user.email == email and user.id != except_user_id for user in _users.values())
+
+
+def plate_taken(_session: Session, plate: str, except_user_id: int | None = None) -> bool:
+    with _lock:
+        return any(
+            user.vehicle is not None and user.vehicle.plate == plate and user.id != except_user_id
+            for user in _users.values()
+        )
 
 
 def insert_user(_session: Session, user: User) -> User:
@@ -128,6 +150,50 @@ def set_location(_session: Session, driver_id: int, location: Location) -> bool:
         return True
 
 
+def find_page(
+    _session: Session,
+    *,
+    name: str | None,
+    phone_prefix: str | None,
+    role: str | None,
+    status: str | None,
+    after: Position | None,
+    limit: int,
+) -> list[User]:
+    """Accounts, the most recently created first, at most `limit`, starting after `after`.
+
+    `name`: contained in the first name, the last name or both (ignoring case
+    and accents, like the utf8mb4_unicode_ci collation). `phone_prefix`: the
+    start of the stored number. Filters served by idx_utilisateur_role.
+    """
+    wanted = _fold(name) if name is not None else None
+    with _lock:
+        users = [
+            user
+            for user in _users.values()
+            if (role is None or user.role == role)
+            and (status is None or user.status == status)
+            and (phone_prefix is None or user.phone.startswith(phone_prefix))
+            and (wanted is None or wanted in _fold(f"{user.first_name} {user.last_name}"))
+        ]
+        users.sort(key=lambda user: (user.created_at, user.id), reverse=True)
+        if after is not None:
+            users = [user for user in users if (user.created_at, user.id) < (after.created_at, after.user_id)]
+        return [copy.deepcopy(user) for user in users[:limit]]
+
+
+def save_photo(_session: Session, driver_id: int, image: bytes, at: datetime) -> None:
+    """Saves or replaces the photo of a driver, with its date (for the phones' cache)."""
+    with _lock:
+        _photos[driver_id] = image
+        _users[driver_id].photo_updated_at = at
+
+
+def find_photo(_session: Session, driver_id: int) -> bytes | None:
+    with _lock:
+        return _photos.get(driver_id)
+
+
 def find_by_ids(_session: Session, user_ids: set[int]) -> dict[int, User]:
     with _lock:
         return {user_id: copy.deepcopy(_users[user_id]) for user_id in user_ids if user_id in _users}
@@ -139,6 +205,14 @@ def _check_unique(user: User) -> None:
             continue
         if other.phone == user.phone or (user.email is not None and other.email == user.email):
             raise DuplicateValue
+        if user.vehicle is not None and other.vehicle is not None and other.vehicle.plate == user.vehicle.plate:
+            raise DuplicateValue
+
+
+def _fold(text: str) -> str:
+    """'Chloé' → 'chloe': what an accent- and case-insensitive collation compares."""
+    decomposed = unicodedata.normalize("NFKD", text.casefold())
+    return "".join(character for character in decomposed if not unicodedata.combining(character))
 
 
 # --- Development accounts ----------------------------------------------------
@@ -190,6 +264,7 @@ def reset() -> None:
     global _next_id
     with _lock:
         _users.clear()
+        _photos.clear()
         _next_id = 1
     for user in _dev_accounts():
         insert_user(None, user)  # type: ignore[arg-type]

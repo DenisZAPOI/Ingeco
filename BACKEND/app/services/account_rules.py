@@ -98,3 +98,50 @@ def clean_activation_code(raw: str) -> str:
     if not _ACTIVATION_CODE.fullmatch(code):
         raise ValueError(f"Le code contient {ACTIVATION_CODE_LENGTH} chiffres.")
     return code
+
+
+# --- Accounts created by an administrator (UC52) -----------------------------
+STAFF_ROLES = ("driver", "operator", "admin")
+OPERATOR = "operator"
+ADMIN = "admin"
+# Valid 48 h (contract 3.1): time to call the person or hand it over.
+ACTIVATION_CODE_VALIDITY_HOURS = 48
+
+
+# --- Vehicle of a driver -----------------------------------------------------
+PLATE_MAX_LENGTH = 20
+MODEL_MAX_LENGTH = 100
+MIN_SEATS = 1
+MAX_SEATS = 8  # chk_vehicule_places
+
+
+def clean_plate(raw: str) -> str:
+    """' aa-123 -bb ' → 'AA-123-BB'. Old plates (« 123 ABC 973 ») are kept as typed."""
+    plate = _SPACES.sub(" ", raw).strip().upper()
+    plate = re.sub(r"\s*-\s*", "-", plate)
+    if not plate:
+        raise ValueError("Ce champ est obligatoire.")
+    return plate
+
+
+# --- Search of an account ----------------------------------------------------
+SEARCH_MAX_LENGTH = 100
+_PHONE_START = re.compile(r"\+?[0-9]+")
+
+
+def phone_prefix(search: str) -> str | None:
+    """The start of a phone number, in the stored format, if `search` is one.
+
+    '0694 12' → '+59469412'; '+594 694' → '+594694'; 'Chloé' → None (a name).
+    """
+    compact = _PHONE_SEPARATORS.sub("", search)
+    if not _PHONE_START.fullmatch(compact):
+        return None
+    if compact.startswith("00"):
+        return "+" + compact[2:]
+    if compact.startswith("0"):
+        return GUYANA_COUNTRY_CODE + compact[1:]
+    if compact.startswith("+"):
+        return compact
+    # Digits without the leading 0 (« 694 12 »): read as a national number.
+    return GUYANA_COUNTRY_CODE + compact
