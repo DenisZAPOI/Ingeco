@@ -85,6 +85,11 @@ def current_user_id() -> int:
     return g.user_id
 
 
+def current_role() -> str:
+    """Role of the caller, inside a route protected by @require_login."""
+    return get_jwt()[_ROLE_CLAIM]
+
+
 def register_jwt_callbacks(jwt: JWTManager) -> None:
     """Token problems answer in the { error, detail } format, in French.
 

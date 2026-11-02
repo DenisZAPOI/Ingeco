@@ -76,6 +76,10 @@ exactement les mêmes règles que les routes HTTP.
   crée ni ne modifie aucune table. Un besoin de schéma → une demande écrite à l'équipe BD.
 - Approche mixte : une ligne d'ORM lisible → ORM ; trois jointures ou une condition fine → SQL
   explicite dans `repository/`.
+- **Services externes** (adresses et distance par la route : OpenRouteService, H13) : appelés
+  depuis `repository/` aussi, qui reste « la source des données », base ou pas
+  (`place_repository.py`). Une panne y lève une exception propre au repository, que le service
+  traduit en `503`. Sans `ORS_API_KEY`, données factices et aucun appel à Internet (tests, CI).
 - Toute écriture passe par `database.session()`, qui valide à la sortie du bloc et annule en cas
   d'erreur. Une opération en plusieurs étapes (réserver et consommer un bon) tient dans **une**
   transaction.
@@ -98,6 +102,7 @@ exactement les mêmes règles que les routes HTTP.
 | 409 | Conflit avec l'état (course déjà acceptée) |
 | 422 | Règle métier violée (bon épuisé) |
 | 429 | Trop d'essais ratés (connexion, code d'activation) |
+| 503 | Un service externe dont dépend la route ne répond pas (adresses, distance) |
 
 - Le `detail` d'une erreur métier est affiché tel quel à l'usager : **en français**, en mots simples.
   Les messages de validation de Pydantic sont traduits dans `utils/errors.py` ; une règle écrite

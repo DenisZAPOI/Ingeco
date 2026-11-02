@@ -13,8 +13,11 @@ from flask_cors import CORS
 from .config import Config
 from .controllers.auth_controller import auth_bp
 from .controllers.health_controller import health_bp
+from .controllers.place_controller import place_bp
+from .controllers.ride_controller import ride_bp
 from .controllers.user_controller import user_bp
 from .extensions import jwt, socketio, spec
+from .repository import place_repository
 from .utils import access, database, errors, logs, request_logs, security_headers
 
 logger = logging.getLogger(__name__)
@@ -42,6 +45,7 @@ def create_app(config: type[Config] = Config) -> Flask:
         )
 
     database.initialize(config.DATABASE_URL)
+    place_repository.configure(config.ORS_API_KEY)
 
     # supports_credentials: the browser sends the session cookie with front-end calls.
     CORS(
@@ -66,6 +70,8 @@ def create_app(config: type[Config] = Config) -> Flask:
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(place_bp)
+    app.register_blueprint(ride_bp)
 
     # After the Blueprints: the documentation describes the registered routes.
     spec.register(app)

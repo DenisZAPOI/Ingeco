@@ -10,7 +10,7 @@ type FormProps = {
   error: string | null;
   /** Shown above the button after a success (profile saved…). */
   success?: string | null;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 /** A form with its general message and its large submit button. */

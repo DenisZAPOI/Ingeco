@@ -12,6 +12,7 @@ Which code:
     409 Conflict              conflict with the current STATE (ride already accepted)
     422 UnprocessableEntity   BUSINESS RULE violation (voucher exhausted)
     429 TooManyRequests       too many failed attempts (login, activation code)
+    503 ServiceUnavailable    an external service we depend on does not answer
 
 The `detail` of a business error is shown as is to the user: write it in
 French, in plain words.
@@ -69,6 +70,11 @@ class UnprocessableEntity(ApiError):
 class TooManyRequests(ApiError):
     code = 429
     error = "Too Many Requests"
+
+
+class ServiceUnavailable(ApiError):
+    code = 503
+    error = "Service Unavailable"
 
 
 def register_handlers(app: Flask) -> None:

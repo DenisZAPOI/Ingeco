@@ -53,6 +53,10 @@ class Config:
     LOG_LEVEL: str = _optional("LOG_LEVEL", "INFO").upper()
     PORT: int = int(_optional("PORT", "5000"))
 
+    # Addresses and road distances (OpenRouteService, H13). Empty: fake data,
+    # no call to the Internet (tests, CI, development without an account).
+    ORS_API_KEY: str | None = os.getenv("ORS_API_KEY") or None
+
     # --- Authentication (Flask-JWT-Extended) ---------------------------------
     # Tokens live in HttpOnly cookies: JavaScript never reads them, so a
     # script injected in the page cannot steal them.

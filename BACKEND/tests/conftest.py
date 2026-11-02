@@ -18,11 +18,14 @@ os.environ.setdefault("CORS_ORIGINS", "http://localhost:5173")
 os.environ.setdefault("LOG_FORMAT", "text")
 # The test client speaks http: Secure cookies would never be sent back.
 os.environ.setdefault("COOKIE_SECURE", "false")
+# Forced, not a default: a developer's key in .env must not make the tests
+# call OpenRouteService.
+os.environ["ORS_API_KEY"] = ""
 
 from app.dtos.base import InputModel  # noqa: E402
 from app.extensions import spec  # noqa: E402
 from app.main import create_app  # noqa: E402
-from app.repository import user_repository  # noqa: E402
+from app.repository import ride_repository, user_repository  # noqa: E402
 from app.services import auth_service  # noqa: E402
 from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
@@ -80,7 +83,8 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def fresh_state():
-    """Every test starts from the development accounts, with no failed attempt counted."""
+    """Every test starts from the development accounts, no ride, and no failed attempt counted."""
     user_repository.reset()
+    ride_repository.reset()
     auth_service.login_attempts.clear()
     auth_service.activation_attempts.clear()

@@ -5,14 +5,16 @@ import { CheckboxField } from '../components/form/CheckboxField';
 import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
+import { LoadingMessage } from '../components/ui/LoadingMessage';
 import { useUpdateProfile } from '../hooks/useAuthForms';
 import { useSession } from '../hooks/useSession';
 import { formatPhone } from '../lib/phone';
 
 export function ProfilePage() {
   const { user } = useSession();
-  // The routes only show this page to a logged-in user.
-  if (!user) return null;
+  // Shown from the last session's hint: the account itself (phone, e-mail)
+  // arrives with the API's confirmation of the session.
+  if (!user) return <LoadingMessage />;
 
   return (
     <section>

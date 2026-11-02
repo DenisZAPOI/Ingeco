@@ -109,7 +109,16 @@ async function send<T>(method: Method, path: string, body?: unknown): Promise<T>
     return undefined as T;
   }
 
-  const payload: unknown = await response.json().catch(() => null);
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    // A body cut on the way (connection lost mid-answer, common on 2G) is a
+    // network failure, not an answer: read as null, a successful session
+    // read would log the user out.
+    if (response.ok) throw new ApiError(0, 'Network unreachable');
+    payload = null;
+  }
 
   if (!response.ok) {
     const { error, detail } = readErrorPayload(payload);
