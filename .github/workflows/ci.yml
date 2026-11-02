@@ -38,6 +38,9 @@ jobs:
       - run: python -m pip install -r requirements.txt
       # tests/conftest.py provides its own configuration: in-memory SQLite.
       - run: python -m pytest
+      # A dependency with a known vulnerability fails the run (audit F20).
+      - run: python -m pip install pip-audit
+      - run: python -m pip_audit -r requirements.txt
 
   frontend:
     name: Front (lint + build)
@@ -53,6 +56,9 @@ jobs:
           cache: npm
           cache-dependency-path: FRONTEND/package-lock.json
       - run: npm ci
+      # What reaches the browser only: the build tools' advisories do not
+      # concern the users (audit F17).
+      - run: npm audit --omit=dev
       - run: npm run lint
       # tsc -b then vite build: also catches type errors.
       - run: npm run build
@@ -68,6 +74,8 @@ jobs:
       FLASK_SECRET_KEY: ci-only-key-not-a-secret-0123456789abcdef
       COOKIE_SECURE: "false"
       LOG_FORMAT: text
+      # The types are generated from /apidoc/openapi.json, off by default.
+      API_DOCS_ENABLED: "true"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -102,3 +110,16 @@ jobs:
             echo "::error file=FRONTEND/src/types/api.ts::Types out of date: start the back-end, run 'npm run api:types' in FRONTEND and commit the result."
             exit 1
           fi
+
+  secrets:
+    # No key, password or token committed, in the whole history (audit F20).
+    name: Secrets (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false

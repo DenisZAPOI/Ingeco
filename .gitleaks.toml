@@ -1,0 +1,21 @@
+# Recherche de secrets (job « Secrets » de la CI) : règles par défaut de
+# Gitleaks, plus les valeurs de test PUBLIQUES du projet, qui n'ouvrent rien
+# en dehors d'un poste de développement (README, tests, CI, données de démo).
+title = "En route pour l'emploi"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valeurs de test publiques, pas des secrets"
+regexes = [
+  '''Trajet-2026!''',
+  '''ci-only-key-not-a-secret''',
+  '''test-key-long-enough-for-hs256''',
+  '''replace-with-''',
+]
+paths = [
+  # Hachages scrypt des comptes de démo (mot de passe public, README)
+  '''sql/demo-data\.sql''',
+  '''sql/schema-mvp\.sql''',
+]
