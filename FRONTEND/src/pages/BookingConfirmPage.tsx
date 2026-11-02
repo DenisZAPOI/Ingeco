@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import type { Purpose, Stop } from '../api/rides';
+import { PageSheet } from '../components/layout/PageHero';
 import { StepHeader } from '../components/booking/StepHeader';
 import { TripSummary } from '../components/booking/TripSummary';
 import { Form } from '../components/form/Form';
@@ -53,25 +54,27 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
   return (
     <section>
       <StepHeader step={4} title="Votre trajet" />
-      <RequestState loading={estimate.loading} error={estimate.error} onRetry={estimate.retry}>
-        {estimate.data && (
-          <>
-            <TripSummary
-              pickup={pickup.address}
-              dropoff={dropoff.address}
-              purpose={purpose}
-              scheduledAt={scheduledAt}
-              distanceKm={estimate.data.distanceKm}
-              priceCents={estimate.data.riderAmountCents}
-            />
-            <p className="note">Vous payez par carte à l'étape suivante, avant le départ.</p>
-            <Form onSubmit={confirm} submitLabel="Réserver ce trajet" submitting={booking.submitting} error={bookingError} />
-          </>
-        )}
-      </RequestState>
-      <Link to={BOOKING_PATHS.pickup} className="link-action">
-        Modifier le trajet
-      </Link>
+      <PageSheet>
+        <RequestState loading={estimate.loading} error={estimate.error} onRetry={estimate.retry}>
+          {estimate.data && (
+            <>
+              <TripSummary
+                pickup={pickup.address}
+                dropoff={dropoff.address}
+                purpose={purpose}
+                scheduledAt={scheduledAt}
+                distanceKm={estimate.data.distanceKm}
+                priceCents={estimate.data.riderAmountCents}
+              />
+              <p className="note">Vous payez par carte à l'étape suivante, avant le départ.</p>
+              <Form onSubmit={confirm} submitLabel="Réserver ce trajet" submitting={booking.submitting} error={bookingError} />
+            </>
+          )}
+        </RequestState>
+        <Link to={BOOKING_PATHS.pickup} className="link-action">
+          Modifier le trajet
+        </Link>
+      </PageSheet>
     </section>
   );
 }

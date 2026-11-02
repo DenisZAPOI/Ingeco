@@ -1,8 +1,10 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import type { Ride } from '../api/rides';
+import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { TripSummary } from '../components/booking/TripSummary';
 import { RequestState } from '../components/ui/RequestState';
+import { CarIcon } from '../components/ui/icons';
 import { useRide } from '../hooks/useRides';
 import { formatPrice } from '../lib/format';
 import { paymentPath } from '../lib/paths';
@@ -15,13 +17,15 @@ export function RidePage() {
 
   return (
     <section>
-      <h1>Mon trajet</h1>
-      <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
-        {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} />}
-      </RequestState>
-      <Link to="/" className="link-action">
-        Retour à l'accueil
-      </Link>
+      <PageHero title="Mon trajet" />
+      <PageSheet>
+        <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
+          {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} />}
+        </RequestState>
+        <Link to="/" className="link-action">
+          Retour à l'accueil
+        </Link>
+      </PageSheet>
     </section>
   );
 }
@@ -29,8 +33,11 @@ export function RidePage() {
 function RideStatus({ ride, onRefresh }: { ride: Ride; onRefresh: () => void }) {
   return (
     <>
-      <p role="status" className="panel lead">
-        <strong>{STATUS_HEADLINES[ride.status]}</strong>
+      <p role="status" className="status">
+        <span className="icon-chip icon-chip-sun">
+          <CarIcon />
+        </span>
+        {STATUS_HEADLINES[ride.status]}
       </p>
       {canStillPay(ride) && (
         <Link to={paymentPath(ride.id)} state={{ ride }} className="button button-block">

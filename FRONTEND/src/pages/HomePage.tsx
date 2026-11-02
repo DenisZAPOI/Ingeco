@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 
 import type { Role } from '../api/auth';
-import { CarIcon } from '../components/ui/icons';
+import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { ArrowRightIcon, CarIcon, UserIcon } from '../components/ui/icons';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -24,26 +25,37 @@ export function HomePage() {
 
   return (
     <section>
-      <h1>Bonjour {account.firstName}</h1>
-      {account.role === 'rider' ? (
-        <div className="stack">
-          <Link to="/reserver" className="button button-block">
-            <CarIcon className="button-icon" />
-            Réserver un trajet
+      <PageHero title={`Bonjour ${account.firstName}`}>
+        {account.role === 'rider' && <p className="hero-lead">Où allez-vous aujourd'hui ?</p>}
+      </PageHero>
+      <PageSheet>
+        {account.role === 'rider' ? (
+          <Link to="/reserver" className="action-card action-card-primary">
+            <span className="icon-chip icon-chip-sun">
+              <CarIcon />
+            </span>
+            <span className="action-card-text">
+              <span className="action-card-title">Réserver un trajet</span>
+              <span className="action-card-hint">Emploi, formation, soins, démarches</span>
+            </span>
+            <ArrowRightIcon className="action-card-arrow" />
           </Link>
-          <Link to="/profil" className="button button-block button-secondary">
-            Mon profil
+        ) : (
+          <>
+            <h2>{COMING[account.role].title}</h2>
+            <p>{COMING[account.role].coming}</p>
+          </>
+        )}
+        <div className="stack">
+          <Link to="/profil" className="action-card">
+            <span className="icon-chip">
+              <UserIcon />
+            </span>
+            <span className="action-card-title">Mon profil</span>
+            <ArrowRightIcon className="action-card-arrow" />
           </Link>
         </div>
-      ) : (
-        <>
-          <h2>{COMING[account.role].title}</h2>
-          <p>{COMING[account.role].coming}</p>
-          <Link to="/profil" className="button button-block button-secondary">
-            Mon profil
-          </Link>
-        </>
-      )}
+      </PageSheet>
     </section>
   );
 }

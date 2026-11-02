@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import type { Stop } from '../api/rides';
+import { PageSheet } from '../components/layout/PageHero';
 import { PlacePicker } from '../components/booking/PlacePicker';
 import { StepHeader } from '../components/booking/StepHeader';
 import { Form } from '../components/form/Form';
@@ -42,24 +43,26 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
   return (
     <section>
       <StepHeader step={step.step} title={step.title} />
-      <RequestState loading={communes.loading} error={communes.error} onRetry={communes.retry}>
-        <Form onSubmit={next} submitLabel="Continuer" submitting={false} error={error ? CHECK_FIELDS : null}>
-          <PlacePicker
-            communes={communes.data ?? []}
-            value={chosen}
-            onChange={(place) => {
-              setChosen(place);
-              setError(null);
-            }}
-            error={error ?? undefined}
-          />
-        </Form>
-      </RequestState>
-      {step.back && (
-        <Link to={step.back} className="link-action">
-          Revenir à l'étape précédente
-        </Link>
-      )}
+      <PageSheet>
+        <RequestState loading={communes.loading} error={communes.error} onRetry={communes.retry}>
+          <Form onSubmit={next} submitLabel="Continuer" submitting={false} error={error ? CHECK_FIELDS : null}>
+            <PlacePicker
+              communes={communes.data ?? []}
+              value={chosen}
+              onChange={(place) => {
+                setChosen(place);
+                setError(null);
+              }}
+              error={error ?? undefined}
+            />
+          </Form>
+        </RequestState>
+        {step.back && (
+          <Link to={step.back} className="link-action">
+            Revenir à l'étape précédente
+          </Link>
+        )}
+      </PageSheet>
     </section>
   );
 }

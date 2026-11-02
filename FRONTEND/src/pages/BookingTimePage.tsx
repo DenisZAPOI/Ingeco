@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import type { Purpose } from '../api/rides';
+import { PageSheet } from '../components/layout/PageHero';
 import { StepHeader } from '../components/booking/StepHeader';
 import { ChoiceGroup } from '../components/form/ChoiceGroup';
 import { Form } from '../components/form/Form';
@@ -48,32 +49,34 @@ export function BookingTimePage() {
   return (
     <section>
       <StepHeader step={3} title="Pourquoi et quand ?" />
-      <Form
-        onSubmit={next}
-        submitLabel="Voir le prix"
-        submitting={false}
-        error={errors.purpose || errors.schedule ? CHECK_FIELDS : null}
-      >
-        <ChoiceGroup legend="Motif du trajet" choices={PURPOSE_CHOICES} value={purpose} onChange={setPurpose} error={errors.purpose} />
-        <ChoiceGroup legend="Départ" choices={WHEN_CHOICES} value={when} onChange={setWhen} />
-        {when === 'later' && (
-          <>
-            <TextField label="Jour" type="date" value={day} onChange={setDay} min={guyanaToday()} required />
-            <TextField
-              label="Heure de départ"
-              hint="Heure de Guyane."
-              type="time"
-              value={time}
-              onChange={setTime}
-              required
-              error={errors.schedule}
-            />
-          </>
-        )}
-      </Form>
-      <Link to={BOOKING_PATHS.dropoff} className="link-action">
-        Revenir à l'étape précédente
-      </Link>
+      <PageSheet>
+        <Form
+          onSubmit={next}
+          submitLabel="Voir le prix"
+          submitting={false}
+          error={errors.purpose || errors.schedule ? CHECK_FIELDS : null}
+        >
+          <ChoiceGroup legend="Motif du trajet" choices={PURPOSE_CHOICES} value={purpose} onChange={setPurpose} error={errors.purpose} />
+          <ChoiceGroup legend="Départ" choices={WHEN_CHOICES} value={when} onChange={setWhen} />
+          {when === 'later' && (
+            <>
+              <TextField label="Jour" type="date" value={day} onChange={setDay} min={guyanaToday()} required />
+              <TextField
+                label="Heure de départ"
+                hint="Heure de Guyane."
+                type="time"
+                value={time}
+                onChange={setTime}
+                required
+                error={errors.schedule}
+              />
+            </>
+          )}
+        </Form>
+        <Link to={BOOKING_PATHS.dropoff} className="link-action">
+          Revenir à l'étape précédente
+        </Link>
+      </PageSheet>
     </section>
   );
 }

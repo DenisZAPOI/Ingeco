@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { Ride } from '../api/rides';
+import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { TripSummary } from '../components/booking/TripSummary';
 import { Form } from '../components/form/Form';
 import { RequestState } from '../components/ui/RequestState';
@@ -21,10 +22,12 @@ export function RidePaymentPage() {
 
   return (
     <section>
-      <h1>Payer le trajet</h1>
-      <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
-        {ride.data && <Payment ride={ride.data} />}
-      </RequestState>
+      <PageHero title="Payer le trajet" />
+      <PageSheet>
+        <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
+          {ride.data && <Payment ride={ride.data} />}
+        </RequestState>
+      </PageSheet>
     </section>
   );
 }
