@@ -267,7 +267,7 @@ bons et les structures sont hors du schéma MVP tant qu'il n'est pas fixé
 
 | ID | Cas d'utilisation | Acteur principal | Statut | Étape | Routes |
 |---|---|---|---|---|---|
-| UC01 | Créer un compte usager | Visiteur | MVP | 2 | `POST /auth/register` |
+| UC01 | Créer un compte usager | Visiteur | MVP | 2 | `POST /auth/register`, `POST /auth/register/confirm` |
 | UC02 | ~~S'inscrire comme chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
 | UC03 | Activer son compte (premier accès ou mot de passe oublié) | Visiteur | MVP | 2 | `POST /auth/activate` |
 | UC04 | Se connecter | Visiteur | MVP | 2 | `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh` |
@@ -360,14 +360,24 @@ erreurs (E), postconditions, règles. Les codes HTTP renvoient aux conventions d
   1. Le visiteur choisit « Créer un compte ».
   2. Il saisit prénom, nom, numéro de téléphone, mot de passe, et en option son e-mail.
   3. Il indique s'il a besoin d'un véhicule accessible (fauteuil roulant).
-  4. Le système crée un compte `rider` actif et le connecte.
+  4. Le système lui envoie un code de 6 chiffres par SMS (UC62), valable 10 minutes. Rien n'est
+     encore créé.
+  5. Il tape le code ; le système crée un compte `rider` actif et le connecte.
 - **Variantes et erreurs**
-  - E1 : téléphone déjà utilisé (`409`). Si le compte a été créé par l'opérateur, le système
-    explique qu'il faut l'activer (UC03) avec un code demandé au centre d'appel.
+  - A1 : SMS pas reçu : « Renvoyer le code » (3 codes par heure au plus), ou « Changer de
+    numéro ». Un numéro faux ne reçoit jamais le code : aucun compte n'est créé.
+  - E1 : téléphone déjà utilisé : l'écran répond comme pour un nouveau numéro, sans le révéler ;
+    le SMS, lui, dit à la personne qu'elle a déjà un compte (se connecter, ou l'activer avec
+    UC03 s'il a été créé par l'opérateur). Le code tapé échoue comme un code faux.
   - E2 : champ manquant ou mal formé (`400`), message en face du champ.
+  - E3 : code faux ou expiré (`422`) ; après 5 erreurs, il faut demander un nouveau code.
+  - E4 : e-mail déjà pris par un autre compte (`409`, dit une fois le téléphone prouvé) :
+    recommencer avec une autre adresse, ou sans.
 - **Postconditions** : un compte usager actif, non prioritaire.
-- **Règles** : téléphone au format international (`+594…`), unique. Formulaire court, gros
-  boutons, un seul écran si possible.
+- **Règles** : téléphone au format international (`+594…`), unique, **prouvé par le code** (audit
+  de sécurité du 02/11/2026, F4). Formulaire court, gros boutons. En démonstration
+  (`LOAD_DEMO_DATA`), les SMS sont simulés et le code est toujours `123456`. Le coût des SMS
+  réels est à valider avec la cliente.
 
 #### UC02 S'inscrire comme chauffeur (supprimé)
 
@@ -385,7 +395,8 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
   3. Le système vérifie le code, enregistre le mot de passe, efface le code et le connecte.
 - **Erreurs** : E1 code faux ou expiré (48 h) : message unique, sans dire lequel des deux, pour
   ne rien révéler. E2 trop d'essais : blocage temporaire.
-- **Postconditions** : compte utilisable avec un mot de passe.
+- **Postconditions** : compte utilisable avec un mot de passe ; les sessions ouvertes avant avec
+  l'ancien mot de passe prennent fin.
 
 #### UC04 Se connecter
 
@@ -393,7 +404,8 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Scénario nominal** : téléphone + mot de passe, puis le système ouvre l'accueil propre au rôle
   (réservation, courses, bons, administration).
 - **Erreurs** : identifiants faux (`401`, message unique) ; compte suspendu (`403`, « Contactez le
-  centre d'appel ») ; trop d'essais.
+  centre d'appel ») ; trop d'essais (`429` : 5 échecs en 15 minutes pour un numéro, 30 depuis une
+  même connexion) ; service très demandé (`429`, « Réessayez dans quelques secondes »).
 
 #### UC05 Se déconnecter
 
@@ -405,7 +417,9 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Scénario nominal** : modifier nom, e-mail, mot de passe (avec l'ancien), besoin de véhicule
   accessible (usager).
 - **Règles** : le téléphone ne se modifie pas en libre-service (c'est l'identifiant) : passer par
-  l'administrateur. Le rôle et le statut prioritaire non plus.
+  l'administrateur. Le rôle et le statut prioritaire non plus. Un nouveau mot de passe déconnecte
+  les autres téléphones (un téléphone perdu ou partagé), pas celui qui l'a changé. 5 mots de
+  passe actuels faux en 15 minutes bloquent le changement.
 
 ### Usager
 
@@ -431,7 +445,11 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
     `clientRequestId`) ; le système renvoie la course déjà créée sans la doubler.
 - **Erreurs**
   - E1 : adresse introuvable : l'usager peut placer un point sur la carte ou choisir dans la
-    liste.
+    liste. Seul un lieu proposé par le système est accepté (lieu signé, audit F9) : un point
+    placé sur la carte (étape 4) devra donc passer par le système, qui renverra l'adresse de ce
+    point avec sa signature.
+  - E6 : l'usager a déjà un trajet immédiat non terminé (`422`) : il attend la fin de celui-ci,
+    ou l'annule. Plafond à confirmer avec la cliente.
   - E2 : bon refusé : UC13 E1 à E4, l'usager peut continuer sans bon.
   - E3 : paiement refusé : la course n'est pas proposée aux chauffeurs. L'usager peut réessayer
     pendant 15 minutes, après quoi la réservation expire et le bon est rendu (UC60).
@@ -453,7 +471,8 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Scénario nominal** : comme UC10, avec en plus le choix de la date et de l'heure de prise en
   charge entre les étapes 2 et 3.
 - **Erreurs** : E1 horaire à moins de 30 minutes : le système propose de réserver tout de suite.
-  E2 bon non valable **le jour du trajet** (même s'il l'est aujourd'hui).
+  E2 bon non valable **le jour du trajet** (même s'il l'est aujourd'hui). E3 déjà 3 trajets
+  programmés non terminés (`422`). Plafond à confirmer avec la cliente.
 - **Postconditions** : course `pending` visible des chauffeurs dans « courses programmées ». Elle
   expire à l'heure prévue si personne ne l'a acceptée (UC60).
 
@@ -711,10 +730,14 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 - **Acteur** : Administrateur
 - **Scénario nominal** : rechercher un compte par nom ou téléphone, filtrer par rôle et statut ;
   suspendre, réactiver, marquer un usager prioritaire (hypothèse Q3).
-- **Règles** : pas de suppression physique ; un compte suspendu ne peut plus se connecter (au plus
-  tard 15 minutes après, à la fin de son jeton d'accès). Un administrateur ne peut pas suspendre
-  son propre compte. Un chauffeur qui a une course acceptée ou en cours ne peut pas être
-  suspendu ; suspendu, il passe hors ligne et ne peut plus se remettre en ligne.
+- **Règles** : pas de suppression physique ; un compte suspendu perd l'accès **tout de suite**,
+  sur tous ses téléphones, et ses anciennes sessions ne reviennent pas s'il est réactivé. Un
+  administrateur ne change pas le statut de son propre compte (ni suspendre, ni réactiver). Un
+  chauffeur qui a une course acceptée ou en cours ne peut pas être suspendu ; suspendu, il passe
+  hors ligne et ne peut plus se remettre en ligne. Pour un usager (décision du 03/11/2026) :
+  ses trajets pas encore pris par un chauffeur (`awaiting_payment`, `pending`) sont annulés et
+  remboursés, et il reçoit un SMS (UC62) ; un trajet accepté par un chauffeur ou en cours bloque
+  la suspension (`409`) : attendre la fin, ou l'annuler d'abord.
 
 #### UC52 Créer un compte chauffeur, référent, opérateur ou administrateur
 
@@ -732,7 +755,8 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 - **Scénario nominal** : pour un premier accès ou un mot de passe oublié, il génère un code ;
   le code est affiché **une seule fois**, il le transmet par téléphone ou en main propre.
 - **Règles** : valable 48 h, remplace le précédent. Le mot de passe actuel reste valable jusqu'à
-  ce que la personne en choisisse un nouveau avec le code.
+  ce que la personne en choisisse un nouveau avec le code. Si le compte a déjà un mot de passe,
+  son titulaire est prévenu par SMS (UC62) : un code émis à son insu se voit.
 
 #### UC54 Gérer les structures partenaires
 
@@ -785,7 +809,9 @@ Remplacé par la création du compte chauffeur par l'administrateur (UC52), voir
 
 - **Acteur** : Système ; acteur secondaire : Passerelle SMS.
 - **Déclencheurs** : chauffeur trouvé, chauffeur arrivé ou désisté, course expirée, lien de
-  paiement.
+  paiement, code d'inscription (UC01, ou « vous avez déjà un compte »), nouveau code
+  d'activation pour un compte déjà activé (UC53), suspension d'un usager dont les trajets sont
+  annulés (UC51).
 - **Règles** : dans le MVP, une ligne de log par SMS, **sans numéro ni contenu personnel**. Quels
   messages exactement : à fixer avec le client (question 4 du contrat d'API).
 
