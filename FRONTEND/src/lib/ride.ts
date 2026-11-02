@@ -39,6 +39,14 @@ export function scheduleError(day: string, time: string): string | null {
   return null;
 }
 
+/** Why a trip expired: not paid in time (nothing was charged), or no driver
+ *  took it (the payment is refunded). Read from the payment state. */
+export function expiryReason(ride: Ride): string {
+  return ride.paymentStatus === 'refunded'
+    ? "Aucun chauffeur n'était disponible à temps. Nous en sommes désolés."
+    : "Le paiement n'a pas été fait dans les 15 minutes : la réservation a été annulée. Rien n'a été prélevé.";
+}
+
 /** The time limit to pay is part of the ride, not a guess of the phone. */
 export function canStillPay(ride: Ride): boolean {
   return ride.status === 'awaiting_payment' && new Date(ride.expiresAt).getTime() > Date.now();
