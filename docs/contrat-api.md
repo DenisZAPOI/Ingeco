@@ -691,7 +691,7 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 | H10 | Paiement simulé : un simple statut sur la course | Une table de paiements (référence du prestataire, tentatives, remboursements) |
 | H11 | Un désistement de chauffeur n'est pas mémorisé (seulement journalisé) | Une table des désistements, ou un compteur sur le chauffeur |
 | H12 | Activation et mot de passe oublié par un code généré par un administrateur | Avec de vrais SMS : réinitialisation en libre-service, même stockage du code |
-| H13 | Adresses et distance par la route viennent d'un **service externe** appelé par l'API (à choisir, sur données OpenStreetMap). L'usager choisit lui-même la commune dans la liste | Si la commune doit être déduite de la position : les contours des communes en base, avec un type spatial |
+| H13 | Adresses et distance par la route viennent d'un **service externe** appelé par l'API : **OpenRouteService**, sur données OpenStreetMap (choisi le 02/11/2026). L'usager choisit lui-même la commune dans la liste | Si la commune doit être déduite de la position : les contours des communes en base, avec un type spatial |
 | H14 | Par téléphone, l'usager paie par un lien reçu par SMS ([6.9](#69-lien-de-paiement-par-sms)) | Carte dictée à l'opérateur : règles de sécurité des cartes bancaires au centre d'appel, déconseillé. Sans effet sur le schéma |
 | H15 | `isPriority` n'a aucun effet automatique (ni sur le prix, ni sur l'attribution) | Un ordre de priorité dans la recherche de chauffeur, ou un tarif lié au profil (rejoint H8) |
 | H16 | 15 minutes pour payer, sinon la réservation expire et le bon est rendu | Un autre délai : aucun effet sur le schéma |

@@ -172,10 +172,12 @@ FRONTEND/src/
 ├── types/api.ts             GÉNÉRÉ depuis l'OpenAPI du back, jamais modifié à la main
 ├── lib/                     Logique pure, sans React (messages d'erreur, calculs, formats)
 ├── hooks/                   Orchestration d'un écran : appel, chargement, erreur, nouvelle tentative
+│                            (useRequest : le modèle générique d'un chargement, à réutiliser)
 ├── context/                 Providers d'état global (SessionProvider : l'utilisateur connecté)
 ├── components/
 │   ├── ui/                  Éléments réutilisables (RequestState : chargement / erreur / réessayer)
-│   └── layout/              Cadre commun (Layout)
+│   └── layout/              Cadre commun : Layout (en-tête), PageHero (bandeau vert et titre),
+│                            PageSheet (feuille blanche du contenu)
 ├── pages/                   Une page par route : assemble des composants, décide de la navigation
 ├── routes/AppRoutes.tsx     Déclaration des routes
 └── styles/global.css        Variables et styles globaux
@@ -201,7 +203,11 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
 - **Chaque appel a un état de chargement et un état d'erreur avec « Réessayer »**
   (`RequestState`). Le client abandonne une requête au bout de 15 s. Mais l'écran n'attend pas
   le réseau quand il peut faire sans (voir [Réseau faible](#réseau-faible--objectif-regular-2g)).
-- **Un composant n'appelle jamais `api/`** : il passe par un hook.
+- **Un composant n'appelle jamais `api/`** : il passe par un hook. Pour charger des données,
+  `useRequest` (chargement, erreur, « Réessayer », valeur déjà connue affichée sans appel) plutôt
+  qu'un hook écrit à la main ; pour un envoi de formulaire, `useSubmit`.
+- **Chaque écran** : `PageHero` (le titre, dans le bandeau vert) puis `PageSheet` (le contenu),
+  selon la [charte graphique](charte-graphique.md#5-mise-en-page).
 - **Le front ne protège rien** : masquer un écran évite une erreur de manipulation, la vraie
   vérification du rôle est dans le back. `useSession()` donne l'utilisateur connecté ;
   `routes/AccessRoutes.tsx` redirige un visiteur vers `/connexion`.

@@ -31,6 +31,7 @@ Le socle reprend celui de ProjectOrganizer (R5.A.05), que Denis connaît déjà.
 
 - **Back** : Python 3.14, Flask, Flask-SocketIO, SQLAlchemy, Pydantic + flask-pydantic-spec (validation et Swagger). Versions figées dans `BACKEND/requirements.txt`.
 - **Front** : React 19 + TypeScript 6, Vite 8, react-router-dom 7, PWA (vite-plugin-pwa), CSS maison sans framework. Leaflet + OpenStreetMap et socket.io-client seront ajoutés à l'étape 4.
+- **Adresses et distance par la route** : OpenRouteService (données OpenStreetMap), appelé depuis `repository/place_repository.py`. Clé dans `ORS_API_KEY` ; sans clé, lieux factices et aucun appel à Internet (tests, CI). S'il ne répond pas : `503`, pas de prix.
 - **Contrat d'API** : l'OpenAPI généré par le back. Les types TypeScript du front en sont **générés** (`npm run api:types`), jamais écrits à la main.
 - **Auth** : JWT dans des cookies `HttpOnly` (Flask-JWT-Extended), jeton d'accès de 15 min renouvelé par un jeton de 30 jours, CSRF par double envoi, mots de passe hachés en scrypt (Werkzeug). Rôle contrôlé côté back par `@require_login(...)` (`utils/access.py`). Détail dans [docs/architecture.md](docs/architecture.md).
 - **BD** : fournie par l'équipe parcours C. MySQL 8.4 (à confirmer avec eux), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307, schéma `sql/schema-mvp.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé). Pilote PyMySQL. Les `repository/` sont encore sur données factices en mémoire. Les tests et la CI tournent sur SQLite en mémoire. Le déploiement sera choisi en fin de projet. Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
@@ -165,8 +166,8 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 
 0. ~~Socle back et front~~ (fait : couches, `/health`, page `/diagnostic`, tests, génération des types)
 1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
-2. Authentification et rôles
-3. Parcours de réservation de bout en bout, sur données factices
+2. Authentification et rôles (fait : inscription, connexion, activation, profil ; reste : administration des comptes, UC51 à UC53)
+3. Parcours de réservation de bout en bout, sur données factices (en cours. Fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet. Reste : mes trajets, annulation, évaluation, côté chauffeur, expiration des courses)
 4. Temps réel et carte
 5. Bons solidaires
 6. Écran opérateur
@@ -194,4 +195,6 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 - **Avec le client** : le contenu du profil du chauffeur montré au passager, en plus de la photo (« mini CV »).
 - **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
+- **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).
+- **En interne** : les quotas gratuits d'OpenRouteService et l'obligation éventuelle de citer la source (non confirmés : à vérifier sur le compte avant la mise en service), puis valider l'appel réel avec une clé (testé seulement avec de fausses réponses).
 - **En interne** : la géolocalisation en arrière-plan côté chauffeur est peu fiable en PWA. Si elle devient indispensable, il faudra une appli native pour le chauffeur.
