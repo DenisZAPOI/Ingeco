@@ -2,6 +2,7 @@ import { useId, useState, type ChangeEvent } from 'react';
 
 import { photoUrl, type Account } from '../../api/admin';
 import { useSavePhoto } from '../../hooks/useAdmin';
+import { useSlowNetwork } from '../../hooks/useSlowNetwork';
 import { formatDateTime } from '../../lib/format';
 import { reducePhoto, type ReducedPhoto } from '../../lib/photo';
 
@@ -19,6 +20,8 @@ export function PhotoField({ account, onSaved }: PhotoFieldProps) {
   const [photo, setPhoto] = useState<ReducedPhoto | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
   const { submit, submitting, error } = useSavePhoto(account.id);
+  // On 2G the photo leaves at 50 kbit/s: about 4 to 5 seconds.
+  const slow = useSlowNetwork(submitting);
   const saved = photoUrl(account);
 
   async function choose(event: ChangeEvent<HTMLInputElement>) {
@@ -61,6 +64,11 @@ export function PhotoField({ account, onSaved }: PhotoFieldProps) {
       {(readError ?? error) && (
         <p role="alert" className="alert alert-error">
           {readError ?? error}
+        </p>
+      )}
+      {slow && (
+        <p role="status" className="note">
+          Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
         </p>
       )}
       {photo && (
