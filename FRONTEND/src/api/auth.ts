@@ -4,11 +4,19 @@ import { request, storedSession } from './client';
 export type User = components['schemas']['UserDto'];
 export type Role = User['role'];
 export type RegisterData = components['schemas']['RegisterBody'];
+export type RegistrationCode = components['schemas']['RegistrationCodeDto'];
+export type ConfirmRegistrationData = components['schemas']['ConfirmRegistrationBody'];
 export type LoginData = components['schemas']['LoginBody'];
 export type ActivateData = components['schemas']['ActivateBody'];
 
-export function register(data: RegisterData): Promise<User> {
-  return request<User>('POST', '/auth/register', data);
+/** First step: the API sends a code by SMS. Nothing is created yet. */
+export function askRegistrationCode(data: RegisterData): Promise<RegistrationCode> {
+  return request<RegistrationCode>('POST', '/auth/register', data);
+}
+
+/** Second step: the code creates the account and opens the session. */
+export function confirmRegistration(data: ConfirmRegistrationData): Promise<User> {
+  return request<User>('POST', '/auth/register/confirm', data);
 }
 
 export function login(data: LoginData): Promise<User> {

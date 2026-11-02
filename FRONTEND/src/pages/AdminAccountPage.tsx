@@ -209,7 +209,12 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
         key={codesIssued}
         label={account.isActivated ? 'Mot de passe oublié : nouveau code' : "Générer un code d'activation"}
         question={`Générer un nouveau code pour ${account.firstName} ?`}
-        details={<p>L'ancien code, s'il y en avait un, ne marchera plus. Le mot de passe actuel reste valable.</p>}
+        details={
+          <p>
+            L'ancien code, s'il y en avait un, ne marchera plus. Le mot de passe actuel reste valable.
+            {account.isActivated && ' Un SMS prévient la personne.'}
+          </p>
+        }
         confirmLabel="Générer le code"
         keepLabel="Ne rien changer"
         submitting={code.submitting}
@@ -223,7 +228,7 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
             question={`Suspendre le compte de ${account.firstName} ?`}
             details={
               <p>
-                {account.firstName} ne pourra plus se connecter (au plus tard dans 15 minutes).
+                {account.firstName} ne pourra plus se connecter, et ses sessions ouvertes prennent fin tout de suite.
                 {account.role === 'driver' && ' Le chauffeur passe hors ligne et ne reçoit plus de course.'} Vous pourrez réactiver
                 le compte.
               </p>

@@ -99,7 +99,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Phone + activation code + new password, then opens the session. */
+        /**
+         * Phone + activation code + new password, then opens the session.
+         * @description 429 after 5 failures in 15 minutes for the same number, or 30 from the same network address.
+         */
         post: operations["activate"];
         delete?: never;
         options?: never;
@@ -116,7 +119,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Phone + password. 429 after 5 failures in 15 minutes for the same number. */
+        /** Phone + password. 429 after 5 failures in 15 minutes for the same number, or 30 from the same network address. */
         post: operations["login"];
         delete?: never;
         options?: never;
@@ -133,7 +136,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Erases the session cookies. Works even with an expired session. */
+        /**
+         * Erases the session cookies. Works even with an expired session.
+         * @description 401 if the CSRF header does not match the CSRF cookie (a forged request).
+         */
         post: operations["logout"];
         delete?: never;
         options?: never;
@@ -169,7 +175,8 @@ export interface paths {
         put?: never;
         /**
          * New access token, from the refresh cookie (and its CSRF header).
-         * @description Rereads the account: a suspended or removed account is logged out here.
+         * @description Rereads the account: a suspended or removed account, or a session opened
+         *     before the last password change, is logged out here.
          */
         post: operations["refresh"];
         delete?: never;
@@ -188,11 +195,37 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Creates a rider account and opens the session.
-         * @description Drivers, partners, operators and administrators are created by an
+         * First step of a rider registration: sends a 6-digit code by SMS, valid 10 minutes.
+         * @description Nothing is created yet: POST /auth/register/confirm with the code creates
+         *     the account. Same answer whether the number has an account or not (the
+         *     SMS then says so). Sent again, it replaces the code. 429 after 3 codes
+         *     an hour for a number, or 10 for a network address.
+         *
+         *     Drivers, partners, operators and administrators are created by an
          *     administrator, never here.
          */
         post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Second step: the code received by SMS creates the rider account and opens the session.
+         * @description 422 for a wrong or expired code (after 5, ask for a new one); 409 if the
+         *     e-mail is already used by another account.
+         */
+        post: operations["confirmRegistration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -321,7 +354,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Addresses of a served commune matching the text typed, with their position. */
+        /**
+         * Addresses of a served commune matching the text typed, with their position.
+         * @description 429 beyond 60 searches and estimates in 10 minutes for an account.
+         */
         get: operations["searchPlaces"];
         put?: never;
         post?: never;
@@ -350,7 +386,8 @@ export interface paths {
          * Books an immediate or scheduled ride. It waits for the rider's payment.
          * @description The price is computed again here, never taken from the estimate. Sent again
          *     with the same clientRequestId, it returns the ride already booked (200)
-         *     instead of booking a second one (201).
+         *     instead of booking a second one (201). 422 beyond 1 immediate ride and 3
+         *     scheduled ones not finished yet.
          */
         post: operations["book"];
         delete?: never;
@@ -371,7 +408,8 @@ export interface paths {
         /**
          * Road distance and price of a trip. Saves nothing.
          * @description 422 if the pickup or the drop-off is outside the served zone, 503 if the
-         *     road distance cannot be computed.
+         *     road distance cannot be computed, 429 beyond 60 searches and estimates in
+         *     10 minutes for an account.
          */
         post: operations["estimate"];
         delete?: never;
@@ -552,7 +590,9 @@ export interface paths {
         head?: never;
         /**
          * Changes the name, e-mail, accessibility need (rider) or password.
-         * @description Only the fields sent are changed. A new password requires the current one.
+         * @description Only the fields sent are changed. A new password requires the current one,
+         *     and ends the sessions of the other phones: this one gets new cookies.
+         *     429 after 5 wrong current passwords in 15 minutes.
          */
         patch: operations["updateMe"];
         trace?: never;
@@ -700,6 +740,13 @@ export interface components {
         CommuneListDto: {
             /** Items */
             items: components["schemas"]["CommuneDto"][];
+        };
+        /** ConfirmRegistrationBody */
+        ConfirmRegistrationBody: {
+            /** Code */
+            code: string;
+            /** Phone */
+            phone: string;
         };
         /** CreateAccountBody */
         CreateAccountBody: {
@@ -863,6 +910,8 @@ export interface components {
             lat: number;
             /** Lng */
             lng: number;
+            /** Token */
+            token: string;
         };
         /** PlaceListDto */
         PlaceListDto: {
@@ -918,6 +967,17 @@ export interface components {
             password: string;
             /** Phone */
             phone: string;
+        };
+        /**
+         * RegistrationCodeDto
+         * @description The SMS code was sent (or, if the number already has an account, a message saying so).
+         */
+        RegistrationCodeDto: {
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
         };
         /**
          * RideDriverDto
@@ -1050,6 +1110,8 @@ export interface components {
             lat: number;
             /** Lng */
             lng: number;
+            /** Token */
+            token: string;
         };
         /** StopDto */
         StopDto: {
@@ -1061,6 +1123,8 @@ export interface components {
             lat: number;
             /** Lng */
             lng: number;
+            /** Token */
+            token: string;
         };
         /**
          * UpdateAccountBody
@@ -1754,6 +1818,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
         };
     };
     me: {
@@ -1841,6 +1921,48 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationCodeDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    confirmRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRegistrationBody"];
+            };
+        };
+        responses: {
             /** @description Created */
             201: {
                 headers: {
@@ -1861,6 +1983,15 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2207,6 +2338,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorDto"];
                 };
             };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
             /** @description Service Unavailable */
             503: {
                 headers: {
@@ -2406,6 +2546,15 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2983,6 +3132,15 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

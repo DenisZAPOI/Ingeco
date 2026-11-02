@@ -40,7 +40,8 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
   }
 
   // The address chosen earlier stays listed, so coming back to the step shows it.
-  const listed: Place[] = places ?? (value ? [{ label: value.address, lat: value.lat, lng: value.lng, communeId: value.communeId }] : []);
+  const listed: Place[] =
+    places ?? (value ? [{ label: value.address, lat: value.lat, lng: value.lng, communeId: value.communeId, token: value.token }] : []);
 
   return (
     <>
@@ -94,7 +95,8 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
           value={value ? String(listed.findIndex((place) => place.label === value.address)) : null}
           onChange={(index) => {
             const place = listed[Number(index)];
-            onChange({ address: place.label, lat: place.lat, lng: place.lng, communeId: place.communeId });
+            // The token goes back with the stop: the API only books the places it proposed.
+            onChange({ address: place.label, lat: place.lat, lng: place.lng, communeId: place.communeId, token: place.token });
           }}
           error={error}
         />
