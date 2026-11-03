@@ -134,7 +134,7 @@ l'écran opérateur passe avant les bons au sprint 2, et les bons viennent aprè
 | Q14 | SMS | Simulés : écrits dans les logs, sans numéro ni contenu personnel | `sms_repository.py` |
 | UC73 | Notifications hors SMS | Hors MVP | – |
 | UC79 | Abonnement mensuel | Hors MVP tant que le client ne le demande pas explicitement | – |
-| – | Nouvelle version du cahier des charges | On travaille sur la version 1 (06/07/2026) | – |
+| – | Cahier des charges | Version 1.0 du 14/10/2026 reçue le 03/11 ([cahier-des-charges-v1.0.docx](cahier-des-charges-v1.0.docx)). On la lit comme le module M4 (mobilité) et ses exigences transverses ; nos décisions ci-dessus restent valables tant que la cliente n'a pas répondu aux questions de [questions-sprint-2026-11-04.md](questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10) | CLAUDE.md, « Règles du cahier des charges » |
 
 ---
 

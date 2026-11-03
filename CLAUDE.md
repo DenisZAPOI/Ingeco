@@ -6,7 +6,8 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 
 ## Documents à lire
 
-- **[docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf)** : cahier des charges du client (version 1, 06/07/2026).
+- **[docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf)** : expression des besoins du client (version 1, 06/07/2026), centrée sur le VTC solidaire.
+- **[docs/cahier-des-charges-v1.0.docx](docs/cahier-des-charges-v1.0.docx)** : cahier des charges reçu le 03/11/2026 (version 1.0, 14/10/2026). Sujet générique d'une « plateforme 360° d'accès à l'emploi » pour des équipes de L3 à M2, en dix modules (M0 à M10) et trois paliers (P1 à P3). **Notre projet correspond au module M4 (mobilité solidaire)**, à faire confirmer par la cliente. Ses exigences transverses s'appliquent (partie « Règles du cahier des charges » ci-dessous) ; ses contradictions avec nos choix sont listées dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10).
 - **[README.md](README.md)** : présentation, lancement du projet, et guide pour l'équipe BD.
 - **[docs/architecture.md](docs/architecture.md)** : organisation du code back et front, règles de chaque couche, contrat d'API, liste de contrôle pour ajouter une fonctionnalité. **À lire avant d'écrire du code.**
 
@@ -120,6 +121,34 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 - **Objectif réseau : « Regular 2G »** (profil des DevTools : 250 kbit/s, 300 ms d'aller-retour), vérifié pour **chaque fonctionnalité** avant sa pull request. Sur ce profil : quelque chose d'utile à l'écran en moins de 1 s, un écran utilisable en moins de 5 s à la première visite, une réouverture sans attente. Moyens (chargement optimiste, allers-retours comptés, messages de réseau lent) et méthode de test : [docs/architecture.md](docs/architecture.md#réseau-faible--objectif-regular-2g).
 - L'interface est pensée pour un public peu à l'aise avec le numérique : parcours courts, gros boutons, textes simples, accessible aux personnes à mobilité réduite.
 
+## Règles du cahier des charges (v1.0)
+
+Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx) (§ entre parenthèses), valables quel que soit le périmètre retenu avec la cliente.
+
+**Données et droit**
+- **Champs interdits** en base, dans les DTO et les formulaires : nationalité, situation administrative de séjour, numéro de sécurité sociale, origine, diagnostic médical (§12). Un besoin s'écrit comme un besoin (« véhicule accessible »), jamais comme un diagnostic. Le chauffeur ne voit jamais de justificatif social du passager (§7.4).
+- **Aucune décision exclusivement automatique** sur l'éligibilité, l'orientation ou l'attribution d'une course (RGPD art. 22) : un humain peut toujours reprendre la main. Aucune IA de tri de personnes ni d'évaluation d'éligibilité (§13.1).
+- On ne demande que ce qui sert, au moment où ça sert (minimisation, §2).
+
+**Comportement**
+- **Jamais de fausse confirmation** : le chargement optimiste sert à afficher vite, jamais à annoncer une demande comme reçue avant la réponse du serveur. Un paiement échoué n'apparaît jamais comme réussi ; un double clic ne crée ni doublon ni double débit (§6, §7.4).
+- Une course n'est jamais « confirmée » sans chauffeur affecté, et n'est attribuée qu'à un seul chauffeur (§7.4).
+- Une demande refusée (hors zone, hors horaire) l'est **avec une explication** en langage simple (§18).
+- **Dates et rappels calculés dans le fuseau `America/Cayenne`**, côté back comme côté front, avec des tests automatisés sur les dates (§3). Le back stocke en UTC et convertit pour toute règle qui dépend du jour ou de l'heure locale.
+
+**Interface**
+- **Tous les textes d'interface dans des fichiers de traduction**, jamais écrits en dur dans les composants, pour pouvoir ajouter une langue sans toucher au code (P1, §6). Le français reste la seule langue tant que la cliente n'en fournit pas d'autre.
+- **Au plus 3 actions principales par écran**, une icône toujours accompagnée d'un texte, la couleur seule ne porte jamais une information (§6, §10). Accueil organisé par besoins (« J'ai besoin d'un trajet »), pas par fonctionnalités.
+- La mention **« Projet étudiant — démonstrateur »** reste visible dans l'application, et une page « À propos » crédite les auteurs (§14). Le nom et le logo d'Ingeco Territoires ne s'utilisent qu'avec l'accord de la cliente.
+- Aucun service d'urgence n'est promis dans les textes (§6).
+
+**Projet**
+- **Une ADR par choix technique** (`docs/adr/NNN-titre.md` : contexte, décision, alternatives, conséquences), dont ceux déjà faits : Flask, MySQL plutôt que PostgreSQL, OpenRouteService plutôt que l'API Adresse, JWT en cookies (§11).
+- **Outils libres ou gratuits uniquement**, aucune carte bancaire personnelle (§20). Toute nouvelle dépendance : licence compatible, notée dans l'inventaire des dépendances (§14, §17).
+- Objectif d'**installation en une commande** (Docker Compose : base, back et front) et de données de démonstration générées par script (§11, §17).
+- L'**usage de l'IA générative** (dont Claude Code) est déclaré dans le rapport ; aucune donnée confidentielle transmise à un outil tiers (§14).
+- Les maquettes ou la démo d'un parcours sont montrées à la cliente avant de le considérer comme fini (§10).
+
 ## Rôles
 
 | Rôle | Ce qu'il fait |
@@ -201,7 +230,7 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 - **Avec le client** : les limites exactes de la zone du pilote (communes, rayon) et ce qu'on répond à une demande hors zone.
 - **Avec le client** : le contenu du profil du chauffeur montré au passager, en plus de la photo (« mini CV »).
 - **Avec le client** : le partage des numéros de téléphone entre usager et chauffeur pendant une course (fait dans l'application, pour qu'ils puissent s'appeler à la prise en charge).
-- **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
+- **Avec le client** (cahier des charges v1.0 reçu le 03/11/2026) : notre périmètre (module M4 seul ?), le suivi en temps réel classé hors périmètre alors que la SAÉ le demande, démonstrateur ou service mis en route en janvier, Ingeco association loi 1901 ou SAS à mission, affectation manuelle des courses par l'administrateur, horaires autorisés, états « chauffeur arrivé » et « passager absent », langue de démonstration, licence du code. Questions rédigées dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10).
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
 - **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : l'inscription par code SMS (coût des SMS réels, une étape de plus), le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
 - **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` et la séparation de `sql/demo-data.sql` (README, partie 5).
