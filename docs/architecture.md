@@ -73,10 +73,17 @@ exactement les mêmes règles que les routes HTTP.
 
 ### Base de données
 
-- La base appartient à l'équipe BD. On n'appelle **jamais** `Base.metadata.create_all()` et on ne
-  crée ni ne modifie aucune table. Un besoin de schéma → une demande écrite à l'équipe BD.
-- Approche mixte : une ligne d'ORM lisible → ORM ; trois jointures ou une condition fine → SQL
-  explicite dans `repository/`.
+- La base appartient à l'équipe BD, avec **tout le dossier `sql/`** (schéma, migrations, données,
+  index, vues). On n'appelle **jamais** `Base.metadata.create_all()`, on ne crée ni ne modifie
+  aucune table, et on ne touche à aucun fichier de `sql/`. Un besoin de schéma, de vue ou de
+  donnée → une issue GitHub avec l'étiquette `bd` (README, partie 5).
+- Les classes de `models/` décrivent les tables telles que l'équipe BD les livre : elles suivent
+  `sql/schema-mvp.sql` puis chaque migration de `sql/migrations/`, jamais l'inverse.
+- Requêtes courantes : approche mixte. Une ligne d'ORM lisible → ORM ; trois jointures ou une
+  condition fine → SQL explicite dans `repository/`.
+- Requêtes lourdes (statistiques, chauffeurs proches, consommation des bons) : écrites par
+  l'équipe BD en **vues SQL**, lues par `repository/` comme des tables. Les tests tournent sur
+  SQLite : y recréer la vue (en SQL standard) pour tester le repository.
 - **Services externes** (adresses et distance par la route : OpenRouteService, H13) : appelés
   depuis `repository/` aussi, qui reste « la source des données », base ou pas
   (`place_repository.py`). Une panne y lève une exception propre au repository, que le service
@@ -349,7 +356,8 @@ chaque SVG porte une largeur et une hauteur par défaut. Dans les DevTools, ongl
 
 ## 3. Ajouter une fonctionnalité — liste de contrôle
 
-1. Le besoin est-il dans le MVP (`CLAUDE.md`) ? Demande-t-il une table ? → équipe BD d'abord.
+1. Le besoin est-il dans le MVP (`CLAUDE.md`) ? Demande-t-il une table, une colonne ou une vue ?
+   → issue `bd` à l'équipe BD d'abord, avec la date de besoin.
 2. `dtos/` : modèle d'entrée et de sortie.
 3. `repository/` : lectures et écritures.
 4. `services/` : règles, droits, transaction unique ; tests pytest.

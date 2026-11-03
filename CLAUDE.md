@@ -20,14 +20,16 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 ## Équipe et responsabilités
 
 - **2 développeurs** (dont Denis ZAPOI) : front et back, c'est-à-dire tout ce repo.
-- **3 étudiants parcours C** : la base de données (schéma, migrations, données de référence).
+- **3 étudiants parcours C** : la base de données, c'est-à-dire **tout le dossier `sql/`** : schéma, migrations (`sql/migrations/NNN_*.sql`), données de référence et de test, index, et les requêtes lourdes livrées en vues SQL (statistiques, chauffeurs proches, consommation des bons). Plus la partie base de `compose.yaml`. Détail dans le README, partie 5.
 - **Côté client** : la fondatrice et présidente d'Ingeco Territoires, et une tutrice, Sophonie Delva, pour les questions numériques. Revue chaque mardi à 10 h, échanges par WhatsApp.
 - **Échéances** :
   - **soutenance de la SAÉ le lundi 14 ou le mardi 15 décembre 2026** (à confirmer), environ 15 minutes, chacun présente sa partie. Gel des fonctionnalités le 10/12 ;
   - fin du projet pour la cliente vers le 10 janvier 2027 ; le service doit démarrer en janvier 2027.
 - **SAÉ S5 (IUT)** : un prototype fonctionnel répondant aux objectifs fixés avec la cliente. Fonctionnalités citées par l'IUT pour Ingeco : comptes, réservation, géolocalisation des chauffeurs, suivi en temps réel, paiement sécurisé, notifications, évaluation. Notation : soutenance /20, rendu (rapport, base, code) /20, avis de la cliente /20. Rendus : rapport de gestion (répartition des tâches, temps de chacun, réunions, démos), application, code, fichiers SQL, documentation. Au moins une réunion avec la cliente toutes les deux semaines, avec un compte rendu.
 
-La base ne nous appartient pas. Ne jamais créer ni modifier de table, de colonne ou de migration depuis ce repo (jamais de `Base.metadata.create_all()`). Si une fonctionnalité demande un changement de schéma, le signaler et rédiger la demande pour l'équipe BD, sans l'appliquer.
+La base ne nous appartient pas. **Les développeurs ne modifient plus aucun fichier de `sql/`** (décidé le 03/11/2026) : ni table, ni colonne, ni migration, ni donnée de test (et jamais de `Base.metadata.create_all()`). Si une fonctionnalité demande un changement de schéma, une vue ou une donnée, le signaler et rédiger la demande pour l'équipe BD (issue GitHub avec l'étiquette `bd` : besoin, table ou colonne suggérée, date), sans l'appliquer.
+
+Partage des requêtes : les développeurs écrivent les requêtes courantes en SQLAlchemy dans `repository/` ; l'équipe BD écrit les requêtes lourdes en **vues SQL**, que `repository/` lit comme des tables. Les classes de `models/` suivent exactement le schéma et les migrations de l'équipe BD.
 
 ## Stack
 
@@ -66,8 +68,9 @@ FRONTEND/
     pages/         # une page par route
     routes/        # AppRoutes.tsx
     styles/        # global.css (variables)
-sql/
-  schema-mvp.sql         # schéma v2 + données de référence, chargé dans le conteneur
+sql/                     # à l'équipe BD : les développeurs n'y touchent pas
+  schema-mvp.sql         # schéma v2 + données de référence, chargé dans le conteneur ; figé une fois validé par l'équipe BD
+  migrations/            # (à venir) NNN_description.sql, un changement par fichier, jamais modifié une fois mergé
   demo-data.sql          # comptes et courses de test (mot de passe public), local seulement
   schema-hors-scope.sql  # bons, structures, documents, formation : pas encore chargé
 compose.yaml             # base MySQL locale (Docker)
@@ -193,7 +196,7 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 
 ## Points à confirmer
 
-- **Avec l'équipe BD** : relecture du schéma v2 (`sql/`), réécrit par les développeurs à partir de leur première version (écrite avant le contrat v2) ; confirmation de MySQL 8.4 ; hébergement de la base en production (choisi en fin de projet).
+- **Avec l'équipe BD** : relecture et validation du schéma v2 (`sql/`) **pour le 17/11** (il devient ensuite le point de départ des migrations), réécrit par les développeurs à partir de leur première version (écrite avant le contrat v2) ; confirmation de MySQL 8.4 ; stockage de la photo du chauffeur (H19) ; vues des statistiques pour le sprint 3 ; hébergement de la base en production (choisi en fin de projet). Liste complète dans le README, partie 5.
 - **Avec le client** : le fonctionnement des bons solidaires (pourcentage sur un nombre de courses, montant, plafond, budget par structure ?). Tant qu'il n'est pas fixé, les bons restent hors du schéma MVP.
 - **Avec le client** : disponibilité « 24h/24 » ou « en semaine avec créneaux élargis » (le cahier des charges dit les deux).
 - **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
@@ -204,7 +207,7 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 - **Avec le client** : la version du cahier des charges qu'il doit nous renvoyer, si elle diffère de la version 1.
 - **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
 - **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : l'inscription par code SMS (coût des SMS réels, une étape de plus), le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
-- **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` et la séparation de `sql/demo-data.sql` (README, partie 5).
+- **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` (leur première migration) et la séparation de `sql/demo-data.sql` (README, partie 5).
 - **Au déploiement** : `TRUSTED_PROXY_COUNT` selon l'hébergement ; les inscriptions en attente, les limites d'essais et les verrous sont en mémoire, valables pour un seul processus d'API.
 - **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).
 - **En interne** : les quotas gratuits d'OpenRouteService et l'obligation éventuelle de citer la source (non confirmés : à vérifier sur le compte avant la mise en service), puis valider l'appel réel avec une clé (testé seulement avec de fausses réponses).

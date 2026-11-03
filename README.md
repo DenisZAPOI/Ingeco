@@ -190,14 +190,88 @@ connectera à votre base, et ce dont les développeurs ont besoin de votre part.
 **Pour concevoir le schéma, partir de [docs/contrat-api.md](docs/contrat-api.md)** : il liste
 les données que l'API devra lire et écrire, route par route.
 
-### Le principe : la base est à vous
+### Le principe : le dossier `sql/` est à vous
 
-- **Vous choisissez le SGBD** (PostgreSQL, MySQL, MariaDB, SQL Server, Oracle…), vous concevez
-  le schéma, vous écrivez les scripts de création et les données de référence.
+- **Tout ce qui est dans `sql/` est à vous** : le schéma, les migrations, les données de
+  référence, les données de test, les index et les vues. Les développeurs n'y touchent plus
+  (décidé le 03/11/2026).
 - **Les développeurs ne créent ni ne modifient jamais une table.** Le code de l'API se contente
   de lire et d'écrire dans les tables que vous avez créées.
 - Si une fonctionnalité demande une nouvelle table ou une nouvelle colonne, les développeurs
-  vous envoient une **demande écrite**. C'est vous qui décidez et qui modifiez le schéma.
+  vous envoient une **demande écrite** (une issue GitHub, voir plus bas). C'est vous qui décidez
+  et qui écrivez la migration.
+- Ces fichiers SQL font partie du **rendu noté de la SAÉ**, et c'est vous qui les présentez à la
+  soutenance.
+
+### Qui fait quoi
+
+| Sujet | Équipe BD | Développeurs |
+|---|---|---|
+| Schéma (`sql/schema-mvp.sql`, `sql/schema-hors-scope.sql`) | Écrit, relu, validé | Lisent ; demandent un changement par écrit |
+| Migrations (`sql/migrations/`) | Écrites et appliquées | Jamais |
+| Données de référence (communes, tarif, types de trajets…) | Écrites | Demandent une valeur si besoin |
+| Données de test (`sql/demo-data.sql`) | Écrites et tenues à jour, personnes fictives | Demandent les comptes dont ils ont besoin pour tester |
+| Index et contraintes | Écrits (à partir de [contrat-api.md](docs/contrat-api.md), partie 6.6) | Signalent une requête lente |
+| Requêtes lourdes (statistiques, chauffeurs proches, consommation des bons) | Écrites, en **vues SQL** (voir plus bas) | Lisent la vue depuis `repository/` |
+| Requêtes courantes (lire un compte, créer une course…) | Relisent si elles le souhaitent | Écrites en Python (SQLAlchemy) dans `repository/` |
+| Classes Python qui décrivent vos tables (`BACKEND/app/models/`) | – | Écrites, en suivant exactement votre schéma |
+| Chargement de la base locale (partie base de `compose.yaml`) | Ajoutent les lignes de leurs fichiers | Ne la changent pas sans vous |
+
+### Les migrations
+
+Tant que personne n'a de vraies données, on peut effacer la base et la recréer
+(`docker compose down -v`). Dès la mise en service de janvier 2027, ce ne sera plus possible :
+une base en production se **modifie**, elle ne se recrée pas. Les migrations servent à ça.
+
+- **Le point de départ** : `sql/schema-mvp.sql`, tel que vous l'aurez relu et validé (version 2).
+  Une fois validé, **on ne le modifie plus**.
+- **Chaque changement ensuite** est un nouveau fichier dans `sql/migrations/`, numéroté sur trois
+  chiffres, avec un nom qui dit ce qu'il fait :
+
+  ```
+  sql/migrations/
+    001_ajouter_version_session.sql
+    002_creer_bon_solidaire.sql
+    003_creer_vue_stats_trajets.sql
+  ```
+
+- **Un fichier déjà mergé ne se modifie jamais.** Une erreur se corrige par une nouvelle
+  migration. Sinon, deux bases qui ont appliqué deux versions du même fichier ne sont plus
+  pareilles.
+- **Un changement par fichier**, en SQL MySQL pur, appliqué dans l'ordre des numéros.
+- **En tête de chaque fichier**, en commentaire : la date, l'auteur, la demande liée (numéro
+  d'issue), et comment revenir en arrière.
+
+  ```sql
+  -- 001 : colonne version_session sur utilisateur
+  -- 05/11/2026, équipe BD, issue #NN (audit de sécurité, F3)
+  -- Retour arrière : ALTER TABLE utilisateur DROP COLUMN version_session;
+  ALTER TABLE utilisateur ADD COLUMN version_session INT NOT NULL DEFAULT 0;
+  ```
+
+- **En local**, la base doit se créer avec : le schéma, puis toutes les migrations dans l'ordre,
+  puis les données de test. Pour la première migration, ajoutez ce chargement dans `compose.yaml`
+  (les fichiers de `docker-entrypoint-initdb.d` s'exécutent par ordre alphabétique, et les
+  données de test doivent passer en dernier). Prévenez les développeurs : ils devront refaire
+  `docker compose down -v` puis `up -d`.
+- Les développeurs suivent chaque migration dans leurs classes Python (`models/`). Annoncez-la
+  avant de la merger.
+
+### Les requêtes SQL
+
+L'API écrit elle-même ses requêtes courantes, en Python (SQLAlchemy, voir plus bas). Ce qui vous
+revient, ce sont les **requêtes lourdes**, celles qui demandent de bien connaître le SGBD :
+
+| Requête | Pour | Quand |
+|---|---|---|
+| Statistiques : trajets par jour, par commune, par motif, note moyenne, taux de satisfaction (notes de 4 ou 5) | Tableau de bord administrateur (UC56) | Sprint 3 (02/12 → 10/12) |
+| Chauffeurs en ligne les plus proches d'un point | Proposer une course (contrat 6.1) | Quand vous le pouvez ; l'API a une version simple en attendant |
+| Consommation des bons par structure | Suivi des référents (contrat 6.4) | Avec les tables des bons |
+
+**Livrez-les sous forme de vues** (`CREATE VIEW`), chacune dans une migration. L'API lit une vue
+comme une table : votre requête reste à un seul endroit, dans vos fichiers, et vous pouvez la
+tester directement dans MySQL. Les tests automatiques de l'API tournent sur SQLite : écrivez les
+vues en SQL standard quand c'est possible, et signalez ce qui est propre à MySQL.
 
 ### La base locale : MySQL 8.4 dans Docker
 
@@ -261,26 +335,52 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
 
 ### Ce dont les développeurs ont besoin de votre part
 
+Dans l'ordre, avec la date à laquelle on en a besoin (calendrier dans
+[docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md)) :
+
 1. **Confirmer le SGBD** : MySQL 8.4, celui de votre première version. Le pilote Python et
    quelques requêtes en dépendent.
-2. **Relire le script de création du schéma** du dossier `sql/`. Votre première version avait
-   été écrite avant le contrat d'API v2 : les développeurs l'ont réécrite (version 2) pour
-   qu'elle couvre le contrat, en gardant vos choix (MySQL, noms en français, identifiants
-   entiers). Le script fait foi : les classes Python suivent le script, pas l'inverse. Toute
-   correction passe par une pull request sur `sql/`.
-3. **Les données de référence** (communes desservies : Cayenne, Rémire-Montjoly et Matoury pour
-   le pilote ; types de trajets, profils…), et des **données de test
-   fictives**. Le RGPD interdit toute donnée personnelle réelle : faux noms, faux téléphones,
-   fausses adresses.
-4. **La date de livraison**, même approximative, pour organiser le travail.
-5. **Comment se connecter** : pour le développement, une base locale sur chaque machine, dans
-   Docker (`compose.yaml`, voir la [partie 4](#4-lancer-le-projet)). L'hébergement de la base
-   en production sera choisi en fin de projet.
+2. **Relire et valider le schéma** (`sql/schema-mvp.sql`), **pour le 17/11** : l'API se branche
+   sur MySQL au sprint 2 (18/11 → 01/12). Votre première version avait été écrite avant le
+   contrat d'API v2 : les développeurs l'ont réécrite (version 2) pour qu'elle couvre le contrat,
+   en gardant vos choix (MySQL, noms en français, identifiants entiers). C'était la dernière fois
+   qu'ils touchaient à `sql/` : à vous de le corriger et de le valider. Une fois validé, il devient
+   le point de départ des migrations. Le script fait foi : les classes Python suivent le script,
+   pas l'inverse.
+3. **Première migration** : la colonne `version_session` (voir « Demandes de l'audit » plus
+   bas).
+4. **Où stocker la photo du chauffeur** : en base (binaire) ou en fichier sur le serveur, avec sa
+   référence en base ([contrat-api.md](docs/contrat-api.md), H19).
+5. **Les vues des statistiques**, pour le sprint 3 (voir « Les requêtes SQL »).
+6. **Les tables des bons solidaires**, dès que la cliente aura dit comment marche un bon (point
+   de départ : `sql/schema-hors-scope.sql`).
+7. **Où héberger la base en production**, pour la mise en service de janvier.
+8. **Votre partie du rapport de gestion et de la soutenance** : le temps passé par chacun, et qui
+   présente quoi sur la base.
+
+Et en continu : les **données de référence** (communes desservies : Cayenne, Rémire-Montjoly et
+Matoury pour le pilote ; types de trajets, profils…) et les **données de test**, toujours
+fictives. Le RGPD interdit toute donnée personnelle réelle : faux noms, faux téléphones, fausses
+adresses.
+
+### Demander un changement de schéma
+
+Les développeurs ouvrent une **issue GitHub** avec l'étiquette `bd`, qui dit :
+
+- le besoin, en une phrase, et la fonctionnalité concernée (cas d'utilisation, route) ;
+- la table ou la colonne proposée (nom, type, contraintes), comme simple suggestion ;
+- la date à laquelle l'API en a besoin.
+
+Vous répondez dans l'issue (accord, autre forme, question), puis vous livrez la migration par une
+pull request qui cite l'issue. Un développeur relit la pull request, pour vérifier que l'API
+pourra s'en servir ; vous relisez de même les classes Python qui décrivent vos tables, si vous le
+souhaitez.
 
 ### Demandes de l'audit de sécurité (02/11/2026)
 
 L'[audit](docs/audit-securite-2026-11-02.md) demande deux changements de schéma. Les développeurs
-ne les appliquent pas : à vous de les reprendre dans `sql/`, ou d'en proposer une autre forme.
+ne les appliquent pas : à vous de les reprendre (la colonne, dans une migration), ou d'en proposer
+une autre forme.
 
 1. **Une colonne `version_session`** (entier, `NOT NULL DEFAULT 0`) sur `utilisateur`. L'API
    l'augmente à chaque nouveau mot de passe et à chaque suspension, et la relit à chaque requête
