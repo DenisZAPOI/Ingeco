@@ -8,6 +8,8 @@ export type RegistrationCode = components['schemas']['RegistrationCodeDto'];
 export type ConfirmRegistrationData = components['schemas']['ConfirmRegistrationBody'];
 export type LoginData = components['schemas']['LoginBody'];
 export type ActivateData = components['schemas']['ActivateBody'];
+export type PasswordResetData = components['schemas']['PasswordResetBody'];
+export type PasswordResetCode = components['schemas']['PasswordResetCodeDto'];
 
 /** First step: the API sends a code by SMS. Nothing is created yet. */
 export function askRegistrationCode(data: RegisterData): Promise<RegistrationCode> {
@@ -25,6 +27,12 @@ export function login(data: LoginData): Promise<User> {
 
 export function activate(data: ActivateData): Promise<User> {
   return request<User>('POST', '/auth/activate', data);
+}
+
+/** Forgotten password: the API sends a code by SMS, to type in activate().
+ *  Same answer whether the number has an account or not. */
+export function askPasswordResetCode(data: PasswordResetData): Promise<PasswordResetCode> {
+  return request<PasswordResetCode>('POST', '/auth/password-reset', data);
 }
 
 export function logout(): Promise<void> {

@@ -269,7 +269,7 @@ bons et les structures sont hors du schéma MVP tant qu'il n'est pas fixé
 |---|---|---|---|---|---|
 | UC01 | Créer un compte usager | Visiteur | MVP | 2 | `POST /auth/register`, `POST /auth/register/confirm` |
 | UC02 | ~~S'inscrire comme chauffeur~~ | – | Supprimé (19/10/2026) : remplacé par UC52 | – | – |
-| UC03 | Activer son compte (premier accès ou mot de passe oublié) | Visiteur | MVP | 2 | `POST /auth/activate` |
+| UC03 | Activer son compte (premier accès ou mot de passe oublié) | Visiteur | MVP | 2 | `POST /auth/password-reset`, `POST /auth/activate` |
 | UC04 | Se connecter | Visiteur | MVP | 2 | `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh` |
 | UC05 | Se déconnecter | Tout connecté | MVP | 2 | `POST /auth/logout` |
 | UC06 | Modifier son profil | Tout connecté | MVP | 2 | `PATCH /users/me` |
@@ -388,13 +388,20 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 #### UC03 Activer son compte
 
 - **Acteur** : Visiteur dont le compte a été créé par un tiers, ou qui a oublié son mot de passe.
-- **Préconditions** : un administrateur a généré un code (UC53) et le lui a transmis.
+- **Préconditions** : un administrateur a généré un code (UC53) et le lui a transmis, ou le
+  visiteur en a demandé un par SMS (variante A1).
 - **Scénario nominal**
   1. Le visiteur choisit « J'ai reçu un code ».
   2. Il saisit son téléphone, le code et son nouveau mot de passe.
   3. Le système vérifie le code, enregistre le mot de passe, efface le code et le connecte.
-- **Erreurs** : E1 code faux ou expiré (48 h) : message unique, sans dire lequel des deux, pour
-  ne rien révéler. E2 trop d'essais : blocage temporaire.
+- **Variante A1, mot de passe oublié** (cahier des charges v1.0, §18) : sur la connexion, il
+  choisit « Mot de passe oublié ? » et saisit son numéro. Le système envoie un code de 8 chiffres
+  par SMS, valable 15 minutes, et ouvre « J'ai reçu un code » avec le numéro déjà rempli. Même
+  réponse que le numéro ait un compte ou non ; aucun SMS pour un administrateur (un autre
+  administrateur lui génère un code) ni pour un compte suspendu.
+- **Erreurs** : E1 code faux ou expiré (48 h pour un code remis par l'équipe, 15 min par SMS) :
+  message unique, sans dire lequel des deux, pour ne rien révéler. E2 trop d'essais : blocage
+  temporaire. E3 trop de codes demandés (3 par heure pour un numéro) : « Réessayez dans une heure ».
 - **Postconditions** : compte utilisable avec un mot de passe ; les sessions ouvertes avant avec
   l'ancien mot de passe prennent fin.
 

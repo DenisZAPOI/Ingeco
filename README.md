@@ -156,6 +156,10 @@ dans `sql/demo-data.sql`, sauf David (référent partenaire), qui est dans
 **Inscription d'un nouvel usager** : les SMS sont simulés. Avec `LOAD_DEMO_DATA=true`, le code
 reçu par SMS est toujours **`123456`** ; sans, il est tiré au hasard et n'est écrit nulle part.
 
+**Mot de passe oublié** (« Mot de passe oublié ? » sur la connexion) : de même, le code reçu par
+SMS est toujours **`12345678`** avec `LOAD_DEMO_DATA=true`. Il marche pour tous les comptes
+ci-dessous sauf Farid (administrateur) et Hugo (suspendu).
+
 | Téléphone | Prénom | Rôle |
 |---|---|---|
 | 0694 00 00 01 | Alice | Usager |

@@ -1,5 +1,5 @@
 """
-Registration, login, activation, session renewal and logout.
+Registration, login, activation, forgotten password, session renewal and logout.
 
 The session lives in HttpOnly cookies (see utils/access.py): every route that
 opens a session sets them on its response.
@@ -12,6 +12,8 @@ from ..dtos.auth_dto import (
     ActivateBody,
     ConfirmRegistrationBody,
     LoginBody,
+    PasswordResetBody,
+    PasswordResetCodeDto,
     RegisterBody,
     RegistrationCodeDto,
     UserDto,
@@ -114,6 +116,25 @@ def activate():
     """
     body: ActivateBody = request.context.body
     return _session_response(auth_service.activate(body.phone, body.code, body.password, request.remote_addr), 200)
+
+
+@auth_bp.post("/password-reset")
+@spec.validate(
+    body=PasswordResetBody,
+    resp=Response(HTTP_202=PasswordResetCodeDto, HTTP_400=ErrorDto, HTTP_429=ErrorDto),
+    tags=_TAGS,
+)
+def password_reset():
+    """Forgotten password: sends by SMS an 8-digit code, valid 15 minutes, to type in POST /auth/activate.
+
+    Same answer whether the number has an account or not. No SMS for an
+    administrator (another administrator issues their code) nor for a
+    suspended account. Replaces the previous code. 429 after 3 codes an hour
+    for a number, or 10 for a network address.
+    """
+    body: PasswordResetBody = request.context.body
+    sent = auth_service.start_password_reset(body.phone, request.remote_addr)
+    return jsonify(PasswordResetCodeDto(expires_at=sent.expires_at).to_json()), 202
 
 
 @auth_bp.post("/refresh")

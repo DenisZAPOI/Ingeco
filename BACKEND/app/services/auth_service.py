@@ -1,7 +1,7 @@
 """
 Authentication: registration of a rider (proven by an SMS code), login,
-activation of an account created by someone else, and the checks behind the
-session renewal.
+activation of an account created by someone else, forgotten password by SMS
+code, and the checks behind the session renewal.
 
 The service decides who may log in; the HTTP side (cookies, tokens) is in
 utils/access.py and the controller.
@@ -19,7 +19,7 @@ from ..utils import database
 from ..utils.errors import Conflict, Forbidden, TooManyRequests, Unauthorized, UnprocessableEntity
 from ..utils.passwords import hash_secret, verify_or_waste_time
 from ..utils.rate_limit import AttemptLimiter
-from .account_rules import ACTIVE, REGISTRATION_CODE_LENGTH, RIDER, SUSPENDED
+from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVE, ADMIN, REGISTRATION_CODE_LENGTH, RIDER, SUSPENDED
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,16 @@ registration_codes_by_address = AttemptLimiter(MAX_CODES_PER_ADDRESS, CODE_WINDO
 DEMO_REGISTRATION_CODE = "123456"
 _demo_codes = False
 
+# --- Forgotten password by SMS code (cahier des charges, §6 and §18) ---------
+# The code goes in the activation code's columns: /auth/activate then sets the
+# new password. Shorter than the 48 h of a code handed over by the team, since
+# anyone can ask for one.
+PASSWORD_RESET_CODE_VALIDITY = timedelta(minutes=15)
+password_reset_codes_by_phone = AttemptLimiter(MAX_CODES_PER_PHONE, CODE_WINDOW_SECONDS)
+password_reset_codes_by_address = AttemptLimiter(MAX_CODES_PER_ADDRESS, CODE_WINDOW_SECONDS)
+# Same as the development accounts' activation code (README, "Comptes de test").
+DEMO_PASSWORD_RESET_CODE = "12345678"
+
 PHONE_TAKEN = (
     "Ce numéro a déjà un compte. S'il a été créé par le centre d'appel, "
     "choisissez « J'ai reçu un code »."
@@ -63,7 +73,10 @@ EMAIL_TAKEN_AT_REGISTRATION = (
 WRONG_REGISTRATION_CODE = "Code incorrect ou expiré. Vérifiez le numéro, puis demandez un nouveau code."
 TOO_MANY_CODES = "Trop de codes demandés. Réessayez dans une heure."
 WRONG_CREDENTIALS = "Numéro ou mot de passe incorrect."
-WRONG_CODE = "Code incorrect ou expiré. Demandez un nouveau code au centre d'appel."
+WRONG_CODE = (
+    "Code incorrect ou expiré. Demandez un nouveau code avec « Mot de passe oublié », "
+    "ou au centre d'appel."
+)
 TOO_MANY_ATTEMPTS = "Trop d'essais. Réessayez dans 15 minutes."
 ACCOUNT_SUSPENDED = "Ce compte est suspendu. Contactez le centre d'appel."
 SESSION_ENDED = "Votre session a pris fin. Reconnectez-vous."
@@ -161,8 +174,35 @@ def confirm_registration(phone: str, code: str) -> User:
     return user
 
 
-def _random_code() -> str:
-    return "".join(secrets.choice("0123456789") for _ in range(REGISTRATION_CODE_LENGTH))
+def start_password_reset(phone: str, client_address: str | None) -> CodeSent:
+    """Sends by SMS an 8-digit code to type in /auth/activate with a new password.
+
+    Same answer, in the same time, whatever the number: no account, an
+    administrator, a suspended account. None of them gets an SMS. An
+    administrator's account opens everything, so a stolen SIM card must not be
+    enough: another administrator issues their code. The code replaces the
+    previous one, including a code handed over by the team.
+    """
+    _count_attempt(
+        password_reset_codes_by_phone, phone, password_reset_codes_by_address, client_address, TOO_MANY_CODES
+    )
+
+    code = DEMO_PASSWORD_RESET_CODE if _demo_codes else _random_code(ACTIVATION_CODE_LENGTH)
+    code_hash = hash_secret(code)  # always computed: the answer time says nothing
+    expires_at = datetime.now(timezone.utc) + PASSWORD_RESET_CODE_VALIDITY
+    with database.session() as session:
+        user = user_repository.find_by_phone(session, phone)
+        if user is not None and user.status == ACTIVE and user.role != ADMIN:
+            user.activation_code_hash = code_hash
+            user.activation_code_expires_at = expires_at
+            user_repository.update_user(session, user)
+            sms_repository.send_to_number(session, phone=phone, kind=sms_repository.PASSWORD_RESET_CODE, code=code)
+            logger.info("Password reset code sent", extra={"context": {"userId": user.id}})
+    return CodeSent(expires_at=expires_at)
+
+
+def _random_code(length: int = REGISTRATION_CODE_LENGTH) -> str:
+    return "".join(secrets.choice("0123456789") for _ in range(length))
 
 
 def _count_attempt(

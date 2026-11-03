@@ -99,6 +99,8 @@ def fresh_state():
     auth_service.activation_attempts.clear()
     auth_service.registration_codes_by_phone.clear()
     auth_service.registration_codes_by_address.clear()
+    auth_service.password_reset_codes_by_phone.clear()
+    auth_service.password_reset_codes_by_address.clear()
     auth_service.login_attempts_by_address.clear()
     auth_service.activation_attempts_by_address.clear()
     user_service.current_password_attempts.clear()

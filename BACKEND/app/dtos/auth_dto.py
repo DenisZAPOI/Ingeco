@@ -117,6 +117,16 @@ class ConfirmRegistrationBody(_PhoneField):
         return apply_rule(account_rules.clean_registration_code, value)
 
 
+class PasswordResetBody(_PhoneField):
+    pass
+
+
+class PasswordResetCodeDto(ApiModel):
+    """Same answer whether a code was sent or not: it does not tell who has an account."""
+
+    expires_at: datetime
+
+
 class LoginBody(_PhoneField):
     # No strength rule here: only the stored hash decides.
     password: str = Field(min_length=1, max_length=PASSWORD_MAX_LENGTH)
