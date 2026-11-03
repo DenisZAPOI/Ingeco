@@ -199,7 +199,9 @@ l'écriture. Il est en mémoire ; avec les repositories MySQL, le remplacer par
 Flask-SocketIO, donc protocole **Socket.IO** : le front utilisera `socket.io-client`, pas un
 `WebSocket` natif. Un salon par course (`ride:{id}`). Les services émettent via
 `sockets/broadcast.py` **après** la validation de leur transaction. Événements prévus par le
-contrat (partie 5) : `ride:updated`, `ride:offer`, `ride:offer-closed`, `driver:location`.
+contrat (partie 5) : `ride:updated`, `ride:offer`, `ride:offer-closed`. Pas de position du
+chauffeur envoyée au passager : le suivi GPS en temps réel est hors périmètre (cahier des
+charges §5, [decisions.md](decisions.md#ce-que-fixe-le-cahier-des-charges-v10)).
 
 ### Journalisation
 

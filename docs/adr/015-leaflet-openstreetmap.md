@@ -1,21 +1,23 @@
 # 015. Leaflet et OpenStreetMap pour la carte
 
-- **Statut** : Proposée (étape 4, sprint 1)
+- **Statut** : Proposée (sprint 2, avec le repère et les zones)
 - **Date** : –
 - **Voir aussi** : [009](009-openrouteservice.md), [012](012-objectif-regular-2g.md), [014](014-socket-io.md)
 
 ## Contexte
 
-Deux besoins de carte : suivre l'arrivée du chauffeur (demandé par la SAÉ, à confirmer avec la
-cliente), et placer un point sur une carte quand l'adresse est imprécise (cahier des charges, §3 :
-« saisie d'un repère, point déplaçable sur carte »). Le cahier des charges recommande
+Deux besoins de carte, tous deux du cahier des charges (§3) : placer un point sur une carte
+quand l'adresse est imprécise (« saisie d'un repère, point déplaçable sur carte »), et montrer la
+zone desservie (« bassin de démonstration dessiné sur une carte »). Suivre l'arrivée du chauffeur
+sur la carte n'en fait pas partie : le suivi GPS en temps réel est hors périmètre (décision du
+03/11/2026, [decisions.md](../decisions.md#ce-que-fixe-le-cahier-des-charges-v10)). Le cahier des charges recommande
 OpenStreetMap avec Leaflet ou MapLibre. Le réseau est faible : les fonds de carte pèsent lourd.
 
 ## Décision proposée
 
 **Leaflet** avec les tuiles **OpenStreetMap**, chargé seulement sur les écrans qui ont une carte
-(`React.lazy`). L'information est d'abord donnée en texte (« Votre chauffeur arrive dans
-4 min »), la carte vient ensuite. Les tuiles déjà vues restent en cache.
+(`React.lazy`). L'information est d'abord donnée en texte (l'adresse choisie, la liste des
+communes desservies), la carte vient ensuite. Les tuiles déjà vues restent en cache.
 
 ## Alternatives écartées
 

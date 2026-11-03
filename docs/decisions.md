@@ -6,6 +6,9 @@ quelle valeur provisoire on applique à tout ce qui ne l'est pas encore. Il comp
 A à F) et les hypothèses H1 à H19 de [contrat-api.md](contrat-api.md#7-hypothèses-et-questions-ouvertes).
 
 - **Première version** : 03/11/2026, réponses transmises par Denis ZAPOI.
+- **03/11/2026, plus tard** : le [cahier des charges v1.0](cahier-des-charges-v1.0.docx) devient la
+  **source de vérité**. Ce qu'il fixe est dans la [partie 2](#ce-que-fixe-le-cahier-des-charges-v10)
+  et remplace les réponses et valeurs provisoires contraires, corrigées dans la partie 3.
 - **À tenir à jour** : à chaque réponse du client, déplacer le point de la partie 3 vers la
   partie 2, puis mettre à jour le code et les autres documents (partie 4).
 
@@ -49,6 +52,41 @@ qu'il faudrait jeter si la réponse était différente.
 
 ## 2. Ce qui est décidé
 
+### Ce que fixe le cahier des charges v1.0
+
+Le cahier des charges prime sur tout autre document (expression des besoins, réponses du
+13/10/2026, première visio, contrat d'API, nos hypothèses). On ne pose à la cliente que ce qu'il
+ne tranche pas, ce qu'il laisse à son choix, ou ce qui reste flou. Les § renvoient à ses parties.
+
+| Sujet | Ce que fixe le cahier des charges | Ce que ça remplace | Conséquence |
+|---|---|---|---|
+| Statut d'Ingeco | Association loi 1901 (§1) | « SAS à mission » de l'expression des besoins | README, CLAUDE.md, rapport, page À propos |
+| Nature du livrable | Un démonstrateur testé, documenté et transmis, pas un service en production (§1, §13.2) | « Le service démarre en janvier 2027 » | Fin de projet : note de transmission et remise des accès (README, « Comptes des services externes ») |
+| Périmètre | Toutes les équipes livrent le palier P1 (§5) | Notre périmètre « MVP » | Proposition à faire accepter : P1 complet sur M0, M4 et M9, sans M1, M2, M3, M5 (CLAUDE.md, « Périmètre ») |
+| Suivi en temps réel | Le suivi GPS en temps réel est hors périmètre (§5) | Étape 4 : carte avec la position du chauffeur (`driver:location`) | **Décision interne du 03/11** : statut du trajet et offres mis à jour en direct, sans position du chauffeur montrée au passager. Présenté à la SAÉ comme son « suivi en temps réel ». La position du chauffeur sert toujours à lui proposer les courses proches |
+| Attribution des courses | Affectation et réaffectation par l'administrateur, avec avertissement du passager ; propositions au chauffeur avec un délai de réponse, qu'il accepte ou refuse ; une course à un seul chauffeur (§5 M4 P1, §7.4, US06, US07) | « Le premier chauffeur qui accepte la prend », sans affectation | À ajouter (sprint 1). La proposition aux chauffeurs proches reste ; délai de réponse en partie 3 |
+| Horaires | Horaires autorisés réglables par l'administrateur ; une demande hors horaire est refusée avec une explication (§5 M9 P1, §18) | Proposition A et « 24h/24 » : aucune restriction | À ajouter (sprint 2, table à demander à l'équipe BD). Valeur provisoire en partie 3 |
+| Zones | Zones desservies réglables, zones non desservies signalées (§3, §5 M9 P1) | Liste de communes figée | Écran administrateur (sprint 2). Valeur provisoire : les 3 communes du pilote |
+| Tarifs | Réglés par l'administrateur (§5 M9 P1, US07) ; version du tarif acceptée conservée (§7.4) | – | Écran administrateur (sprint 2). Les montants restent provisoires (Q10) |
+| Avant l'envoi | Prix total, réduction, reste à payer et conditions d'annulation affichés (§7.4) | – | Ajouter les conditions d'annulation à l'écran de confirmation (sprint 1) |
+| Demande de trajet | Départ et arrivée par adresse, **repère ou point sur carte** ; passagers, bagages, besoins de prise en charge (§3, §7.4) | Adresse choisie dans une liste seulement | Repère et nombre de passagers (colonnes, équipe BD) ; carte pour placer un point |
+| États d'une course | Brouillon → demande envoyée → attente de chauffeur → confirmée → **chauffeur arrivé** → en cours → terminée ; refusée faute de disponibilité, annulée, **passager absent**. Paiement : en attente, payé, **échoué**, remboursé (§7.4) | Nos 7 états, sans « arrivé », « absent » ni paiement échoué | Nouvelles valeurs à demander à l'équipe BD. « Refusée faute de disponibilité » = notre expiration (UC60) |
+| Étapes horodatées | Arrivée, début, fin, absence, incident : horodatés, avec leur auteur (§7.4) | Seul l'auteur d'une annulation est gardé | Colonnes ou table d'événements à demander à l'équipe BD |
+| Annulation et absence | Paramètres : annulation gratuite, frais après échéance, absence du passager, annulation du chauffeur (§7.4) ; règles appliquées au palier P2 (§18) | Q7 : remboursement intégral comme règle fixe | Les règles deviennent des réglages ; valeurs provisoires en partie 3 |
+| Dossier du chauffeur | Véhicule, places, zones, disponibilités, pièces ; activation après validation ; suspension à l'expiration des pièces (§7.4) | « Rien n'est stocké » sur les pièces | Pièces et dates d'expiration (équipe BD), suspension automatique avec reprise possible par l'administrateur |
+| Compte | Inscription par téléphone avec code simulé, sans courriel obligatoire ; récupération d'accès ; **demande de suppression** (§6 P1) | Audit F4 (« inscription par SMS, à confirmer ») | F4 tranché. Demande de suppression à ajouter (sprint 2) |
+| Langues | Textes dans des fichiers de traduction, changement de langue à tout moment (§6 P1) ; une langue de démonstration fournie par le porteur (P2) | « Français seul, sans sélecteur » | Sélecteur de langue (sprint 1). Quelle langue de démonstration : question à la cliente |
+| Aide | Bouton « Être rappelé », FAQ, signalement d'un problème ; aucun service d'urgence promis (§6) | – | FAQ (sprint 1), « Être rappelé » et signalement (sprint 2, stockage à demander) |
+| Notifications | SMS simulés dans un journal, notifications web, courriel de test (§6 P2) | UC73 : notifications hors SMS hors MVP | Palier P2 : après la soutenance |
+| Solidarité (bons) | Tarifs solidaires, plafonds, tiers payeur, codes de trajet (§5 M4 P2) ; éligibilité validée par un prescripteur avec motif, validité et plafond (§7.8) ; enveloppes par financeur, chaque trajet imputé à un seul financeur, réductions bloquées si l'enveloppe est épuisée (§7.9) | Q5, Q6 (forme du bon), C (« tarif unique »), Q9 (sans carte bancaire : bon à 100 %) | Le modèle des bons suit ce cadre (P2, après la soutenance) ; une personne sans carte passe par le tiers payeur ou un code de trajet. Restent les montants |
+| Réservation pour autrui | Un prescripteur ou un accompagnant réserve pour une personne, avec son accord tracé et révocable (§6 P2, §7.8) ; rôle distinct d'« agent de réservation » (§7.9, P3) | Écran opérateur au sprint 2 | Après la soutenance. Le rôle `operator` correspond à l'agent de réservation |
+| Base de données | Stack libre, justifiée par une fiche de décision ; PostgreSQL seulement recommandé (§11) | – | On reste sur MySQL ([ADR 008](adr/008-mysql.md)), sans question à l'équipe BD |
+| Appareils | PWA ; tests sur un Android d'entrée de gamme ou en émulation (§3, §20) | « Android/iOS ou Android prioritaire ? » | Tests d'abord sur Android d'entrée de gamme ; l'iPhone reste supporté par la PWA |
+| Prix du trajet | Le trajet a un prix, réduit par les aides solidaires (§7.4, §7.9) ; la gratuité du code du travail (art. L.5321-3) vise le service d'accompagnement | Question 10 du 04/11 | Le trajet reste payant ; l'aide passe par les financeurs |
+| Hors périmètre | Données et paiements réels, envoi massif de SMS, mise en ligne publique, stores, suivi GPS en temps réel, décision automatisée, IA de tri (§5) | UC79 abonnement mensuel (absent du cahier des charges) | Abonnement hors projet |
+
+### Réponses du client et décisions internes
+
 | # | Sujet | Décision | Conséquence |
 |---|---|---|---|
 | Q1, H14 | Paiement d'une réservation par téléphone | **Lien de paiement envoyé par SMS** (simulé en MVP). La carte dictée à l'opérateur est écartée : elle impose trop de contraintes de sécurité au centre d'appel | UC45 passe de « à trancher » à **MVP simulé** (étape 6). Contrat [6.9](contrat-api.md#69-lien-de-paiement-par-sms) confirmé |
@@ -59,7 +97,7 @@ qu'il faudrait jeter si la réponse était différente.
 | H19 | Profil du chauffeur montré au passager (« mini CV ») | **Prénom, note moyenne et photo**. Rien d'autre | Prénom et note déjà renvoyés par l'API (`firstName`, `averageScore`). La photo n'est servie qu'à l'administrateur : la route `GET /rides/{id}/driver-photo` pour le passager et l'affichage sur la page du trajet restent à faire (étape 4). Aucun champ de profil en plus en base |
 | – | Rôle de l'équipe BD | **Tout le dossier `sql/` est à elle** : schéma, migrations, données de référence et de test, index. Les développeurs n'y touchent plus. **Migrations** : fichiers SQL numérotés (`sql/migrations/NNN_description.sql`), à partir du schéma v2 une fois validé. **Requêtes** : partagées, les courantes par les développeurs (SQLAlchemy, `repository/`), les lourdes par l'équipe BD en vues SQL (statistiques, chauffeurs proches, consommation des bons) | README, partie 5 ; CLAUDE.md ; architecture.md. Changement de schéma demandé par une issue GitHub avec l'étiquette `bd` |
 | – | Numéros de téléphone entre usager et chauffeur | **Oui, partagés pendant la course**, pour qu'ils puissent s'appeler à la prise en charge | Déjà fait : le numéro n'est renvoyé que pendant une course acceptée ou en cours. Différence avec Uber : Uber masque le vrai numéro derrière un numéro relais ; ici le vrai numéro est montré, seulement pendant la course |
-| H18 | Zone du pilote | **Celle donnée en visio** ([compte-rendu-visio-1.md](compte-rendu-visio-1.md)) : Cayenne et environ 5 km autour, avec Rémire-Montjoly et Matoury (Cogneau-Lamirande). Départ et arrivée doivent être dans l'une de ces 3 communes | Déjà la règle de l'API (liste des communes). Le rayon de contrôle et la réponse hors zone restent provisoires : voir partie 3 |
+| H18 | Zone du pilote | **Celle donnée en visio** ([compte-rendu-visio-1.md](compte-rendu-visio-1.md)) : Cayenne et environ 5 km autour, avec Rémire-Montjoly et Matoury (Cogneau-Lamirande). Départ et arrivée doivent être dans l'une de ces 3 communes | Déjà la règle de l'API (liste des communes). Ces 3 communes deviennent la valeur de départ des zones réglables par l'administrateur (cahier des charges, M9). Le rayon de contrôle reste provisoire : voir partie 3 |
 
 ---
 
@@ -78,35 +116,33 @@ modifier le jour où la décision tombe.
 | Q3 | Qui attribue le statut d'usager prioritaire | L'administrateur (déjà en place, UC51) | `PATCH /admin/users/{id}` |
 | Q4, H15 | Ce qu'apporte ce statut | Aucun effet automatique (ni prix, ni attribution) | Services de réservation et d'attribution |
 
-### Bons solidaires (étape 5)
+### Bons solidaires (palier P2, après la soutenance)
+
+Le cadre est fixé par le cahier des charges ([partie 2](#ce-que-fixe-le-cahier-des-charges-v10),
+« Solidarité ») : éligibilité validée par un prescripteur (motif, validité, plafond), enveloppe
+par financeur, un seul financeur par trajet, tiers payeur et codes de trajet. Les anciennes
+valeurs provisoires sur la forme du bon (Q5, Q6) et l'usager sans carte (Q9) sont remplacées.
 
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
-| Q5, H7 | Forme d'un bon | Un pourcentage de prise en charge sur un nombre de trajets (ex. 50 % sur 10 trajets) | `sql/schema-hors-scope.sql`, demande à l'équipe BD |
-| Q6 | Bon nominatif ou code libre | Les deux possibles | Idem |
-| Q9 | Usager sans carte bancaire | Il ne voyage qu'avec un bon à 100 % | Réservation (UC13) |
-| Q12 | Ce que voit la structure qui finance | Date, communes et montant de chaque trajet ; ni nom, ni adresse, ni motif | `GET /partners/me/consumption` |
-| H16 | Bon rendu si la réservation expire | Oui | Expiration (UC60) |
-
-Les bons sont le seul bloc qui demande des **tables nouvelles** : tant que Q5 et Q6 ne sont pas
-tranchés, on ne demande pas à l'équipe BD de les créer (règle de la partie 1 : pas de table
-construite sur une valeur provisoire). Sans réponse le **17/11/2026** (fin du sprint 1),
-l'écran opérateur passe avant les bons au sprint 2, et les bons viennent après la soutenance du
-14-15/12 ([questions-sprint-2026-11-04.md](questions-sprint-2026-11-04.md)).
+| – | Montants : plafond par personne, taux de réduction, taille des enveloppes | À demander à la cliente quand on attaquera le P2 | Tables à demander à l'équipe BD à ce moment-là |
+| Q12 | Ce que voit la structure qui finance | Date, communes et montant de chaque trajet ; ni nom, ni adresse, ni motif (cohérent avec les rapports agrégés et la pseudonymisation du cahier des charges) | `GET /partners/me/consumption` |
+| H16 | Réduction rendue si la réservation expire ou est annulée | Oui, l'enveloppe est recalculée (§18) | Expiration (UC60), annulation (UC16) |
 
 ### Courses, paiement, annulation
 
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
-| A | Horaires | Demandes acceptées à toute heure ; le service tourne quand des chauffeurs sont en ligne | Aucun code |
-| – | « 24h/24 » ou « semaine avec créneaux élargis » | Idem A : aucune restriction d'horaire dans l'application | Aucun code |
+| A | Horaires autorisés (réglables, cahier des charges M9) | 0 h – 24 h, tous les jours, tant que la cliente n'a pas donné ses horaires : le mécanisme existe, la valeur ne bloque rien | Table des horaires à demander à l'équipe BD ; règle dans la réservation |
+| – | Délai de réponse d'un chauffeur à une proposition (cahier des charges §7.4) | 5 minutes, puis la course est proposée aux autres chauffeurs | Constante marquée `CHANGER_SELON_DECISION`, service des courses |
 | B | Prix | Prise en charge + prix au km, annoncé avant paiement, figé ensuite (déjà en place) | `ride_rules.price_cents` |
-| C, H8 | Tarif unique | Même tarif pour tous ; la solidarité passe par les bons | Table `tarif` |
+| C, H8 | Tarif de base | Même tarif de base pour tous (palier P1) ; les réductions solidaires viennent avec le P2 | Table `tarif` |
 | D, H16 | Aucun chauffeur trouvé | Recherche pendant 15 min, puis expiration, remboursement, nouvelle demande possible (déjà en place, UC60) | Constantes de l'expiration |
 | H16 | Délai pour payer | 15 min, sinon la réservation expire | Idem |
 | E, H11 | Chauffeur qui se désiste | Course reproposée aux autres chauffeurs, sans nouvelle demande ni nouveau paiement (déjà en place, UC24) | Service des courses |
 | F | Satisfaction | Note de 1 à 5 ; taux de satisfaction = part des notes 4 ou 5, objectif 90 % | Statistiques (étape 7) |
-| Q7, H17 | Remboursement | Intégral dans tous les cas, quel que soit l'auteur ou le moment | Annulation (UC16) |
+| Q7, H17 | Réglages d'annulation (cahier des charges §7.4) | Annulation gratuite jusqu'au départ, aucun frais ensuite, annulation du chauffeur sans frais pour le passager : donc remboursement intégral dans tous les cas, comme aujourd'hui | Annulation (UC16), réglages de l'administrateur au P2 |
+| – | Passager absent | Le chauffeur le signale après une attente de 10 minutes ; le passager est remboursé tant que la cliente n'a pas fixé de frais | États à demander à l'équipe BD (sprint 2) |
 | H10 | Paiement | Simulé : un statut sur la course, pas de prestataire réel. Une table des paiements sera demandée à l'équipe BD si on branche le mode test d'un prestataire | Service de paiement |
 
 ### Zone
@@ -115,14 +151,13 @@ l'écran opérateur passe avant les bons au sprint 2, et les bons viennent aprè
 |---|---|---|---|
 | H18 | Rayon de contrôle autour de Cayenne | 20 km autour du centre de Cayenne. Ce n'est pas la règle de la zone (ce sont les communes) : il rattrape seulement une position impossible, comme Kourou saisi avec « Cayenne ». Les « 5 km » de la visio couperaient une partie de Matoury (l'aéroport est à plus de 10 km) | `PILOT_ZONE_RADIUS_KM`, `services/place_service.py` |
 | H18 | Rayon des offres pour un chauffeur | 10 km autour de sa position | `OFFER_RADIUS_KM`, `services/ride_rules.py` |
-| – | Demande hors zone | Refusée (`422`) avec un message qui dit que le service ne couvre que Cayenne, Rémire-Montjoly et Matoury | Validation des lieux |
+| – | Demande hors zone | Refusée (`422`) avec un message qui donne les communes desservies (exigence du cahier des charges, §18) | Validation des lieux |
 | UC81 | Kourou | Hors pilote ; s'ajoutera comme une donnée de référence | `sql/schema-mvp.sql` (équipe BD) |
 
 ### Suites de l'audit de sécurité (02/11/2026)
 
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
-| F4 | Inscription par code SMS | Gardée (simulée en MVP ; coût des vrais SMS à la mise en service) | `auth_service.py` |
 | F6 | Plafond de courses non terminées par usager | 1 immédiate + 3 programmées | `MAX_OPEN_IMMEDIATE_RIDES`, `MAX_OPEN_SCHEDULED_RIDES`, `services/ride_rules.py` |
 | F10 | Motif du trajet visible du chauffeur sur une offre | Le comportement actuel est gardé jusqu'à la réponse ; le client doit dire si le chauffeur en a besoin (un trajet « santé » est une donnée sensible) | DTO des offres |
 
@@ -130,12 +165,10 @@ l'écran opérateur passe avant les bons au sprint 2, et les bons viennent aprè
 
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
-| Q13 | Application | PWA installable, Android et iPhone | Aucun code |
-| – | « Android/iOS » ou « Android prioritaire » | Les deux, testés d'abord sur Android | Tests |
 | Q14 | SMS | Simulés : écrits dans les logs, sans numéro ni contenu personnel | `sms_repository.py` |
-| UC73 | Notifications hors SMS | Hors MVP | – |
-| UC79 | Abonnement mensuel | Hors MVP tant que le client ne le demande pas explicitement | – |
-| – | Cahier des charges | Version 1.0 du 14/10/2026 reçue le 03/11 ([cahier-des-charges-v1.0.docx](cahier-des-charges-v1.0.docx)). On la lit comme le module M4 (mobilité) et ses exigences transverses ; nos décisions ci-dessus restent valables tant que la cliente n'a pas répondu aux questions de [questions-sprint-2026-11-04.md](questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10) | CLAUDE.md, « Règles du cahier des charges » |
+| – | Périmètre | Palier P1 complet sur M0, M4 et M9, sans les autres modules, en attendant l'accord de la cliente ([questions](questions-sprint-2026-11-04.md#le-cahier-des-charges-v10)) | CLAUDE.md, « Périmètre » |
+| – | Langue de démonstration | Français seulement, avec le changement de langue en place, tant que la cliente n'a pas fourni d'autres textes | `FRONTEND/src/i18n/` |
+| – | Licence du code | MIT, en attendant le choix de la cliente (licence libre ou cession) | Fichier `LICENSE` à ajouter |
 
 ---
 
@@ -150,12 +183,28 @@ l'écran opérateur passe avant les bons au sprint 2, et les bons viennent aprè
   l'équipe BD** (H9), sans l'appliquer ici.
 - **Marquage** : ajouter le commentaire `CHANGER_SELON_DECISION` sur les constantes déjà en place
   citées en partie 3 (tarif, plafonds, rayons, délais).
-- **Photo du chauffeur** : l'afficher sur la page du trajet avec le prénom et la note (étape 4).
-- **Opérateur (étape 6)** : UC40 à UC43 et UC45 sont maintenant tous dans le MVP ; UC44 reste
-  dehors.
+- **Photo du chauffeur** : l'afficher sur la page du trajet avec le prénom et la note (sprint 1).
+- **Opérateur** : UC40 à UC43 et UC45 restent prévus, mais au palier P2 (réservation pour le
+  compte d'une personne), donc après la soutenance ; UC44 reste dehors.
+
+Ce que le cahier des charges ajoute (détail et sprints dans
+[CLAUDE.md](../CLAUDE.md), « Ordre de développement ») :
+
+- **Sprint 1, sans changement de base** : statut du trajet et offres mis à jour en direct (sans
+  `driver:location` pour le passager) ; affectation et réaffectation par l'administrateur ; délai
+  de réponse et refus d'une offre ; conditions d'annulation à l'écran de confirmation ;
+  sélecteur de langue ; FAQ ; installation en une commande.
+- **Sprint 2, demandes à l'équipe BD** (une issue `bd` chacune) : horaires autorisés ; zones
+  réglables ; repère et nombre de passagers sur une course ; états « chauffeur arrivé » et
+  « passager absent » ; paiement « échoué » ; auteur et heure de chaque étape d'une course ;
+  pièces du chauffeur et leur date d'expiration ; demandes de suppression de compte et de rappel.
+- **Sprint 3** : dossier conformité du palier P1 (registre simplifié des traitements, matrice des
+  flux), fichier `LICENSE`, inventaire des dépendances.
 
 À mettre à jour dans la documentation :
 
-- [cas-d-utilisation.md](cas-d-utilisation.md) : statut de UC41, UC45, UC56 ; mini CV dans UC15.
-- [contrat-api.md](contrat-api.md) : H9, H14, H19 décidées ; commission dans les revenus.
-- [CLAUDE.md](../CLAUDE.md), « Points à confirmer » : retirer ce qui est décidé ici.
+- [cas-d-utilisation.md](cas-d-utilisation.md) : statut de UC41, UC45, UC56 ; mini CV dans UC15 ;
+  nouveaux cas du cahier des charges (affectation, refus d'une offre, horaires, zones, tarifs,
+  suppression de compte, rappel) ; UC73 (notifications) et UC79 (abonnement) reclassés.
+- [contrat-api.md](contrat-api.md) : H9, H14, H19 décidées ; commission dans les revenus ;
+  nouveaux états et routes du cahier des charges.

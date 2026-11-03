@@ -506,7 +506,9 @@ course) et un par chauffeur (`driver:{id}`, pour lui proposer des courses).
 | `ride:offer` | `driver:{id}` de chaque chauffeur en ligne proche | Une nouvelle course immédiate à prendre (quand elle passe en `pending` : après le paiement, à la réservation si rien à payer, ou après un désistement) |
 | `ride:offer-closed` | Les mêmes | La course n'est plus à prendre (acceptée, annulée ou expirée) |
 | `ride:updated` | `ride:{id}` | La course complète, après chaque changement d'état |
-| `driver:location` | `ride:{id}`, tant que la course est active | La position du chauffeur |
+
+Pas d'événement de position du chauffeur : le suivi GPS en temps réel est hors périmètre du
+cahier des charges (§5, décision du 03/11/2026 dans [decisions.md](decisions.md)).
 
 Un événement perdu n'est pas renvoyé. À chaque reconnexion, le front relit l'état par les routes
 HTTP (`GET /rides/{id}`, `GET /drivers/me/ride-offers`) : le temps réel accélère l'affichage, il
