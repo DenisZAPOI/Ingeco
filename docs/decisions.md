@@ -62,7 +62,13 @@ ne tranche pas, ce qu'il laisse à son choix, ou ce qui reste flou. Les § renvo
 |---|---|---|---|
 | Statut d'Ingeco | Association loi 1901 (§1) | « SAS à mission » de l'expression des besoins | README, CLAUDE.md, rapport, page À propos |
 | Nature du livrable | Un démonstrateur testé, documenté et transmis, pas un service en production (§1, §13.2) | « Le service démarre en janvier 2027 » | Fin de projet : note de transmission et remise des accès (README, « Comptes des services externes ») |
-| Périmètre | Toutes les équipes livrent le palier P1 (§5) | Notre périmètre « MVP » | Proposition à faire accepter : P1 complet sur M0, M4 et M9, sans M1, M2, M3, M5 (CLAUDE.md, « Périmètre ») |
+| Périmètre | Toutes les équipes livrent le palier P1 (§5) | Notre périmètre « MVP », centré sur le VTC | **Décision du 03/11 : tout le palier P1**, sur tous les modules qui en ont un. Le scénario A (§8, Jordan) est le fil rouge de la démonstration (CLAUDE.md, « Périmètre ») |
+| Orientation (M1) | Questionnaire court et visuel (situation, projet, expériences y compris informelles, disponibilités, freins exprimés en besoins, langue, équipement), plan d'action en 3 à 5 étapes par des règles simples, avec services proposés et contact humain ; aucune décision automatique (§7.1, P1) | – | Sprint 2 (tables à demander à l'équipe BD). Contenu du questionnaire : partie 3 |
+| Emploi (M2) | Jeu d'offres fictives ; filtres commune, horaires, débutant accepté, sans diplôme ; « Comment y aller ? » sur chaque offre ; un trajet se demande en 3 actions au plus depuis une offre, motif prérempli (§7.2, §18, P1) | – | Sprint 1 sur données factices, sprint 2 en base |
+| Formation (M3) | Liens vers des catalogues existants (P1) | – | Sprint 1 : une page de liens |
+| Annuaire (M5) | Services d'aide (garde, logement, droits, santé, aide alimentaire, numérique, démarches, équipement) avec langues parlées, horaires, accessibilité, date de mise à jour ; fiches pratiques « Comment faire ? » en langage simple ; données de démonstration (§7.5, P1) | – | Sprint 1 sur données factices, sprint 2 en base |
+| Accueil | Organisé par besoins : « Je cherche un travail », « J'ai besoin d'un trajet », « J'ai besoin d'aide » ; 3 actions principales au plus (§10) | Accueil par fonctionnalités | Sprint 1 |
+| Maquettes | Maquettes de tous les parcours validées par le porteur avant développement (§10) | – | Maquettes des nouveaux parcours au début du sprint 1, montrées à la cliente |
 | Suivi en temps réel | Le suivi GPS en temps réel est hors périmètre (§5) | Étape 4 : carte avec la position du chauffeur (`driver:location`) | **Décision interne du 03/11** : statut du trajet et offres mis à jour en direct, sans position du chauffeur montrée au passager. Présenté à la SAÉ comme son « suivi en temps réel ». La position du chauffeur sert toujours à lui proposer les courses proches |
 | Attribution des courses | Affectation et réaffectation par l'administrateur, avec avertissement du passager ; propositions au chauffeur avec un délai de réponse, qu'il accepte ou refuse ; une course à un seul chauffeur (§5 M4 P1, §7.4, US06, US07) | « Le premier chauffeur qui accepte la prend », sans affectation | À ajouter (sprint 1). La proposition aux chauffeurs proches reste ; délai de réponse en partie 3 |
 | Horaires | Horaires autorisés réglables par l'administrateur ; une demande hors horaire est refusée avec une explication (§5 M9 P1, §18) | Proposition A et « 24h/24 » : aucune restriction | À ajouter (sprint 2, table à demander à l'équipe BD). Valeur provisoire en partie 3 |
@@ -84,6 +90,7 @@ ne tranche pas, ce qu'il laisse à son choix, ou ce qui reste flou. Les § renvo
 | Appareils | PWA ; tests sur un Android d'entrée de gamme ou en émulation (§3, §20) | « Android/iOS ou Android prioritaire ? » | Tests d'abord sur Android d'entrée de gamme ; l'iPhone reste supporté par la PWA |
 | Prix du trajet | Le trajet a un prix, réduit par les aides solidaires (§7.4, §7.9) ; la gratuité du code du travail (art. L.5321-3) vise le service d'accompagnement | Question 10 du 04/11 | Le trajet reste payant ; l'aide passe par les financeurs |
 | Hors périmètre | Données et paiements réels, envoi massif de SMS, mise en ligne publique, stores, suivi GPS en temps réel, décision automatisée, IA de tri (§5) | UC79 abonnement mensuel (absent du cahier des charges) | Abonnement hors projet |
+| Fonctions déjà codées hors du palier P1 | Le cahier des charges classe certaines fonctions en évolution future ou aux paliers P2 et P3 (§5, §20) | – | **Décision du 03/11** : ce qui est déjà codé reste tel quel, sans retravail : réservation immédiate (« évolution possible », §20), paiement simulé et annulation remboursée (P2), désistement du chauffeur et anti-doublon (P3), revenus du chauffeur, statut d'usager prioritaire. On ne retouche que ce que le cahier des charges contredit |
 
 ### Réponses du client et décisions internes
 
@@ -166,7 +173,7 @@ valeurs provisoires sur la forme du bon (Q5, Q6) et l'usager sans carte (Q9) son
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
 | Q14 | SMS | Simulés : écrits dans les logs, sans numéro ni contenu personnel | `sms_repository.py` |
-| – | Périmètre | Palier P1 complet sur M0, M4 et M9, sans les autres modules, en attendant l'accord de la cliente ([questions](questions-sprint-2026-11-04.md#le-cahier-des-charges-v10)) | CLAUDE.md, « Périmètre » |
+| – | Contenus des nouveaux modules (services d'aide, offres types, questions du questionnaire, fiches pratiques) | Rédigés par nous, fictifs, puis validés par la cliente ; le cahier des charges prévoit qu'elle fournisse ou valide les contenus (§15) | Données factices des `repository/`, puis données de démo de l'équipe BD |
 | – | Langue de démonstration | Français seulement, avec le changement de langue en place, tant que la cliente n'a pas fourni d'autres textes | `FRONTEND/src/i18n/` |
 | – | Licence du code | MIT, en attendant le choix de la cliente (licence libre ou cession) | Fichier `LICENSE` à ajouter |
 
@@ -190,15 +197,19 @@ valeurs provisoires sur la forme du bon (Q5, Q6) et l'usager sans carte (Q9) son
 Ce que le cahier des charges ajoute (détail et sprints dans
 [CLAUDE.md](../CLAUDE.md), « Ordre de développement ») :
 
-- **Sprint 1, sans changement de base** : statut du trajet et offres mis à jour en direct (sans
-  `driver:location` pour le passager) ; affectation et réaffectation par l'administrateur ; délai
-  de réponse et refus d'une offre ; conditions d'annulation à l'écran de confirmation ;
-  sélecteur de langue ; FAQ ; installation en une commande.
-- **Sprint 2, demandes à l'équipe BD** (une issue `bd` chacune) : horaires autorisés ; zones
+- **Sprint 1, sans changement de base** : maquettes ; accueil par besoins ; offres d'emploi avec
+  « Comment y aller ? » ; liens vers les formations ; annuaire et fiches pratiques ; affectation
+  et réaffectation par l'administrateur ; délai de réponse et refus d'une offre ; conditions
+  d'annulation à l'écran de confirmation ; sélecteur de langue ; FAQ ; installation en une
+  commande.
+- **Sprint 2, demandes à l'équipe BD** (une issue `bd` chacune) : tables des offres d'emploi,
+  des services d'aide et des fiches pratiques, des questionnaires et des plans d'action ;
+  horaires autorisés ; zones
   réglables ; repère et nombre de passagers sur une course ; états « chauffeur arrivé » et
   « passager absent » ; paiement « échoué » ; auteur et heure de chaque étape d'une course ;
   pièces du chauffeur et leur date d'expiration ; demandes de suppression de compte et de rappel.
-- **Sprint 3** : dossier conformité du palier P1 (registre simplifié des traitements, matrice des
+- **Sprint 3** : statut du trajet et offres mis à jour en direct (sans `driver:location`) ;
+  accessibilité de base ; données de démo par script ; dossier conformité du palier P1 (registre simplifié des traitements, matrice des
   flux), fichier `LICENSE`, inventaire des dépendances.
 
 À mettre à jour dans la documentation :
