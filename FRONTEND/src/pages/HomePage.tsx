@@ -5,15 +5,17 @@ import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { NextRide } from '../components/rides/NextRide';
 import { ArrowRightIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
+import { t } from '../i18n';
 import { ADMIN_ACCOUNTS_PATH, RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
 // Temporary home of the roles whose screens do not exist yet (steps 3 to 7).
-const COMING: Record<Exclude<Role, 'rider' | 'driver' | 'admin'>, { title: string; coming: string }> = {
-  partner: { title: 'Espace partenaire', coming: 'Vous pourrez bientôt émettre des bons solidaires ici.' },
-  operator: { title: "Centre d'appel", coming: 'Vous pourrez bientôt réserver pour un usager ici.' },
-};
+function coming(role: Exclude<Role, 'rider' | 'driver' | 'admin'>): { title: string; coming: string } {
+  return role === 'partner'
+    ? { title: t('home.partnerTitle'), coming: t('home.partnerComing') }
+    : { title: t('home.operatorTitle'), coming: t('home.operatorComing') };
+}
 
 /** Visitor: the welcome screen. Logged in: the home of their role, drawn from
  *  the last session's hint until the API confirms it. */
@@ -26,8 +28,8 @@ export function HomePage() {
 
   return (
     <section>
-      <PageHero title={`Bonjour ${account.firstName}`}>
-        {account.role === 'rider' && <p className="hero-lead">Où allez-vous aujourd'hui ?</p>}
+      <PageHero title={t('home.greeting', { name: account.firstName })}>
+        {account.role === 'rider' && <p className="hero-lead">{t('home.riderLead')}</p>}
       </PageHero>
       <PageSheet>
         {account.role === 'rider' ? (
@@ -38,8 +40,8 @@ export function HomePage() {
                 <CarIcon />
               </span>
               <span className="action-card-text">
-                <span className="action-card-title">Réserver un trajet</span>
-                <span className="action-card-hint">Emploi, formation, soins, démarches</span>
+                <span className="action-card-title">{t('home.book')}</span>
+                <span className="action-card-hint">{t('home.bookHint')}</span>
               </span>
               <ArrowRightIcon className="action-card-arrow" />
             </Link>
@@ -52,15 +54,15 @@ export function HomePage() {
               <UserIcon />
             </span>
             <span className="action-card-text">
-              <span className="action-card-title">Comptes</span>
-              <span className="action-card-hint">Créer, suspendre, codes d'activation</span>
+              <span className="action-card-title">{t('home.accounts')}</span>
+              <span className="action-card-hint">{t('home.accountsHint')}</span>
             </span>
             <ArrowRightIcon className="action-card-arrow" />
           </Link>
         ) : (
           <>
-            <h2>{COMING[account.role].title}</h2>
-            <p>{COMING[account.role].coming}</p>
+            <h2>{coming(account.role).title}</h2>
+            <p>{coming(account.role).coming}</p>
           </>
         )}
         <div className="stack">
@@ -70,8 +72,8 @@ export function HomePage() {
                 <CalendarIcon />
               </span>
               <span className="action-card-text">
-                <span className="action-card-title">Mes trajets</span>
-                <span className="action-card-hint">À venir et passés</span>
+                <span className="action-card-title">{t('home.myRides')}</span>
+                <span className="action-card-hint">{t('home.myRidesHint')}</span>
               </span>
               <ArrowRightIcon className="action-card-arrow" />
             </Link>
@@ -80,7 +82,7 @@ export function HomePage() {
             <span className="icon-chip">
               <UserIcon />
             </span>
-            <span className="action-card-title">Mon profil</span>
+            <span className="action-card-title">{t('home.profile')}</span>
             <ArrowRightIcon className="action-card-arrow" />
           </Link>
         </div>

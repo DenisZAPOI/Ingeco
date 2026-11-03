@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
-import { PASSWORD_RULES } from '../../lib/passwordRules';
+import { t } from '../../i18n';
+import { passwordRules } from '../../lib/passwordRules';
 
 type PasswordFieldProps = {
   label: string;
@@ -46,17 +47,17 @@ export function PasswordField({ label, value, onChange, autoComplete, error }: P
           onClick={() => setVisible((shown) => !shown)}
           aria-pressed={visible}
         >
-          {visible ? 'Masquer' : 'Afficher'}
+          {visible ? t('password.hide') : t('password.show')}
         </button>
       </div>
       {isNew && (
         <ul id={rulesId} className="password-rules">
-          {PASSWORD_RULES.map((rule) => {
+          {passwordRules().map((rule) => {
             const met = rule.isMet(value);
             return (
               <li key={rule.label} className={met ? 'rule-met' : undefined}>
                 <span aria-hidden="true">{met ? '✓' : '•'}</span> {rule.label}
-                <span className="visually-hidden">{met ? ' : fait' : ' : à faire'}</span>
+                <span className="visually-hidden">{met ? t('password.ruleDone') : t('password.ruleToDo')}</span>
               </li>
             );
           })}

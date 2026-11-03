@@ -8,13 +8,14 @@ import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { RequestState } from '../components/ui/RequestState';
 import { usePastRides, useUpcomingRides } from '../hooks/useRides';
 import { useSession } from '../hooks/useSession';
+import { t } from '../i18n';
 
 // In the address: the Back button returns to the tab the driver was on.
 const TAB_PARAM = 'onglet';
 const TABS = [
-  { key: 'maintenant', label: 'Maintenant' },
-  { key: 'plus-tard', label: 'Plus tard' },
-  { key: 'mes-courses', label: 'Mes courses' },
+  { key: 'maintenant', label: 'driver.tabNow' },
+  { key: 'plus-tard', label: 'driver.tabLater' },
+  { key: 'mes-courses', label: 'driver.tabMine' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
 
@@ -25,9 +26,9 @@ export function DriverRidesPage() {
 
   return (
     <section>
-      <PageHero title="Courses" />
+      <PageHero title={t('driver.rides')} />
       <PageSheet>
-        <div className="tabs" role="tablist" aria-label="Courses">
+        <div className="tabs" role="tablist" aria-label={t('driver.rides')}>
           {TABS.map((entry) => (
             <button
               key={entry.key}
@@ -37,7 +38,7 @@ export function DriverRidesPage() {
               aria-selected={tab === entry.key}
               onClick={() => setParams({ [TAB_PARAM]: entry.key }, { replace: true })}
             >
-              {entry.label}
+              {t(entry.label)}
             </button>
           ))}
         </div>
@@ -65,17 +66,17 @@ function MyRides() {
 
   return (
     <>
-      <h2>À faire</h2>
+      <h2>{t('driver.toDo')}</h2>
       <RequestState loading={upcoming.loading} error={upcoming.error} onRetry={upcoming.retry}>
         {upcoming.data?.items.length ? (
           <RideList rides={upcoming.data.items} forDriver />
         ) : (
-          <p>Aucune course acceptée.</p>
+          <p>{t('driver.noneAccepted')}</p>
         )}
       </RequestState>
-      <h2>Passées</h2>
+      <h2>{t('driver.past')}</h2>
       <RequestState loading={past.loading} error={past.error} onRetry={past.retry}>
-        {past.rides.length ? <RideList rides={past.rides} forDriver /> : <p>Aucune course passée.</p>}
+        {past.rides.length ? <RideList rides={past.rides} forDriver /> : <p>{t('driver.nonePast')}</p>}
         {past.moreError && <ErrorAlert message={past.moreError} onRetry={past.loadMore} />}
         {past.hasMore && !past.moreError && (
           <button
@@ -84,7 +85,7 @@ function MyRides() {
             onClick={past.loadMore}
             disabled={past.loadingMore}
           >
-            {past.loadingMore ? 'Chargement…' : 'Voir plus de courses'}
+            {past.loadingMore ? t('common.loading') : t('driver.more')}
           </button>
         )}
       </RequestState>

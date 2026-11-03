@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom';
 
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { t } from '../i18n';
 
 export function NotFoundPage() {
   return (
     <section>
-      <PageHero title="Page introuvable" />
+      <PageHero title={t('common.notFound')} />
       <PageSheet>
         <Link to="/" className="button">
-          Retour à l'accueil
+          {t('common.backHome')}
         </Link>
       </PageSheet>
     </section>

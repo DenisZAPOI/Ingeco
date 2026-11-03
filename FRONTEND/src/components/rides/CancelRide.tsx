@@ -1,5 +1,6 @@
 import type { Ride } from '../../api/rides';
 import { useCancelRide } from '../../hooks/useRides';
+import { t } from '../../i18n';
 import { formatPrice } from '../../lib/format';
 import { ConfirmButton } from '../ui/ConfirmButton';
 
@@ -19,13 +20,13 @@ export function CancelRide({ ride, onCancelled }: CancelRideProps) {
 
   return (
     <ConfirmButton
-      label="Annuler ce trajet"
-      question="Voulez-vous vraiment annuler ce trajet ?"
+      label={t('ride.cancel')}
+      question={t('ride.cancelQuestion')}
       details={
-        ride.paymentStatus === 'paid' && <p>Vous serez remboursé de {formatPrice(ride.riderAmountCents)}.</p>
+        ride.paymentStatus === 'paid' && <p>{t('ride.cancelRefund', { amount: formatPrice(ride.riderAmountCents) })}</p>
       }
-      confirmLabel="Oui, annuler"
-      keepLabel="Non, garder le trajet"
+      confirmLabel={t('ride.cancelConfirm')}
+      keepLabel={t('ride.cancelKeep')}
       submitting={cancellation.submitting}
       error={cancellation.error}
       onConfirm={cancel}

@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { DriverLocationProvider } from '../../context/DriverLocationProvider';
 import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
+import { t } from '../../i18n';
 import { errorMessage } from '../../lib/errorMessage';
 import { ABOUT_PATH } from '../../lib/paths';
 import { ErrorAlert } from '../ui/ErrorAlert';
@@ -36,7 +37,7 @@ export function Layout() {
     try {
       await logout();
     } catch (caught) {
-      setLogoutError(`Déconnexion impossible. ${errorMessage(caught)}`);
+      setLogoutError(t('common.logoutFailed', { reason: errorMessage(caught) }));
     }
   }
 
@@ -45,11 +46,11 @@ export function Layout() {
       <header className="header">
         <Link to="/" className="brand">
           <LogoMark className="brand-mark" />
-          En route pour l'emploi
+          {t('common.appName')}
         </Link>
         {user && (
           <button type="button" className="header-action" onClick={handleLogout}>
-            Se déconnecter
+            {t('common.logout')}
           </button>
         )}
       </header>
@@ -58,7 +59,7 @@ export function Layout() {
         <div className="layout-alerts">
           {!online && (
             <p role="status" className="alert alert-info">
-              Pas de connexion internet. L'application reprendra dès le retour du réseau.
+              {t('common.offline')}
             </p>
           )}
           {logoutError && user && (
@@ -77,7 +78,7 @@ export function Layout() {
       </main>
       {/* Required on every screen by the cahier des charges (§14). Copied in index.html. */}
       <footer className="footer">
-        Projet étudiant — démonstrateur · <Link to={ABOUT_PATH}>À propos</Link>
+        {t('common.footer')} · <Link to={ABOUT_PATH}>{t('common.about')}</Link>
       </footer>
     </>
   );

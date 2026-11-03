@@ -1,4 +1,5 @@
 import type { Ride } from '../../api/rides';
+import { t } from '../../i18n';
 import { formatScore } from '../../lib/format';
 import { formatPhone } from '../../lib/phone';
 import { PhoneIcon } from '../ui/icons';
@@ -10,14 +11,14 @@ export function DriverCard({ driver }: { driver: Driver }) {
   return (
     <div className="panel">
       <dl className="summary">
-        <dt>Votre chauffeur</dt>
+        <dt>{t('ride.yourDriver')}</dt>
         <dd>{driver.firstName}</dd>
-        <dt>Véhicule</dt>
+        <dt>{t('ride.vehicle')}</dt>
         <dd>
           {driver.vehicle.model}, {driver.vehicle.plate}
-          {driver.vehicle.isAccessible && ' (adapté au fauteuil roulant)'}
+          {driver.vehicle.isAccessible && t('ride.accessibleVehicle')}
         </dd>
-        <dt>Note des passagers</dt>
+        <dt>{t('ride.driverScore')}</dt>
         <dd>{formatScore(driver.averageScore)}</dd>
       </dl>
       {driver.phone && <CallLink name={driver.firstName} phone={driver.phone} />}
@@ -30,7 +31,7 @@ export function CallLink({ name, phone }: { name: string; phone: string }) {
   return (
     <a href={`tel:${phone}`} className="button button-block button-secondary">
       <PhoneIcon className="button-icon" />
-      Appeler {name} ({formatPhone(phone)})
+      {t('ride.call', { name, phone: formatPhone(phone) })}
     </a>
   );
 }

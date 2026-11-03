@@ -7,7 +7,8 @@ import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
 import { useRide } from '../hooks/useRides';
-import { DRIVER_STATUS_HEADLINES } from '../lib/driver';
+import { t } from '../i18n';
+import { driverStatusHeadline } from '../lib/driver';
 import { DRIVER_RIDES_PATH } from '../lib/paths';
 import { isOver, rideDate, rideFromState } from '../lib/ride';
 
@@ -26,13 +27,13 @@ export function DriverRidePage() {
 
   return (
     <section>
-      <PageHero title="Course" />
+      <PageHero title={t('driver.rideTitle')} />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
           {ride.data && <DriverRide ride={ride.data} onRefresh={ride.retry} onChange={update} />}
         </RequestState>
         <Link to={DRIVER_RIDES_PATH} className="link-action">
-          Voir les courses
+          {t('driver.seeRides')}
         </Link>
       </PageSheet>
     </section>
@@ -52,13 +53,13 @@ function DriverRide({ ride, onRefresh, onChange }: DriverRideProps) {
         <span className="icon-chip icon-chip-sun">
           <CarIcon />
         </span>
-        {DRIVER_STATUS_HEADLINES[ride.status]}
+        {driverStatusHeadline(ride.status)}
       </p>
       {ride.needsAccessibleVehicle && (
-        <p className="alert alert-info">Le passager a besoin d'un véhicule adapté (fauteuil roulant).</p>
+        <p className="alert alert-info">{t('driver.needsAccessible')}</p>
       )}
       <DriverRideActions ride={ride} onChange={onChange} />
-      <h2>Détails</h2>
+      <h2>{t('driver.details')}</h2>
       <TripSummary
         pickup={ride.pickup.address}
         dropoff={ride.dropoff.address}
@@ -70,7 +71,7 @@ function DriverRide({ ride, onRefresh, onChange }: DriverRideProps) {
       {!isOver(ride) && (
         // No real time yet (step 4): the rider may have cancelled meanwhile.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
-          Actualiser
+          {t('driver.refresh')}
         </button>
       )}
     </>

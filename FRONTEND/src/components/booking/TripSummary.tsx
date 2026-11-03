@@ -1,6 +1,7 @@
 import type { Purpose } from '../../api/rides';
+import { t } from '../../i18n';
 import { formatDateTime, formatDistance, formatPrice } from '../../lib/format';
-import { PURPOSE_LABELS } from '../../lib/ride';
+import { purposeLabel } from '../../lib/ride';
 
 type TripSummaryProps = {
   pickup: string;
@@ -16,23 +17,23 @@ type TripSummaryProps = {
 export function TripSummary({ pickup, dropoff, purpose, scheduledAt, distanceKm, priceCents }: TripSummaryProps) {
   return (
     <dl className="panel summary">
-      <dt>Départ</dt>
+      <dt>{t('ride.pickup')}</dt>
       <dd>{pickup}</dd>
-      <dt>Arrivée</dt>
+      <dt>{t('ride.dropoff')}</dt>
       <dd>{dropoff}</dd>
-      <dt>Quand</dt>
-      <dd>{scheduledAt ? formatDateTime(scheduledAt) : 'Dès que possible'}</dd>
-      <dt>Motif</dt>
-      <dd>{PURPOSE_LABELS[purpose]}</dd>
+      <dt>{t('ride.when')}</dt>
+      <dd>{scheduledAt ? formatDateTime(scheduledAt) : t('ride.asap')}</dd>
+      <dt>{t('ride.purpose')}</dt>
+      <dd>{purposeLabel(purpose)}</dd>
       {distanceKm !== undefined && (
         <>
-          <dt>Distance</dt>
+          <dt>{t('ride.distance')}</dt>
           <dd>{formatDistance(distanceKm)}</dd>
         </>
       )}
       {priceCents !== undefined && (
         <>
-          <dt>Prix</dt>
+          <dt>{t('ride.price')}</dt>
           <dd className="summary-price">{formatPrice(priceCents)}</dd>
         </>
       )}

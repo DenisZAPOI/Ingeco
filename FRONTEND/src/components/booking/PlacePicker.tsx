@@ -3,6 +3,7 @@ import { useId, useState, type KeyboardEvent } from 'react';
 import type { Commune, Place } from '../../api/places';
 import type { Stop } from '../../api/rides';
 import { usePlaceSearch } from '../../hooks/usePlaceSearch';
+import { t } from '../../i18n';
 import { ChoiceGroup } from '../form/ChoiceGroup';
 
 type PlacePickerProps = {
@@ -46,7 +47,7 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
   return (
     <>
       <ChoiceGroup
-        legend="Commune"
+        legend={t('booking.commune')}
         choices={communes.map((commune) => ({ value: String(commune.id), label: commune.name }))}
         value={communeId === null ? null : String(communeId)}
         onChange={chooseCommune}
@@ -55,7 +56,7 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
       {communeId !== null && (
         <div className="field">
           <label htmlFor={inputId} className="field-label">
-            Adresse ou nom du lieu
+            {t('booking.searchLabel')}
           </label>
           <div className="input-with-button">
             <input
@@ -64,14 +65,14 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
               value={text}
               onChange={(event) => setText(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Mairie, hôpital, rue…"
+              placeholder={t('booking.searchPlaceholder')}
               autoComplete="street-address"
               enterKeyHint="search"
               aria-invalid={searchError ? true : undefined}
               aria-describedby={searchError ? searchErrorId : undefined}
             />
             <button type="button" className="button button-secondary" onClick={runSearch} disabled={searching}>
-              {searching ? 'Recherche…' : 'Chercher'}
+              {searching ? t('booking.searching') : t('booking.search')}
             </button>
           </div>
           {searchError && (
@@ -84,13 +85,13 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
 
       {places?.length === 0 && (
         <p role="status" className="note">
-          Aucune adresse trouvée. Essayez un autre mot, ou le nom d'un lieu proche (mairie, école…).
+          {t('booking.noAddress')}
         </p>
       )}
 
       {listed.length > 0 && (
         <ChoiceGroup
-          legend="Choisissez l'adresse"
+          legend={t('booking.pickAddress')}
           choices={listed.map((place, index) => ({ value: String(index), label: place.label }))}
           value={value ? String(listed.findIndex((place) => place.label === value.address)) : null}
           onChange={(index) => {

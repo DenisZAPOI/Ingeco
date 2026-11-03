@@ -5,6 +5,7 @@ import { RideList } from '../components/rides/RideCard';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { RequestState } from '../components/ui/RequestState';
 import { usePastRides, useUpcomingRides } from '../hooks/useRides';
+import { t } from '../i18n';
 import { BOOKING_PATHS } from '../lib/paths';
 
 // In the address: the Back button returns to the tab the user was on.
@@ -24,16 +25,16 @@ export function RidesPage() {
 
   return (
     <section>
-      <PageHero title="Mes trajets" />
+      <PageHero title={t('rides.title')} />
       <PageSheet>
-        <div className="tabs" role="tablist" aria-label="Mes trajets">
-          <Tab label="À venir" selected={!showPast} onSelect={() => show(false)} />
-          <Tab label="Passés" selected={showPast} onSelect={() => show(true)} />
+        <div className="tabs" role="tablist" aria-label={t('rides.title')}>
+          <Tab label={t('rides.upcoming')} selected={!showPast} onSelect={() => show(false)} />
+          <Tab label={t('rides.past')} selected={showPast} onSelect={() => show(true)} />
         </div>
         <div role="tabpanel">
           {showPast ? (
             <RequestState loading={past.loading} error={past.error} onRetry={past.retry}>
-              {past.rides.length === 0 ? <p>Vous n'avez pas encore de trajet terminé.</p> : <RideList rides={past.rides} />}
+              {past.rides.length === 0 ? <p>{t('rides.noPast')}</p> : <RideList rides={past.rides} />}
               {past.moreError && <ErrorAlert message={past.moreError} onRetry={past.loadMore} />}
               {past.hasMore && !past.moreError && (
                 <button
@@ -42,7 +43,7 @@ export function RidesPage() {
                   onClick={past.loadMore}
                   disabled={past.loadingMore}
                 >
-                  {past.loadingMore ? 'Chargement…' : 'Voir plus de trajets'}
+                  {past.loadingMore ? t('common.loading') : t('rides.more')}
                 </button>
               )}
             </RequestState>
@@ -52,9 +53,9 @@ export function RidesPage() {
                 <RideList rides={upcoming.data.items} />
               ) : (
                 <>
-                  <p>Vous n'avez pas de trajet à venir.</p>
+                  <p>{t('rides.noUpcoming')}</p>
                   <Link to={BOOKING_PATHS.pickup} className="button button-block">
-                    Réserver un trajet
+                    {t('rides.book')}
                   </Link>
                 </>
               )}

@@ -6,7 +6,7 @@ export const DATABASE_TEAM = ['Yanis OUADAH', 'Baptiste DURAND-KEOHAVONG', 'Kurt
 
 // CHANGER_SELON_DECISION (questions du 04/11, n° 13) : the client's name only
 // with their agreement (cahier des charges, §14). Set to 'Ingeco Territoires' once given.
+// Without it, the page says t('about.clientFallback').
 export const CLIENT_NAME: string | null = null;
-export const CLIENT_FALLBACK = "une structure d'insertion de Guyane";
 
 export const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';

@@ -1,4 +1,5 @@
 import { useUpcomingRides } from '../../hooks/useRides';
+import { t } from '../../i18n';
 import { RideCard } from './RideCard';
 
 /** The rider's next trip, first on the home screen. Nothing while it loads:
@@ -10,9 +11,9 @@ export function NextRide() {
   if (upcoming.error) {
     return (
       <p className="note">
-        Votre prochain trajet n'a pas pu être chargé.{' '}
+        {t('ride.nextFailed')}{' '}
         <button type="button" className="link-button" onClick={upcoming.retry}>
-          Réessayer
+          {t('common.retry')}
         </button>
       </p>
     );
@@ -20,7 +21,7 @@ export function NextRide() {
   if (!next) return null;
   return (
     <>
-      <h2>Votre prochain trajet</h2>
+      <h2>{t('ride.nextTitle')}</h2>
       <RideCard ride={next} />
     </>
   );

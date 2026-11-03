@@ -7,6 +7,7 @@ import { TripSummary } from '../components/booking/TripSummary';
 import { Form } from '../components/form/Form';
 import { RequestState } from '../components/ui/RequestState';
 import { usePayRide, useRide } from '../hooks/useRides';
+import { t } from '../i18n';
 import { saveBookingDraft } from '../lib/bookingDraft';
 import { formatPrice, formatTime } from '../lib/format';
 import { BOOKING_PATHS, ridePath } from '../lib/paths';
@@ -22,7 +23,7 @@ export function RidePaymentPage() {
 
   return (
     <section>
-      <PageHero title="Payer le trajet" />
+      <PageHero title={t('payment.title')} />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
           {ride.data && <Payment ride={ride.data} />}
@@ -45,10 +46,10 @@ function Payment({ ride }: { ride: Ride }) {
     return (
       <>
         <p role="alert" className="alert alert-error">
-          Le délai de 15 minutes pour payer est dépassé. Cette réservation n'est plus valable.
+          {t('payment.tooLate')}
         </p>
         <Link to={BOOKING_PATHS.pickup} className="button button-block">
-          Refaire une réservation
+          {t('payment.bookAgain')}
         </Link>
       </>
     );
@@ -62,19 +63,19 @@ function Payment({ ride }: { ride: Ride }) {
   return (
     <>
       <p className="lead">
-        À payer : <strong>{formatPrice(ride.riderAmountCents)}</strong>
+        {t('payment.toPay')} <strong>{formatPrice(ride.riderAmountCents)}</strong>
       </p>
-      <p>Payez avant {formatTime(ride.expiresAt)}. Après, la réservation n'est plus valable.</p>
+      <p>{t('payment.payBefore', { time: formatTime(ride.expiresAt) })}</p>
       <TripSummary
         pickup={ride.pickup.address}
         dropoff={ride.dropoff.address}
         purpose={ride.purpose}
         scheduledAt={ride.scheduledAt}
       />
-      <p className="alert alert-info">Paiement de test : aucune carte n'est débitée.</p>
+      <p className="alert alert-info">{t('payment.test')}</p>
       <Form
         onSubmit={pay}
-        submitLabel={`Payer ${formatPrice(ride.riderAmountCents)}`}
+        submitLabel={t('ride.pay', { amount: formatPrice(ride.riderAmountCents) })}
         submitting={payment.submitting}
         error={payment.error}
       />

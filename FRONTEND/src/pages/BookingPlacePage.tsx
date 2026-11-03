@@ -9,12 +9,12 @@ import { Form } from '../components/form/Form';
 import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useCommunes } from '../hooks/useCommunes';
-import { CHECK_FIELDS } from '../lib/errorMessage';
+import { t } from '../i18n';
 import { BOOKING_PATHS } from '../lib/paths';
 
 const STEPS = {
-  pickup: { step: 1, title: "D'où partez-vous ?", next: BOOKING_PATHS.dropoff, back: null },
-  dropoff: { step: 2, title: 'Où allez-vous ?', next: BOOKING_PATHS.time, back: BOOKING_PATHS.pickup },
+  pickup: { step: 1, title: 'booking.pickupTitle', next: BOOKING_PATHS.dropoff, back: null },
+  dropoff: { step: 2, title: 'booking.dropoffTitle', next: BOOKING_PATHS.time, back: BOOKING_PATHS.pickup },
 } as const;
 
 /** Steps 1 and 2: the pickup, then the drop-off. Each route gives it its own
@@ -33,7 +33,7 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
 
   function next() {
     if (!chosen) {
-      setError("Cherchez l'adresse, puis choisissez-la dans la liste.");
+      setError(t('booking.chooseAddress'));
       return;
     }
     update({ [stop]: chosen });
@@ -42,10 +42,10 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
 
   return (
     <section>
-      <StepHeader step={step.step} title={step.title} />
+      <StepHeader step={step.step} title={t(step.title)} />
       <PageSheet>
         <RequestState loading={communes.loading} error={communes.error} onRetry={communes.retry}>
-          <Form onSubmit={next} submitLabel="Continuer" submitting={false} error={error ? CHECK_FIELDS : null}>
+          <Form onSubmit={next} submitLabel={t('booking.continue')} submitting={false} error={error ? t('errors.checkFields') : null}>
             <PlacePicker
               communes={communes.data ?? []}
               value={chosen}
@@ -59,7 +59,7 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
         </RequestState>
         {step.back && (
           <Link to={step.back} className="link-action">
-            Revenir à l'étape précédente
+            {t('booking.previousStep')}
           </Link>
         )}
       </PageSheet>

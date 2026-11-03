@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useSlowNetwork } from '../../hooks/useSlowNetwork';
+import { t } from '../../i18n';
 
 type ConfirmButtonProps = {
   /** The button before confirmation ("Annuler ce trajet"). */
@@ -47,12 +48,12 @@ export function ConfirmButton({ label, question, details, confirmLabel, keepLabe
       )}
       {slow && (
         <p role="status" className="note">
-          Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
+          {t('common.sendingSlow')}
         </p>
       )}
       <div className="stack">
         <button type="button" className="button button-block" onClick={onConfirm} disabled={submitting}>
-          {submitting ? 'Envoi en cours…' : confirmLabel}
+          {submitting ? t('common.sending') : confirmLabel}
         </button>
         <button
           type="button"

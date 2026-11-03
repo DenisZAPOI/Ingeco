@@ -2,6 +2,7 @@ import type { Ride, RideAction } from '../../api/rides';
 import { useDriveRide } from '../../hooks/useDriver';
 import { useSession } from '../../hooks/useSession';
 import { useSlowNetwork } from '../../hooks/useSlowNetwork';
+import { t } from '../../i18n';
 import { CallLink } from '../rides/DriverCard';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { DirectionsLink } from './DirectionsLink';
@@ -11,10 +12,12 @@ type DriverRideActionsProps = {
   onChange: (ride: Ride) => void;
 };
 
-const MAIN_ACTIONS: Partial<Record<Ride['status'], { action: RideAction; label: string }>> = {
-  pending: { action: 'accept', label: 'Accepter la course' },
-  accepted: { action: 'start', label: 'Le passager est à bord : démarrer' },
-  in_progress: { action: 'complete', label: 'Arrivé : terminer la course' },
+type MainLabel = 'driver.accept' | 'driver.start' | 'driver.complete';
+
+const MAIN_ACTIONS: Partial<Record<Ride['status'], { action: RideAction; label: MainLabel }>> = {
+  pending: { action: 'accept', label: 'driver.accept' },
+  accepted: { action: 'start', label: 'driver.start' },
+  in_progress: { action: 'complete', label: 'driver.complete' },
 };
 
 /** What the driver can do now with this ride, the main action first. */
@@ -37,14 +40,14 @@ export function DriverRideActions({ ride, onChange }: DriverRideActionsProps) {
   }
 
   if (ride.status === 'pending' && user?.isAvailable === false) {
-    return <p className="alert alert-info">Mettez-vous disponible depuis l'accueil pour accepter cette course.</p>;
+    return <p className="alert alert-info">{t('driver.beAvailable')}</p>;
   }
 
   return (
     <>
       {ride.rider && <CallLink name={ride.rider.firstName} phone={ride.rider.phone} />}
-      {ride.status === 'accepted' && <DirectionsLink label="Itinéraire vers le départ" to={ride.pickup} />}
-      {ride.status === 'in_progress' && <DirectionsLink label="Itinéraire vers l'arrivée" to={ride.dropoff} />}
+      {ride.status === 'accepted' && <DirectionsLink label={t('driver.directionsPickup')} to={ride.pickup} />}
+      {ride.status === 'in_progress' && <DirectionsLink label={t('driver.directionsDropoff')} to={ride.dropoff} />}
       {main && (
         <div className="stack">
           {drive.error && (
@@ -54,21 +57,21 @@ export function DriverRideActions({ ride, onChange }: DriverRideActionsProps) {
           )}
           {slow && (
             <p role="status" className="note">
-              Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
+              {t('common.sendingSlow')}
             </p>
           )}
           <button type="button" className="button button-block" onClick={() => run(main.action)} disabled={drive.submitting}>
-            {drive.submitting ? 'Envoi en cours…' : main.label}
+            {drive.submitting ? t('common.sending') : t(main.label)}
           </button>
         </div>
       )}
       {ride.status === 'accepted' && (
         <ConfirmButton
-          label="Je ne peux plus faire cette course"
-          question="Voulez-vous vraiment vous désister ?"
-          details={<p>La course sera proposée aux autres chauffeurs. Le passager n'aura rien à refaire.</p>}
-          confirmLabel="Oui, me désister"
-          keepLabel="Non, je la garde"
+          label={t('driver.release')}
+          question={t('driver.releaseQuestion')}
+          details={<p>{t('driver.releaseDetails')}</p>}
+          confirmLabel={t('driver.releaseConfirm')}
+          keepLabel={t('driver.releaseKeep')}
           submitting={release.submitting}
           error={release.error}
           onConfirm={giveUp}

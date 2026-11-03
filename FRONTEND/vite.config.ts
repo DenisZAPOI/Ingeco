@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -31,5 +32,10 @@ export default defineConfig({
   preview: {
     port: 5173,
     strictPort: true,
+  },
+  // Pure logic only (src/lib, src/i18n): no browser needed (docs/adr/016).
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 });

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import type { Account } from '../../api/admin';
-import { ROLE_LABELS, accountBadges, accountPath } from '../../lib/accounts';
+import { accountBadges, accountPath, roleLabel } from '../../lib/accounts';
 import { formatPhone } from '../../lib/phone';
 import { ArrowRightIcon } from '../ui/icons';
 
@@ -14,7 +14,7 @@ function AccountCard({ account }: { account: Account }) {
           {account.firstName} {account.lastName}
         </span>
         <span>
-          {ROLE_LABELS[account.role]} · {formatPhone(account.phone)}
+          {roleLabel(account.role)} · {formatPhone(account.phone)}
         </span>
         <span className="ride-card-status">
           {accountBadges(account).map((badge) => (

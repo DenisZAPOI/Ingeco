@@ -2,14 +2,14 @@ import { useSession } from '../../hooks/useSession';
 import { useSetAvailability } from '../../hooks/useDriver';
 import { useDriverLocation } from '../../hooks/useDriverLocation';
 import type { LocationStatus } from '../../context/driverLocationContext';
+import { t } from '../../i18n';
 
-const LOCATION_NOTES: Partial<Record<LocationStatus, string>> = {
-  waiting: 'Recherche de votre position…',
-  denied:
-    'Position refusée : vous voyez les courses de toute la zone, sans la distance. ' +
-    'Pour voir les plus proches, autorisez la position pour cette application dans les réglages du téléphone.',
-  unavailable: 'Votre position est introuvable pour le moment : vous voyez les courses de toute la zone.',
-};
+function locationNote(status: LocationStatus): string | null {
+  if (status === 'waiting') return t('driver.locationWaiting');
+  if (status === 'denied') return t('driver.locationDenied');
+  if (status === 'unavailable') return t('driver.locationUnavailable');
+  return null;
+}
 
 /** The one large button of the driver: online or offline. */
 export function AvailabilityToggle() {
@@ -25,18 +25,16 @@ export function AvailabilityToggle() {
     if (answer) setUser({ ...user, isAvailable: answer.isAvailable });
   }
 
-  const label = online ? 'Je ne suis plus disponible' : 'Je suis disponible';
-  const note = LOCATION_NOTES[location];
+  const label = online ? t('driver.goOffline') : t('driver.goOnline');
+  const note = locationNote(location);
   return (
     <div className="availability">
       <p role="status" className="status">
         <span className={online ? 'availability-dot availability-dot-on' : 'availability-dot'} aria-hidden="true" />
-        {online ? 'Vous êtes disponible' : 'Vous êtes hors ligne'}
+        {online ? t('driver.online') : t('driver.offline')}
       </p>
       <p className="note">
-        {online
-          ? 'Vous recevez les courses proposées. Votre position est partagée tant que vous êtes disponible.'
-          : 'Vous ne recevez pas de course. Vos courses déjà acceptées restent les vôtres.'}
+        {online ? t('driver.onlineNote') : t('driver.offlineNote')}
       </p>
       {online && note && <p className="alert alert-info">{note}</p>}
       {availability.error && (
@@ -50,7 +48,7 @@ export function AvailabilityToggle() {
         onClick={toggle}
         disabled={!user || availability.submitting}
       >
-        {availability.submitting ? 'Envoi en cours…' : label}
+        {availability.submitting ? t('common.sending') : label}
       </button>
     </div>
   );

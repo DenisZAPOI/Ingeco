@@ -236,6 +236,7 @@ FRONTEND/src/
 │   ├── client.ts            Le seul fetch du projet (cookie, délai max, erreurs)
 │   └── health.ts            Une fonction par appel, typée depuis types/api.ts
 ├── types/api.ts             GÉNÉRÉ depuis l'OpenAPI du back, jamais modifié à la main
+├── i18n/                    Textes de l'interface : fr.ts (la référence), t() et tn() (index.ts)
 ├── lib/                     Logique pure, sans React (messages d'erreur, calculs, formats)
 ├── hooks/                   Orchestration d'un écran : appel, chargement, erreur, nouvelle tentative
 │                            (useRequest : le modèle générique d'un chargement, à réutiliser)
@@ -288,6 +289,14 @@ Parallèle avec le back : `pages/`, `components/` ≈ `controllers/` ; `hooks/` 
   fond tant que le chauffeur est disponible ; règles d'envoi dans `lib/locationSharing.ts`. En
   PWA, l'envoi s'arrête quand l'application passe en arrière-plan.
 - **Du texte, jamais du HTML** : `dangerouslySetInnerHTML` interdit sur une donnée utilisateur.
+- **Aucun texte d'interface dans le code** ([ADR 013](adr/013-traductions-maison.md)) : chaque texte
+  est une clé de `i18n/fr.ts`, affichée par `t('domaine.cle', { valeur })`, ou `tn('cle', n)` pour
+  un pluriel (clés `_one` et `_other`). TypeScript refuse une clé ou une valeur manquante.
+  `npm run lint:texts` (dans la CI) échoue sur un texte resté en dur. **Jamais de texte traduit
+  dans une constante de module** : elle ne suivrait pas un changement de langue ; écrire une
+  fonction (`purposeLabel(purpose)`) ou une liste de clés. Les messages métier du back restent en
+  français pour l'instant (ADR 013). Pour repérer un texte oublié en développement :
+  `localStorage.langue = 'test'`, puis recharger : tout texte traduit s'affiche entre crochets.
 - **Public peu à l'aise avec le numérique** : textes courts et simples, gros boutons
   (`--touch-target`), contraste fort, focus visible, animations coupées si
   `prefers-reduced-motion`.
@@ -367,6 +376,7 @@ chaque SVG porte une largeur et une hauteur par défaut. Dans les DevTools, ongl
 6. `sockets/` : l'événement temps réel éventuel, émis par le service.
 7. `@require_login(...)` sur la route, et un test qui prouve qu'un rôle non autorisé est refusé.
 8. Front : `npm run api:types`, puis `api/` → `hooks/` → `components/` → `pages/` → `routes/`.
-9. `pytest`, `npm run lint`, `npm run build` passent.
+9. `pytest`, `npm test`, `npm run lint`, `npm run lint:texts`, `npm run build` passent ; les
+   nouveaux textes sont dans `i18n/fr.ts`.
 10. Parcours testé en **« Regular 2G »** : objectifs du tableau
     [ci-dessus](#réseau-faible--objectif-regular-2g) tenus, aucun aller-retour évitable.

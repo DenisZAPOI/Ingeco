@@ -8,15 +8,18 @@ import { Form } from '../components/form/Form';
 import { TextField } from '../components/form/TextField';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { useCreateAccount } from '../hooks/useAdmin';
+import { t } from '../i18n';
 import { accountPath } from '../lib/accounts';
 import { vehicleData, vehicleDraft } from '../lib/vehicle';
 
 // Partner referents come with the vouchers (step 5); riders register themselves.
-const ROLE_CHOICES: Choice<StaffRole>[] = [
-  { value: 'driver', label: 'Chauffeur' },
-  { value: 'operator', label: "Opérateur (centre d'appel)" },
-  { value: 'admin', label: 'Administrateur' },
-];
+function roleChoices(): Choice<StaffRole>[] {
+  return [
+    { value: 'driver', label: t('admin.roles.driver') },
+    { value: 'operator', label: t('admin.operatorChoice') },
+    { value: 'admin', label: t('admin.roles.admin') },
+  ];
+}
 
 /** UC52: an account without password. The next screen shows its activation code, once. */
 export function AdminNewAccountPage() {
@@ -54,33 +57,33 @@ export function AdminNewAccountPage() {
 
   return (
     <section>
-      <PageHero title="Créer un compte" />
+      <PageHero title={t('admin.newTitle')} />
       <PageSheet>
-        <Form onSubmit={send} submitLabel="Créer le compte" submitting={submitting} error={error}>
+        <Form onSubmit={send} submitLabel={t('admin.newSubmit')} submitting={submitting} error={error}>
           <ChoiceGroup
-            legend="Rôle"
-            choices={ROLE_CHOICES}
+            legend={t('admin.role')}
+            choices={roleChoices()}
             value={role}
             onChange={(chosen) => {
               setRole(chosen);
               setRoleMissing(false);
             }}
-            error={roleMissing ? 'Choisissez un rôle.' : errors.role}
+            error={roleMissing ? t('admin.roleMissing') : errors.role}
           />
-          <TextField label="Prénom" value={firstName} onChange={setFirstName} required error={errors.firstName} />
-          <TextField label="Nom" value={lastName} onChange={setLastName} required error={errors.lastName} />
+          <TextField label={t('fields.firstName')} value={firstName} onChange={setFirstName} required error={errors.firstName} />
+          <TextField label={t('fields.lastName')} value={lastName} onChange={setLastName} required error={errors.lastName} />
           <TextField
-            label="Numéro de téléphone"
+            label={t('fields.phone')}
             value={phone}
             onChange={setPhone}
             type="tel"
             inputMode="tel"
-            hint="Il servira à se connecter. Exemple : 0694 12 34 56"
+            hint={t('admin.phoneHint')}
             required
             error={errors.phone}
           />
           <TextField
-            label="Adresse e-mail (facultatif)"
+            label={t('fields.emailOptional')}
             value={email}
             onChange={setEmail}
             type="email"
@@ -89,8 +92,8 @@ export function AdminNewAccountPage() {
           />
           {role === 'driver' && (
             <fieldset className="field">
-              <legend className="field-label">Véhicule</legend>
-              <p className="note">Après vérification en personne du permis, de l'assurance et de la carte VTC.</p>
+              <legend className="field-label">{t('admin.vehicle')}</legend>
+              <p className="note">{t('admin.vehicleChecked')}</p>
               <VehicleFields draft={vehicle} onChange={setVehicle} errors={errors} prefix="vehicle" />
             </fieldset>
           )}

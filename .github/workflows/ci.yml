@@ -43,6 +43,7 @@ jobs:
       - run: python -m pip_audit -r requirements.txt
 
   frontend:
+    # Name kept: it is a required check of the main branch (tests run here too).
     name: Front (lint + build)
     runs-on: ubuntu-latest
     defaults:
@@ -60,6 +61,10 @@ jobs:
       # concern the users (audit F17).
       - run: npm audit --omit=dev
       - run: npm run lint
+      # No interface text written in the code: every text in src/i18n/ (docs/adr/013).
+      - run: npm run lint:texts
+      # Translations, plurals, dates in Guyana time (docs/adr/016).
+      - run: npm test
       # tsc -b then vite build: also catches type errors.
       - run: npm run build
 

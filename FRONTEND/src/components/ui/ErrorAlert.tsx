@@ -1,3 +1,5 @@
+import { t } from '../../i18n';
+
 type ErrorAlertProps = {
   message: string;
   onRetry: () => void;
@@ -9,7 +11,7 @@ export function ErrorAlert({ message, onRetry }: ErrorAlertProps) {
     <div role="alert" className="alert alert-error">
       <p>{message}</p>
       <button type="button" className="button" onClick={onRetry}>
-        Réessayer
+        {t('common.retry')}
       </button>
     </div>
   );

@@ -54,6 +54,7 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [010](010-react-vite-pwa.md) | React, Vite et PWA, CSS maison sans framework | Acceptée | 06/10/2026 |
 | [011](011-types-generes.md) | Types TypeScript générés depuis l'OpenAPI | Acceptée | 06/10/2026 |
 | [012](012-objectif-regular-2g.md) | Objectif réseau « Regular 2G » pour chaque fonctionnalité | Acceptée | 20/10/2026 |
-| [013](013-traductions-maison.md) | Textes dans des fichiers de traduction maison | Acceptée, pas encore appliquée | 03/11/2026 |
+| [013](013-traductions-maison.md) | Textes dans des fichiers de traduction maison | Acceptée | 03/11/2026 |
 | [014](014-socket-io.md) | Socket.IO pour le temps réel | Proposée | – |
 | [015](015-leaflet-openstreetmap.md) | Leaflet et OpenStreetMap pour la carte | Proposée | – |
+| [016](016-vitest.md) | Vitest pour les tests du front | Acceptée | 03/11/2026 |

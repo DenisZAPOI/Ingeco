@@ -1,28 +1,20 @@
 import type { Purpose, Ride, RideStatus } from '../api/rides';
+import { t } from '../i18n';
 import { guyanaDateTime } from './format';
 
 // Words of the rider (charter, part 7): "trajet", never "course".
 
-export const PURPOSE_LABELS: Record<Purpose, string> = {
-  employment: 'Emploi (entretien, travail)',
-  training: 'Formation',
-  health: 'Soins (médecin, hôpital)',
-  administrative: 'Démarche administrative',
-  other: 'Autre',
-};
+/** In the order of the choices on screen. */
+export const PURPOSES: readonly Purpose[] = ['employment', 'training', 'health', 'administrative', 'other'];
 
-export const PURPOSES = Object.keys(PURPOSE_LABELS) as Purpose[];
+export function purposeLabel(purpose: Purpose): string {
+  return t(`ride.purposes.${purpose}`);
+}
 
 /** What the rider reads at the top of their trip. */
-export const STATUS_HEADLINES: Record<RideStatus, string> = {
-  awaiting_payment: 'En attente de votre paiement',
-  pending: 'Nous cherchons un chauffeur',
-  accepted: 'Un chauffeur a accepté votre trajet',
-  in_progress: 'Vous êtes en route',
-  completed: 'Trajet terminé',
-  cancelled: 'Trajet annulé',
-  expired: "Ce trajet n'a pas pu avoir lieu",
-};
+export function statusHeadline(status: RideStatus): string {
+  return t(`ride.headlines.${status}`);
+}
 
 // Same rule as the API (services/ride_rules.py): checked here first to spare
 // a round trip, the API decides.
@@ -31,10 +23,10 @@ const MIN_SCHEDULING_DELAY_MS = 30 * 60 * 1000;
 /** Message for a day and time that cannot be booked, or null. */
 export function scheduleError(day: string, time: string): string | null {
   if (!day || !time) {
-    return "Indiquez le jour et l'heure de départ.";
+    return t('booking.scheduleMissing');
   }
   if (new Date(guyanaDateTime(day, time)).getTime() < Date.now() + MIN_SCHEDULING_DELAY_MS) {
-    return "L'heure de départ doit être au moins 30 minutes après maintenant. Pour partir plus tôt, choisissez « Maintenant ».";
+    return t('booking.scheduleTooSoon');
   }
   return null;
 }
@@ -42,9 +34,7 @@ export function scheduleError(day: string, time: string): string | null {
 /** Why a trip expired: not paid in time (nothing was charged), or no driver
  *  took it (the payment is refunded). Read from the payment state. */
 export function expiryReason(ride: Ride): string {
-  return ride.paymentStatus === 'refunded'
-    ? "Aucun chauffeur n'était disponible à temps. Nous en sommes désolés."
-    : "Le paiement n'a pas été fait dans les 15 minutes : la réservation a été annulée. Rien n'a été prélevé.";
+  return ride.paymentStatus === 'refunded' ? t('ride.expiredNoDriver') : t('ride.expiredUnpaid');
 }
 
 /** The time limit to pay is part of the ride, not a guess of the phone. */
@@ -60,15 +50,9 @@ export function rideFromState(state: unknown, id: number): Ride | null {
 }
 
 /** Short state of a trip in a list. */
-export const STATUS_LABELS: Record<RideStatus, string> = {
-  awaiting_payment: 'À payer',
-  pending: "Recherche d'un chauffeur",
-  accepted: 'Chauffeur trouvé',
-  in_progress: 'En route',
-  completed: 'Terminé',
-  cancelled: 'Annulé',
-  expired: 'Expiré',
-};
+export function statusLabel(status: RideStatus): string {
+  return t(`ride.statuses.${status}`);
+}
 
 // Same rule as the API (CANCELLABLE_STATUSES): before the rider is on board.
 const CANCELLABLE: readonly RideStatus[] = ['awaiting_payment', 'pending', 'accepted'];

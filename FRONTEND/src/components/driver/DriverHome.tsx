@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { useUpcomingRides } from '../../hooks/useRides';
+import { t } from '../../i18n';
 import { DRIVER_RIDES_PATH, EARNINGS_PATH } from '../../lib/paths';
 import { RideCard } from '../rides/RideCard';
 import { ArrowRightIcon, CarIcon, TicketIcon } from '../ui/icons';
@@ -16,15 +17,15 @@ export function DriverHome() {
       <AvailabilityToggle />
       {upcoming.error && (
         <p className="note">
-          Votre prochaine course n'a pas pu être chargée.{' '}
+          {t('driver.nextFailed')}{' '}
           <button type="button" className="link-button" onClick={upcoming.retry}>
-            Réessayer
+            {t('common.retry')}
           </button>
         </p>
       )}
       {next && (
         <>
-          <h2>Votre prochaine course</h2>
+          <h2>{t('driver.nextTitle')}</h2>
           <RideCard ride={next} forDriver />
         </>
       )}
@@ -34,8 +35,8 @@ export function DriverHome() {
             <CarIcon />
           </span>
           <span className="action-card-text">
-            <span className="action-card-title">Courses</span>
-            <span className="action-card-hint">Proposées, programmées et les vôtres</span>
+            <span className="action-card-title">{t('driver.rides')}</span>
+            <span className="action-card-hint">{t('driver.ridesHint')}</span>
           </span>
           <ArrowRightIcon className="action-card-arrow" />
         </Link>
@@ -44,8 +45,8 @@ export function DriverHome() {
             <TicketIcon />
           </span>
           <span className="action-card-text">
-            <span className="action-card-title">Mes revenus</span>
-            <span className="action-card-hint">Aujourd'hui, cette semaine, ce mois-ci</span>
+            <span className="action-card-title">{t('driver.earnings')}</span>
+            <span className="action-card-hint">{t('driver.earningsHint')}</span>
           </span>
           <ArrowRightIcon className="action-card-arrow" />
         </Link>

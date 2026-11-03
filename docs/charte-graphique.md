@@ -351,6 +351,9 @@ roue qui tourne sans fin (le client abandonne au bout de 15 s).
 
 ## 7. Textes et ton
 
+Tous les textes sont dans `FRONTEND/src/i18n/fr.ts`, rangés par domaine : c'est là qu'on les
+relit et qu'on les corrige ([ADR 013](adr/013-traductions-maison.md)).
+
 - **Vouvoiement**, phrases courtes (moins de 15 mots si possible), une idée par phrase.
 - **Les mots de l'usager**, pas ceux du code : « trajet » (pas « course » côté usager),
   « chauffeur », « bon solidaire », « centre d'appel », « J'ai reçu un code ». Côté chauffeur, on

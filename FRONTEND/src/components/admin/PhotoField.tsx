@@ -3,10 +3,9 @@ import { useId, useState, type ChangeEvent } from 'react';
 import { photoUrl, type Account } from '../../api/admin';
 import { useSavePhoto } from '../../hooks/useAdmin';
 import { useSlowNetwork } from '../../hooks/useSlowNetwork';
+import { t } from '../../i18n';
 import { formatDateTime } from '../../lib/format';
 import { reducePhoto, type ReducedPhoto } from '../../lib/photo';
-
-const NOT_AN_IMAGE = "Ce fichier n'est pas une image. Choisissez une photo.";
 
 type PhotoFieldProps = {
   account: Account;
@@ -32,7 +31,7 @@ export function PhotoField({ account, onSaved }: PhotoFieldProps) {
     try {
       setPhoto(await reducePhoto(file));
     } catch {
-      setReadError(NOT_AN_IMAGE);
+      setReadError(t('admin.notAnImage'));
     }
   }
 
@@ -49,15 +48,15 @@ export function PhotoField({ account, onSaved }: PhotoFieldProps) {
   return (
     <div className="field">
       {shown ? (
-        <img src={shown} alt={`Photo de ${account.firstName}`} className="driver-photo" width={160} height={160} />
+        <img src={shown} alt={t('admin.photoAlt', { name: account.firstName })} className="driver-photo" width={160} height={160} />
       ) : (
-        <p className="note">Pas encore de photo.</p>
+        <p className="note">{t('admin.noPhotoYet')}</p>
       )}
       {account.photoUpdatedAt && !photo && (
-        <p className="note">Photo enregistrée le {formatDateTime(account.photoUpdatedAt)}.</p>
+        <p className="note">{t('admin.photoSavedAt', { date: formatDateTime(account.photoUpdatedAt) })}</p>
       )}
       <label htmlFor={inputId} className="button button-block button-secondary">
-        {saved ? 'Reprendre la photo' : 'Prendre ou choisir une photo'}
+        {saved ? t('admin.retakePhoto') : t('admin.takePhoto')}
       </label>
       {/* capture: on a phone, opens the camera directly. */}
       <input id={inputId} type="file" accept="image/*" capture="user" className="visually-hidden" onChange={choose} />
@@ -68,12 +67,12 @@ export function PhotoField({ account, onSaved }: PhotoFieldProps) {
       )}
       {slow && (
         <p role="status" className="note">
-          Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
+          {t('common.sendingSlow')}
         </p>
       )}
       {photo && (
         <button type="button" className="button button-block" onClick={send} disabled={submitting}>
-          {submitting ? 'Envoi en cours…' : 'Enregistrer cette photo'}
+          {submitting ? t('common.sending') : t('admin.savePhoto')}
         </button>
       )}
     </div>

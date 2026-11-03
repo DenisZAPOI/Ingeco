@@ -9,9 +9,10 @@ import { RatingForm, RatingSummary } from '../components/rides/RatingForm';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
 import { useRide } from '../hooks/useRides';
+import { t } from '../i18n';
 import { formatPrice } from '../lib/format';
 import { BOOKING_PATHS, RIDES_PATH, paymentPath } from '../lib/paths';
-import { STATUS_HEADLINES, canCancel, canRate, canStillPay, expiryReason, isOver, rideDate, rideFromState } from '../lib/ride';
+import { canCancel, canRate, canStillPay, expiryReason, isOver, rideDate, rideFromState, statusHeadline } from '../lib/ride';
 import { draftFromRide, saveBookingDraft } from '../lib/bookingDraft';
 
 /** Where the trip stands, what can still be done (pay, cancel, rate).
@@ -31,13 +32,13 @@ export function RidePage() {
 
   return (
     <section>
-      <PageHero title="Mon trajet" />
+      <PageHero title={t('ride.title')} />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
           {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} onChange={update} />}
         </RequestState>
         <Link to={RIDES_PATH} className="link-action">
-          Voir mes trajets
+          {t('ride.seeMyRides')}
         </Link>
       </PageSheet>
     </section>
@@ -60,18 +61,18 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
         <span className="icon-chip icon-chip-sun">
           <CarIcon />
         </span>
-        {STATUS_HEADLINES[ride.status]}
+        {statusHeadline(ride.status)}
       </p>
       {canStillPay(ride) && (
         <Link to={paymentPath(ride.id)} state={{ ride }} className="button button-block">
-          Payer {formatPrice(ride.riderAmountCents)}
+          {t('ride.pay', { amount: formatPrice(ride.riderAmountCents) })}
         </Link>
       )}
       {ride.status === 'pending' && (
         <>
-          <p>Votre paiement est bien reçu. Revenez sur cette page pour savoir quand un chauffeur a accepté.</p>
+          <p>{t('ride.paidWaiting')}</p>
           <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
-            Actualiser
+            {t('ride.refresh')}
           </button>
         </>
       )}
@@ -79,27 +80,27 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
       {UNDER_WAY.includes(ride.status) && (
         // No real time yet (step 4): the driver may have started meanwhile.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
-          Actualiser
+          {t('ride.refresh')}
         </button>
       )}
       {ride.status === 'expired' && <p>{expiryReason(ride)}</p>}
       {ride.paymentStatus === 'refunded' && (
-        <p className="alert alert-info">Vous êtes remboursé de {formatPrice(ride.riderAmountCents)}.</p>
+        <p className="alert alert-info">{t('ride.refunded', { amount: formatPrice(ride.riderAmountCents) })}</p>
       )}
       {canRate(ride) && (
         <>
-          <h2>Votre avis</h2>
+          <h2>{t('ride.yourRating')}</h2>
           <RatingForm ride={ride} onRated={onChange} />
-          <p className="note">Vous pouvez aussi noter ce trajet plus tard, depuis « Mes trajets ».</p>
+          <p className="note">{t('ride.rateLater')}</p>
         </>
       )}
       {ride.rating && (
         <>
-          <h2>Votre avis</h2>
+          <h2>{t('ride.yourRating')}</h2>
           <RatingSummary score={ride.rating.score} comment={ride.rating.comment} />
         </>
       )}
-      <h2>Détails</h2>
+      <h2>{t('ride.details')}</h2>
       <TripSummary
         pickup={ride.pickup.address}
         dropoff={ride.dropoff.address}
@@ -126,7 +127,7 @@ function RebookButton({ ride }: { ride: Ride }) {
 
   return (
     <button type="button" className="button button-block" onClick={rebook}>
-      Réserver à nouveau ce trajet
+      {t('ride.rebook')}
     </button>
   );
 }

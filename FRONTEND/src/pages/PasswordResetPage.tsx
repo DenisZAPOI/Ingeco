@@ -5,6 +5,7 @@ import { Form } from '../components/form/Form';
 import { TextField } from '../components/form/TextField';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { useAskPasswordResetCode } from '../hooks/useAuthForms';
+import { t } from '../i18n';
 import { ACTIVATION_PATH, LOGIN_PATH } from '../lib/paths';
 
 /** Forgotten password: the number only. The code arrives by SMS and is typed
@@ -22,12 +23,12 @@ export function PasswordResetPage() {
 
   return (
     <section>
-      <PageHero title="Mot de passe oublié" />
+      <PageHero title={t('auth.resetTitle')} />
       <PageSheet>
-        <p>Indiquez votre numéro. Vous allez recevoir un code par SMS pour choisir un nouveau mot de passe.</p>
-        <Form onSubmit={send} submitLabel="Recevoir mon code par SMS" submitting={submitting} error={error}>
+        <p>{t('auth.resetIntro')}</p>
+        <Form onSubmit={send} submitLabel={t('auth.sendCodeBySms')} submitting={submitting} error={error}>
           <TextField
-            label="Numéro de téléphone"
+            label={t('fields.phone')}
             value={phone}
             onChange={setPhone}
             type="tel"
@@ -39,10 +40,10 @@ export function PasswordResetPage() {
           />
         </Form>
         <p className="note">
-          Pas de SMS ? Le centre d'appel peut aussi vous donner un code.
+          {t('auth.resetNoSms')}
         </p>
         <p className="note">
-          <Link to={LOGIN_PATH}>Retour à la connexion</Link>
+          <Link to={LOGIN_PATH}>{t('auth.backToLogin')}</Link>
         </p>
       </PageSheet>
     </section>

@@ -11,7 +11,8 @@ import { ConfirmButton } from '../components/ui/ConfirmButton';
 import { RequestState } from '../components/ui/RequestState';
 import { useAccount, useNewActivationCode, useUpdateAccount } from '../hooks/useAdmin';
 import { useSession } from '../hooks/useSession';
-import { ROLE_LABELS, accountFromState, activationFromState } from '../lib/accounts';
+import { t } from '../i18n';
+import { accountFromState, accountStatusLabel, activationFromState, roleLabel } from '../lib/accounts';
 import { formatDateTime } from '../lib/format';
 import { vehicleData, vehicleDraft } from '../lib/vehicle';
 import { ADMIN_ACCOUNTS_PATH } from '../lib/paths';
@@ -42,7 +43,7 @@ export function AdminAccountPage() {
 
   return (
     <section>
-      <PageHero title={account.data ? `${account.data.firstName} ${account.data.lastName}` : 'Compte'} />
+      <PageHero title={account.data ? `${account.data.firstName} ${account.data.lastName}` : t('admin.accountTitle')} />
       <PageSheet>
         <RequestState loading={account.loading} error={account.error} onRetry={account.retry}>
           {account.data && (
@@ -55,7 +56,7 @@ export function AdminAccountPage() {
           )}
         </RequestState>
         <Link to={ADMIN_ACCOUNTS_PATH} className="link-action">
-          Voir tous les comptes
+          {t('admin.allAccounts')}
         </Link>
       </PageSheet>
     </section>
@@ -77,8 +78,8 @@ function AccountDetail({ account, activation, onActivation, onChange }: AccountD
       {account.role === 'rider' && <Priority account={account} onChange={onChange} />}
       {account.role === 'driver' && (
         <>
-          <h2>Photo</h2>
-          <p className="note">Le passager la verra pour reconnaître son chauffeur.</p>
+          <h2>{t('admin.photo')}</h2>
+          <p className="note">{t('admin.photoNote')}</p>
           <PhotoField account={account} onSaved={onChange} />
           <VehicleForm account={account} onChange={onChange} />
         </>
@@ -91,28 +92,28 @@ function AccountDetail({ account, activation, onActivation, onChange }: AccountD
 function Identity({ account }: { account: Account }) {
   return (
     <dl className="summary">
-      <dt>Rôle</dt>
-      <dd>{ROLE_LABELS[account.role]}</dd>
-      <dt>Téléphone</dt>
+      <dt>{t('admin.role')}</dt>
+      <dd>{roleLabel(account.role)}</dd>
+      <dt>{t('admin.phone')}</dt>
       <dd>{formatPhone(account.phone)}</dd>
       {account.email && (
         <>
-          <dt>E-mail</dt>
+          <dt>{t('admin.email')}</dt>
           <dd>{account.email}</dd>
         </>
       )}
-      <dt>Statut</dt>
+      <dt>{t('admin.status')}</dt>
       <dd>
-        {account.status === 'suspended' ? 'Suspendu' : 'Actif'}
-        {!account.isActivated && ' · pas encore activé'}
+        {accountStatusLabel(account.status)}
+        {!account.isActivated && t('admin.notActivatedSuffix')}
       </dd>
       {account.role === 'rider' && account.needsAccessibleVehicle && (
         <>
-          <dt>Besoin</dt>
-          <dd>Véhicule adapté (fauteuil roulant)</dd>
+          <dt>{t('admin.need')}</dt>
+          <dd>{t('admin.accessibleNeed')}</dd>
         </>
       )}
-      <dt>Créé le</dt>
+      <dt>{t('admin.createdAt')}</dt>
       <dd>{formatDateTime(account.createdAt)}</dd>
     </dl>
   );
@@ -128,10 +129,10 @@ function Priority({ account, onChange }: { account: Account; onChange: (account:
 
   return (
     <>
-      <h2>Usager prioritaire</h2>
+      <h2>{t('admin.priorityTitle')}</h2>
       <p>
-        {account.isPriority ? 'Cet usager est prioritaire.' : "Cet usager n'est pas prioritaire."}{' '}
-        <span className="note">Sert au centre d'appel et aux statistiques.</span>
+        {account.isPriority ? t('admin.isPriority') : t('admin.isNotPriority')}{' '}
+        <span className="note">{t('admin.priorityUse')}</span>
       </p>
       {error && (
         <p role="alert" className="alert alert-error">
@@ -139,7 +140,7 @@ function Priority({ account, onChange }: { account: Account; onChange: (account:
         </p>
       )}
       <button type="button" className="button button-block button-secondary" onClick={toggle} disabled={submitting}>
-        {submitting ? 'Envoi en cours…' : account.isPriority ? 'Retirer la priorité' : 'Marquer comme prioritaire'}
+        {submitting ? t('common.sending') : account.isPriority ? t('admin.removePriority') : t('admin.setPriority')}
       </button>
     </>
   );
@@ -161,13 +162,13 @@ function VehicleForm({ account, onChange }: { account: Account; onChange: (accou
 
   return (
     <>
-      <h2>Véhicule</h2>
+      <h2>{t('admin.vehicle')}</h2>
       <Form
         onSubmit={send}
-        submitLabel="Enregistrer le véhicule"
+        submitLabel={t('admin.vehicleSubmit')}
         submitting={submitting}
         error={error}
-        success={saved ? 'Le véhicule est enregistré.' : null}
+        success={saved ? t('admin.vehicleSaved') : null}
       >
         <VehicleFields draft={draft} onChange={setDraft} errors={errors} prefix="vehicle" />
       </Form>
@@ -204,19 +205,19 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
 
   return (
     <>
-      <h2>Accès</h2>
+      <h2>{t('admin.access')}</h2>
       <ConfirmButton
         key={codesIssued}
-        label={account.isActivated ? 'Mot de passe oublié : nouveau code' : "Générer un code d'activation"}
-        question={`Générer un nouveau code pour ${account.firstName} ?`}
+        label={account.isActivated ? t('admin.newResetCode') : t('admin.newActivationCode')}
+        question={t('admin.codeQuestion', { name: account.firstName })}
         details={
           <p>
-            L'ancien code, s'il y en avait un, ne marchera plus. Le mot de passe actuel reste valable.
-            {account.isActivated && ' Un SMS prévient la personne.'}
+            {t('admin.codeDetails')}
+            {account.isActivated && t('admin.codeSmsWarning')}
           </p>
         }
-        confirmLabel="Générer le code"
-        keepLabel="Ne rien changer"
+        confirmLabel={t('admin.codeConfirm')}
+        keepLabel={t('admin.codeKeep')}
         submitting={code.submitting}
         error={code.error}
         onConfirm={issueCode}
@@ -224,18 +225,18 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
       {account.status === 'active' ? (
         !isMe && (
           <ConfirmButton
-            label="Suspendre le compte"
-            question={`Suspendre le compte de ${account.firstName} ?`}
+            label={t('admin.suspend')}
+            question={t('admin.suspendQuestion', { name: account.firstName })}
             details={
               <p>
-                {account.firstName} ne pourra plus se connecter, et ses sessions ouvertes prennent fin tout de suite.
-                {account.role === 'driver' && ' Le chauffeur passe hors ligne et ne reçoit plus de course.'}
-                {account.role === 'rider' && ' Ses trajets pas encore pris par un chauffeur sont annulés et remboursés.'} Vous pourrez réactiver
-                le compte.
+                {t('admin.suspendDetails', { name: account.firstName })}
+                {account.role === 'driver' && t('admin.suspendDriver')}
+                {account.role === 'rider' && t('admin.suspendRider')}
+                {t('admin.suspendReactivate')}
               </p>
             }
-            confirmLabel="Suspendre"
-            keepLabel="Ne pas suspendre"
+            confirmLabel={t('admin.suspendConfirm')}
+            keepLabel={t('admin.suspendKeep')}
             submitting={status.submitting}
             error={status.error}
             onConfirm={() => setStatus('suspended')}
@@ -254,7 +255,7 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
             onClick={() => setStatus('active')}
             disabled={status.submitting}
           >
-            {status.submitting ? 'Envoi en cours…' : 'Réactiver le compte'}
+            {status.submitting ? t('common.sending') : t('admin.reactivate')}
           </button>
         </>
       )}
