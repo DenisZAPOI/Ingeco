@@ -1,12 +1,16 @@
 -- ============================================================
 -- En route pour l'emploi : schéma de la base, périmètre MVP
 -- ============================================================
--- Version 2 (20/10/2026). Remplace la première version, écrite avant le
--- contrat d'API v2 (docs/contrat-api.md), dont elle suit les parties 3 et 6.
+-- Version 2 (20/10/2026), relue et validée par l'équipe BD
+-- (issue #20). Remplace la première version, écrite avant le contrat
+-- d'API v2 (docs/contrat-api.md), dont elle suit les parties 3 et 6.
 --
--- SGBD : MySQL 8.0.16 ou plus récent (les CHECK ne sont appliqués qu'à
--- partir de cette version), moteur InnoDB (transactions, voir contrat 6.2).
--- Choix de l'équipe BD, à confirmer.
+-- POINT DE DÉPART DES MIGRATIONS : ce fichier ne se modifie plus. Tout
+-- changement passe par un nouveau fichier de sql/migrations/ (README,
+-- partie 5).
+--
+-- SGBD : MySQL 8.4 (confirmé par l'équipe BD), moteur InnoDB
+-- (transactions, voir contrat 6.2).
 --
 -- Conventions :
 --   - dates-heures en UTC (DATETIME sans fuseau) : l'API fournit toujours
@@ -118,9 +122,12 @@ CREATE TABLE chauffeur (
     derniere_lat          DECIMAL(9,6),
     derniere_lng          DECIMAL(9,6),
     derniere_position_le  DATETIME,
-    -- Photo du visage, réduite par l'API (~15 Ko) avant écriture (H19).
-    -- Stockée en base : sauvegardée avec le reste, pas de serveur de fichiers
-    photo                 BLOB,
+    -- Photo du visage (H19, issue #22) : un JPEG réduit par le navigateur de
+    -- l'administrateur (~15 Ko), 100 Ko au plus, vérifié par l'API.
+    -- Stockée en base : sauvegardée et supprimée avec le reste, pas de
+    -- serveur de fichiers. MEDIUMBLOB et non BLOB : un BLOB s'arrête à
+    -- 64 Ko, moins que les 100 Ko acceptés par l'API
+    photo                 MEDIUMBLOB,
     -- Sert à invalider le cache de la photo sur les téléphones
     photo_modifiee_le     DATETIME,
     FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur),
@@ -130,7 +137,9 @@ CREATE TABLE chauffeur (
     ),
     CONSTRAINT chk_chauffeur_lat   CHECK (derniere_lat BETWEEN -90 AND 90),
     CONSTRAINT chk_chauffeur_lng   CHECK (derniere_lng BETWEEN -180 AND 180),
-    CONSTRAINT chk_chauffeur_photo CHECK ((photo IS NULL) = (photo_modifiee_le IS NULL))
+    CONSTRAINT chk_chauffeur_photo CHECK ((photo IS NULL) = (photo_modifiee_le IS NULL)),
+    -- Même plafond que l'API (PHOTO_MAX_BYTES, 100 Ko)
+    CONSTRAINT chk_chauffeur_photo_taille CHECK (LENGTH(photo) <= 102400)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Chauffeurs disponibles autour d'un point (contrat 6.1) : filtre sur un

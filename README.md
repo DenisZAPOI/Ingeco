@@ -364,7 +364,7 @@ BACKEND/      L'API en Python
     models/        La description en Python des tables de l'équipe BD
   tests/
 FRONTEND/     L'interface web (React)
-sql/          Scripts de la base : schema-mvp.sql (chargé), schema-hors-scope.sql (pas encore)
+sql/          Scripts de la base : schema-mvp.sql et migrations/ (chargés), schema-hors-scope.sql (pas encore)
 docs/         Cahier des charges, architecture
 compose.yaml  La base MySQL locale (Docker)
 ```
@@ -381,7 +381,8 @@ dossier du dépôt, par exemple `/mnt/c/Users/.../Ingeco`).
 ### Base de données (MySQL dans Docker)
 
 Un conteneur MySQL 8.4 local, décrit dans `compose.yaml`. Au premier démarrage, il crée la base
-avec `sql/schema-mvp.sql` (schéma et données de référence), puis `sql/demo-data.sql` (comptes et
+avec `sql/schema-mvp.sql` (schéma et données de référence), puis les migrations de `sql/migrations/`
+dans l'ordre, puis `sql/demo-data.sql` (comptes et
 courses de test). Ce second script ne doit **jamais** être chargé ailleurs que sur un poste de
 développement : ses comptes ont un mot de passe public, dont un administrateur.
 
@@ -550,11 +551,11 @@ une base en production se **modifie**, elle ne se recrée pas. Les migrations se
   ALTER TABLE utilisateur ADD COLUMN version_session INT NOT NULL DEFAULT 0;
   ```
 
-- **En local**, la base doit se créer avec : le schéma, puis toutes les migrations dans l'ordre,
-  puis les données de test. Pour la première migration, ajoutez ce chargement dans `compose.yaml`
-  (les fichiers de `docker-entrypoint-initdb.d` s'exécutent par ordre alphabétique, et les
-  données de test doivent passer en dernier). Prévenez les développeurs : ils devront refaire
-  `docker compose down -v` puis `up -d`.
+- **En local**, la base se crée avec : le schéma, puis toutes les migrations dans l'ordre, puis
+  les données de test. C'est `sql/charger-base.sh` qui s'en charge au premier démarrage du
+  conteneur : une nouvelle migration est prise en compte sans toucher à `compose.yaml`, et une
+  erreur SQL arrête la création (`docker compose logs db` pour la voir). Prévenez les
+  développeurs à chaque migration : ils devront refaire `docker compose down -v` puis `up -d`.
 - Les développeurs suivent chaque migration dans leurs classes Python (`models/`). Annoncez-la
   avant de la merger.
 
@@ -633,6 +634,18 @@ Si tout va bien, la réponse indique le SGBD utilisé :
 
 Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le détail de l'erreur
 (mauvais mot de passe, mauvais port…) s'affiche dans le terminal où tourne l'API.
+
+### Ce que l'équipe BD a livré
+
+| Livré | Fichier | Issue |
+|---|---|---|
+| Schéma v2 relu et validé, MySQL 8.4 confirmé ; photo du chauffeur en base, en `MEDIUMBLOB` (un `BLOB` s'arrête à 64 Ko, l'API en accepte 100), 100 Ko au plus | `sql/schema-mvp.sql` | #20, #22 |
+| Colonne `version_session` sur `utilisateur` | `sql/migrations/001_ajouter_version_session.sql` | #21 |
+| Table `demande_suppression` : une demande en cours au plus par compte, traitée par un administrateur | `sql/migrations/002_creer_demande_suppression.sql` | #32 |
+| Vues des statistiques, une ligne par jour en heure de Guyane : `v_stats_courses_par_jour`, `v_stats_courses_par_commune`, `v_stats_courses_par_motif`, `v_stats_evaluations_par_jour` | `sql/migrations/003` à `006` | #23 |
+| Vue des chauffeurs en ligne, `v_chauffeur_en_ligne`, et la requête de tri par distance (en tête du fichier) | `sql/migrations/007_creer_vue_chauffeurs_en_ligne.sql` | #24 |
+
+Chaque fichier explique en tête comment s'en servir depuis l'API, et ce qui est propre à MySQL.
 
 ### Ce dont les développeurs ont besoin de votre part
 
