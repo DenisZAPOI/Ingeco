@@ -14,6 +14,7 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[docs/cas-d-utilisation.md](docs/cas-d-utilisation.md)** : cas d'utilisation par acteur, avec fiches détaillées, statut MVP et regroupement en fonctionnalités par étape. Résume les réponses du client qui ont fait passer le contrat d'API en version 2.
 - **[docs/points-a-valider-porteur.pdf](docs/points-a-valider-porteur.pdf)** : choix et questions soumis au client (13/10/2026), avec ce qu'il a déjà confirmé.
 - **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 et de la première visio ; les autres hypothèses restent non validées.
+- **[docs/decisions.md](docs/decisions.md)** : ce qui est décidé (03/11/2026) et la valeur provisoire appliquée à chaque point non tranché, repérable dans le code par `CHANGER_SELON_DECISION`. **Référence pour la suite** : il prime sur les hypothèses des autres documents.
 - **[docs/compte-rendu-visio-1.md](docs/compte-rendu-visio-1.md)** : décisions de la première visio avec la cliente (zone du pilote, profil du chauffeur, abonnement, organisation).
 
 ## Équipe et responsabilités
