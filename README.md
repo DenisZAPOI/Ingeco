@@ -75,7 +75,8 @@ docs/         Cahier des charges, architecture
 compose.yaml  La base MySQL locale (Docker)
 ```
 
-Le détail de l'organisation du code est dans [docs/architecture.md](docs/architecture.md).
+Le détail de l'organisation du code est dans [docs/architecture.md](docs/architecture.md), et le
+pourquoi de chaque choix technique dans les [fiches de décision](docs/adr/README.md).
 
 ## 4. Lancer le projet
 

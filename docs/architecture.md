@@ -2,7 +2,8 @@
 
 Ce document explique **comment le code est rangé et pourquoi**. À lire avant d'écrire la
 première route ou le premier écran. Le modèle est le socle de ProjectOrganizer (R5.A.05),
-adapté au projet.
+adapté au projet. Le pourquoi de chaque choix technique, avec les alternatives écartées, est
+dans les [fiches de décision (ADR)](adr/README.md).
 
 ---
 
@@ -357,7 +358,8 @@ chaque SVG porte une largeur et une hauteur par défaut. Dans les DevTools, ongl
 ## 3. Ajouter une fonctionnalité — liste de contrôle
 
 1. Le besoin est-il dans le MVP (`CLAUDE.md`) ? Demande-t-il une table, une colonne ou une vue ?
-   → issue `bd` à l'équipe BD d'abord, avec la date de besoin.
+   → issue `bd` à l'équipe BD d'abord, avec la date de besoin. Une nouvelle dépendance ou un
+   nouveau service externe ? → une [fiche de décision](adr/README.md) d'abord.
 2. `dtos/` : modèle d'entrée et de sortie.
 3. `repository/` : lectures et écritures.
 4. `services/` : règles, droits, transaction unique ; tests pytest.
