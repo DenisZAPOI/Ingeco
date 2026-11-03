@@ -16,6 +16,7 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **[docs/points-a-valider-porteur.pdf](docs/points-a-valider-porteur.pdf)** : choix et questions soumis au client (13/10/2026), avec ce qu'il a déjà confirmé.
 - **[docs/contrat-api.md](docs/contrat-api.md)** : proposition de contrat d'API (routes, données, règles) remise à l'équipe BD pour concevoir le schéma. Version 2, intègre les réponses du client du 13/10/2026 et de la première visio ; les autres hypothèses restent non validées.
 - **[docs/decisions.md](docs/decisions.md)** : ce qui est décidé (03/11/2026) et la valeur provisoire appliquée à chaque point non tranché, repérable dans le code par `CHANGER_SELON_DECISION`. **Référence pour la suite** : il prime sur les hypothèses des autres documents.
+- **[docs/adr/](docs/adr/README.md)** : fiches de décision d'architecture, une par choix technique (Flask, MySQL, OpenRouteService, JWT en cookies, Regular 2G…), avec les alternatives écartées.
 - **[docs/compte-rendu-visio-1.md](docs/compte-rendu-visio-1.md)** : décisions de la première visio avec la cliente (zone du pilote, profil du chauffeur, abonnement, organisation).
 
 ## Équipe et responsabilités
@@ -146,7 +147,7 @@ Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx)
 - Aucun service d'urgence n'est promis dans les textes (§6).
 
 **Projet**
-- **Une ADR par choix technique** (`docs/adr/NNN-titre.md` : contexte, décision, alternatives, conséquences), dont ceux déjà faits : Flask, MySQL plutôt que PostgreSQL, OpenRouteService plutôt que l'API Adresse, JWT en cookies (§11).
+- **Une ADR par choix technique** ([docs/adr/](docs/adr/README.md), `NNN-titre.md` : contexte, décision, alternatives, conséquences), écrite avant la pull request de toute nouvelle dépendance ou de tout nouveau service externe. Une fiche acceptée ne se réécrit pas : une nouvelle la remplace (§11).
 - **Outils libres ou gratuits uniquement**, aucune carte bancaire personnelle (§20). Toute nouvelle dépendance : licence compatible, notée dans l'inventaire des dépendances (§14, §17).
 - Objectif d'**installation en une commande** (Docker Compose : base, back et front) et de données de démonstration générées par script (§11, §17).
 - L'**usage de l'IA générative** (dont Claude Code) est déclaré dans le rapport ; aucune donnée confidentielle transmise à un outil tiers (§14).
