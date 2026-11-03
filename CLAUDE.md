@@ -22,7 +22,10 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **2 développeurs** (dont Denis ZAPOI) : front et back, c'est-à-dire tout ce repo.
 - **3 étudiants parcours C** : la base de données (schéma, migrations, données de référence).
 - **Côté client** : la fondatrice et présidente d'Ingeco Territoires, et une tutrice, Sophonie Delva, pour les questions numériques. Revue chaque mardi à 10 h, échanges par WhatsApp.
-- **Échéance** : fin du projet vers le 10 janvier 2027 ; le service doit démarrer en janvier 2027.
+- **Échéances** :
+  - **soutenance de la SAÉ le lundi 14 ou le mardi 15 décembre 2026** (à confirmer), environ 15 minutes, chacun présente sa partie. Gel des fonctionnalités le 10/12 ;
+  - fin du projet pour la cliente vers le 10 janvier 2027 ; le service doit démarrer en janvier 2027.
+- **SAÉ S5 (IUT)** : un prototype fonctionnel répondant aux objectifs fixés avec la cliente. Fonctionnalités citées par l'IUT pour Ingeco : comptes, réservation, géolocalisation des chauffeurs, suivi en temps réel, paiement sécurisé, notifications, évaluation. Notation : soutenance /20, rendu (rapport, base, code) /20, avis de la cliente /20. Rendus : rapport de gestion (répartition des tâches, temps de chacun, réunions, démos), application, code, fichiers SQL, documentation. Au moins une réunion avec la cliente toutes les deux semaines, avec un compte rendu.
 
 La base ne nous appartient pas. Ne jamais créer ni modifier de table, de colonne ou de migration depuis ce repo (jamais de `Base.metadata.create_all()`). Si une fonctionnalité demande un changement de schéma, le signaler et rédiger la demande pour l'équipe BD, sans l'appliquer.
 
@@ -157,7 +160,7 @@ Le détail est dans [docs/architecture.md](docs/architecture.md). L'essentiel :
 
 **Demandé par le client, pas encore classé** (à trancher avec le client)
 - Tarification solidaire modulable (selon le profil et le financement) et paramétrage des tarifs par l'administrateur
-- Notifications à l'usager
+- Notifications à l'usager (citées par le sujet de la SAÉ : proposées pour l'étape 4, à faire valider par la cliente et les enseignants)
 - Gestion documentaire des chauffeurs (permis, assurance, agréments)
 - Indicateurs d'impact social et couverture territoriale dans le tableau de bord
 - Abonnement mensuel (au nombre de courses ou au montant dépensé), évoqué en visio, absent du cahier des charges
@@ -170,10 +173,12 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
 2. Authentification et rôles (fait : inscription, connexion, activation, profil, administration des comptes UC51 à UC53 ; reste : création des référents partenaires, avec les bons à l'étape 5)
 3. ~~Parcours de réservation de bout en bout, sur données factices~~ (fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation, côté chauffeur (disponibilité, position, offres, accepter, se désister, démarrer, terminer), expiration des courses (UC60, tâche chaque minute dans `utils/periodic.py`)., revenus du chauffeur (UC28)). Rien n'est en temps réel : les écrans ont un bouton « Actualiser »
-4. Temps réel et carte (Socket.IO : `ride:updated`, `ride:offer`, `driver:location` ; carte Leaflet, photo du chauffeur)
-5. Bons solidaires
-6. Écran opérateur
-7. Statistiques administrateur
+4. Temps réel et carte (Socket.IO : `ride:updated`, `ride:offer`, `driver:location` ; carte Leaflet, photo du chauffeur), plus les notifications à l'usager, demandées par la SAÉ (proposition à valider : bandeau dans l'application et SMS simulés, sans notification push). Sprint 1 : 04/11 → 17/11
+5. Branchement sur la vraie base MySQL, puis bons solidaires **ou** écran opérateur, au choix de la cliente (les bons seulement si leur fonctionnement est fixé le 17/11). Sprint 2 : 18/11 → 01/12
+6. Statistiques administrateur de base, finitions, gel le 10/12, puis démo et soutenance. Sprint 3 : 02/12 → 10/12
+7. Après la soutenance : ce qui reste entre les bons et l'écran opérateur, mise en ligne, passation. Sprint 4 : 16/12 → 10/01
+
+Le détail des sprints et les questions à poser pour chacun : [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md).
 
 ## Conventions
 

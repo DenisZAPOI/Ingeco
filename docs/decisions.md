@@ -89,8 +89,9 @@ modifier le jour où la décision tombe.
 
 Les bons sont le seul bloc qui demande des **tables nouvelles** : tant que Q5 et Q6 ne sont pas
 tranchés, on ne demande pas à l'équipe BD de les créer (règle de la partie 1 : pas de table
-construite sur une valeur provisoire). Si aucune réponse n'arrive d'ici fin novembre 2026, il
-faudra décider avec le client de sortir les bons du MVP ou de les livrer sur ces valeurs.
+construite sur une valeur provisoire). Sans réponse le **17/11/2026** (fin du sprint 1),
+l'écran opérateur passe avant les bons au sprint 2, et les bons viennent après la soutenance du
+14-15/12 ([questions-sprint-2026-11-04.md](questions-sprint-2026-11-04.md)).
 
 ### Courses, paiement, annulation
 
