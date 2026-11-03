@@ -1,5 +1,5 @@
 # Base de données locale (développement seulement).
-#   docker compose up -d       démarre MySQL, charge sql/schema-mvp.sql puis sql/demo-data.sql
+#   docker compose up -d       démarre MySQL ; la 1re fois, charge sql/ (voir sql/charger-base.sh)
 #   docker compose down -v     arrête et EFFACE la base (pour recharger le script)
 #
 # Image officielle plutôt qu'une image Alpine : il n'existe pas de MySQL
@@ -30,12 +30,13 @@ services:
       - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
     volumes:
       - db-data:/var/lib/mysql
-      # Lu au premier démarrage seulement (base vide). Le script hors MVP
-      # n'est pas chargé : l'API ne s'en sert pas.
-      - ./sql/schema-mvp.sql:/docker-entrypoint-initdb.d/01-schema-mvp.sql:ro
-      # Comptes de test au mot de passe public : base locale seulement, jamais
-      # dans un environnement hébergé.
-      - ./sql/demo-data.sql:/docker-entrypoint-initdb.d/02-demo-data.sql:ro
+      # Au premier démarrage seulement (base vide), sql/charger-base.sh
+      # charge le schéma, puis sql/migrations/ dans l'ordre, puis
+      # sql/demo-data.sql. Le script hors MVP n'est pas chargé : l'API ne
+      # s'en sert pas. demo-data.sql contient des comptes au mot de passe
+      # public : base locale seulement, jamais dans un environnement hébergé.
+      - ./sql:/sql:ro
+      - ./sql/charger-base.sh:/docker-entrypoint-initdb.d/charger-base.sh:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 5s
