@@ -841,7 +841,7 @@ suite.
 | UC76 | Suivre le module de formation | Chauffeur | Contenu à écrire avec le client |
 | UC77 | Évaluer l'usager | Chauffeur | Non demandé |
 | UC78 | Gérer un planning de disponibilités | Chauffeur | En ligne / hors ligne suffit (H4) |
-| UC79 | Souscrire un abonnement mensuel (nombre de courses ou montant) | Usager | Évoqué par la cliente en visio, absent du cahier des charges : non classé |
+| UC79 | Souscrire un abonnement mensuel (nombre de courses ou montant) | Usager | Confirmé par la cliente le 03/11 (environ 60 € par mois, gratuit via une structure affiliée), absent du cahier des charges : non codé avant la soutenance ([compte rendu](compte-rendu-entretien-2026-11-03.md)) |
 | UC80 | Enregistrer l'agrément d'un chauffeur pour le transport de personnes handicapées | Administrateur | « En deuxième partie », selon la cliente |
 | UC81 | Desservir Kourou et d'autres communes | Administrateur, équipe BD | Le pilote commence par Cayenne et ses environs ; ajouter une commune est une donnée de référence |
 | – | Payer en espèces | Usager | **Exclu** par le cahier des charges et confirmé par le client |
