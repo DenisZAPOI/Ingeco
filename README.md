@@ -4,7 +4,7 @@ Créer une application de mise en relation entre usagers et chauffeurs afin de f
 déplacements vers l'emploi, la formation, les soins, les démarches administratives et les
 zones isolées de Guyane, avec une dimension sociale et inclusive.
 
-Client : **Ingeco Territoires** (SAS à mission). Projet de BUT 3 Informatique, IUT de Montreuil.
+Client : **Ingeco Territoires** (association loi 1901). Projet de BUT 3 Informatique, IUT de Montreuil.
 Besoins du client : [docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf) et
 [cahier des charges v1.0](docs/cahier-des-charges-v1.0.docx).
 

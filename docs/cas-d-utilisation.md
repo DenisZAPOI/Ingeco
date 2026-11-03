@@ -283,7 +283,7 @@ bons et les structures sont hors du schéma MVP tant qu'il n'est pas fixé
 | UC12 | Estimer le prix d'un trajet | Usager, Opérateur | MVP | 3 | `POST /rides/estimate` |
 | UC13 | Utiliser un bon solidaire | Usager, Opérateur | À trancher (bons) | 5 | `POST /vouchers/check` |
 | UC14 | Payer sa part | Usager | Simulé | 3 | `POST /rides/{id}/payment` |
-| UC15 | Suivre son trajet sur une carte | Usager | MVP | 4 | `GET /rides/{id}`, `GET /rides/{id}/driver-photo`, événements `ride:updated`, `driver:location` |
+| UC15 | Suivre son trajet | Usager | MVP | 4 | `GET /rides/{id}`, `GET /rides/{id}/driver-photo`, événement `ride:updated` |
 | UC16 | Annuler une réservation | Usager | MVP | 3 | `POST /rides/{id}/cancel` |
 | UC17 | Consulter ses trajets | Usager | MVP | 3 | `GET /rides`, `GET /rides/{id}` |
 | UC18 | Évaluer un trajet | Usager | MVP | 3 | `POST /rides/{id}/rating` |
@@ -517,22 +517,23 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
 - **Règles confirmées par le client** : **carte bancaire uniquement**, jamais d'espèces ; **paiement
   à la réservation, avant le trajet**. Un usager sans carte ne voyage qu'avec un bon à 100 % (Q9).
 
-#### UC15 Suivre son trajet sur une carte
+#### UC15 Suivre son trajet
 
 - **Acteur** : Usager
 - **Scénario nominal**
   1. L'usager ouvre sa course en cours.
   2. Il voit l'état : recherche d'un chauffeur, chauffeur en route, à bord, terminé.
   3. Dès qu'un chauffeur accepte : sa photo, son prénom, son véhicule (modèle, immatriculation),
-     sa note moyenne, et sa position sur la carte, mise à jour en direct.
+     sa note moyenne. L'état se met à jour en direct. Pas de position du chauffeur sur une
+     carte : le suivi GPS en temps réel est hors périmètre du cahier des charges (§5).
 - **Variantes** : A1 réseau faible : l'écran se met à jour à la reconnexion en relisant la
   course ; le mode dégradé par SMS prévient des étapes clés (UC62). A2 le chauffeur se désiste :
   retour à « Recherche d'un chauffeur », sans nouveau paiement.
-- **Règles** : la position du chauffeur n'est visible que pendant une course active ; sa photo,
-  tant que la course est acceptée ou en cours. La photo est demandée par la cliente pour la
+- **Règles** : la photo du chauffeur n'est visible que tant que la course est acceptée ou en
+  cours. La photo est demandée par la cliente pour la
   sécurité : le passager doit savoir qui vient le chercher. Elle s'affiche après le texte, en
   petite taille, pour ne pas ralentir l'écran sur réseau faible. Le reste du profil (« mini CV »)
-  est à définir avec la cliente.
+  est décidé : prénom, note et photo (H19).
 
 #### UC16 Annuler une réservation
 
@@ -885,7 +886,7 @@ Regroupement des cas d'utilisation MVP par étape de développement, pour en fai
 | 3 | Mes trajets, annulation, évaluation | UC16, UC17, UC18 | Liste et détail des trajets, évaluation |
 | 3 | Courses du chauffeur | UC20, UC22 (liste), UC23, UC24, UC26, UC27, UC28 | Disponibilité, courses proposées, course en cours, revenus |
 | 3 | Expiration des courses | UC60 | Aucun (tâche) |
-| 4 | Temps réel et carte | UC15, UC21, UC22 (direct), UC25, UC61, UC62 | Suivi sur carte (usager), carte de la course (chauffeur) |
+| 4 | Temps réel | UC15, UC21, UC22 (direct), UC25, UC61, UC62 | Suivi de l'état du trajet en direct (usager), offres en direct (chauffeur) ; sans suivi GPS |
 | 5 | Bons solidaires (fonctionnement à fixer avec la cliente) | UC13, UC30 à UC33, UC54 | Saisie du code à la réservation, bons du référent, consommation, structures (admin) |
 | 6 | Écran opérateur | UC40 à UC45 | Recherche d'usager, création, réservation pour un tiers |
 | 7 | Supervision et statistiques | UC55, UC56 | Liste des courses, tableau de bord |

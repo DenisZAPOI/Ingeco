@@ -1,13 +1,13 @@
 # En route pour l'emploi
 
-Application de VTC solidaire en Guyane, pour le client Ingeco Territoires (SAS à mission). Projet de BUT 3, IUT de Montreuil.
+Application de VTC solidaire en Guyane, pour le client Ingeco Territoires (association loi 1901, selon le cahier des charges). Projet de BUT 3, IUT de Montreuil.
 
 Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la formation, les soins et les démarches administratives. Des structures partenaires (associations, collectivités, entreprises) peuvent financer tout ou partie d'un trajet via des bons solidaires.
 
 ## Documents à lire
 
-- **[docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf)** : expression des besoins du client (version 1, 06/07/2026), centrée sur le VTC solidaire.
-- **[docs/cahier-des-charges-v1.0.docx](docs/cahier-des-charges-v1.0.docx)** : cahier des charges reçu le 03/11/2026 (version 1.0, 14/10/2026). Sujet générique d'une « plateforme 360° d'accès à l'emploi » pour des équipes de L3 à M2, en dix modules (M0 à M10) et trois paliers (P1 à P3). **Notre projet correspond au module M4 (mobilité solidaire)**, à faire confirmer par la cliente. Ses exigences transverses s'appliquent (partie « Règles du cahier des charges » ci-dessous) ; ses contradictions avec nos choix sont listées dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10).
+- **[docs/cahier-des-charges-v1.0.docx](docs/cahier-des-charges-v1.0.docx)** : cahier des charges reçu le 03/11/2026 (version 1.0, 14/10/2026). **C'est la source de vérité** : quand il contredit un autre document (expression des besoins, réponses antérieures du client, contrat d'API, nos hypothèses), il l'emporte, sans poser de question à la cliente. On ne lui pose que ce qu'il ne tranche pas, ce qu'il laisse à son choix, ou ce qui reste flou. Sujet générique d'une « plateforme 360° d'accès à l'emploi » en dix modules (M0 à M10) et trois paliers (P1 à P3). **Notre périmètre proposé** : le palier P1 complet sur M0 (socle), M4 (mobilité) et M9 (administration), à faire accepter par la cliente (les autres modules du P1 dépassent une équipe de deux développeurs). Ses exigences transverses s'appliquent (partie « Règles du cahier des charges » ci-dessous) ; ce qu'il fixe est repris dans [docs/decisions.md](docs/decisions.md#ce-que-fixe-le-cahier-des-charges-v10).
+- **[docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf)** : expression des besoins du client (version 1, 06/07/2026), centrée sur le VTC solidaire. Antérieure au cahier des charges, qui prime en cas de désaccord.
 - **[README.md](README.md)** : présentation, lancement du projet, et guide pour l'équipe BD.
 - **[docs/architecture.md](docs/architecture.md)** : organisation du code back et front, règles de chaque couche, contrat d'API, liste de contrôle pour ajouter une fonctionnalité. **À lire avant d'écrire du code.**
 
@@ -26,8 +26,8 @@ Elle met en relation usagers et chauffeurs pour les trajets vers l'emploi, la fo
 - **Côté client** : la fondatrice et présidente d'Ingeco Territoires, et une tutrice, Sophonie Delva, pour les questions numériques. Revue chaque mardi à 10 h, échanges par WhatsApp.
 - **Échéances** :
   - **soutenance de la SAÉ le lundi 14 ou le mardi 15 décembre 2026** (à confirmer), environ 15 minutes, chacun présente sa partie. Gel des fonctionnalités le 10/12 ;
-  - fin du projet pour la cliente vers le 10 janvier 2027 ; le service doit démarrer en janvier 2027.
-- **SAÉ S5 (IUT)** : un prototype fonctionnel répondant aux objectifs fixés avec la cliente. Fonctionnalités citées par l'IUT pour Ingeco : comptes, réservation, géolocalisation des chauffeurs, suivi en temps réel, paiement sécurisé, notifications, évaluation. Notation : soutenance /20, rendu (rapport, base, code) /20, avis de la cliente /20. Rendus : rapport de gestion (répartition des tâches, temps de chacun, réunions, démos), application, code, fichiers SQL, documentation. Au moins une réunion avec la cliente toutes les deux semaines, avec un compte rendu.
+  - fin du projet pour la cliente vers le 10 janvier 2027 : un **démonstrateur** documenté et transmis (note de transmission, accès remis), pas un service en production (cahier des charges §1).
+- **SAÉ S5 (IUT)** : un prototype fonctionnel répondant aux objectifs fixés avec la cliente. Fonctionnalités citées par l'IUT pour Ingeco : comptes, réservation, géolocalisation des chauffeurs, suivi en temps réel, paiement sécurisé, notifications, évaluation. Le « suivi en temps réel » s'y entend comme le **statut du trajet mis à jour en direct**, sans position GPS du chauffeur sur une carte : le cahier des charges met le suivi GPS en temps réel hors périmètre (décision du 03/11/2026, [docs/decisions.md](docs/decisions.md)). Notation : soutenance /20, rendu (rapport, base, code) /20, avis de la cliente /20. Rendus : rapport de gestion (répartition des tâches, temps de chacun, réunions, démos), application, code, fichiers SQL, documentation. Au moins une réunion avec la cliente toutes les deux semaines, avec un compte rendu.
 
 La base ne nous appartient pas. **Les développeurs ne modifient plus aucun fichier de `sql/`** (décidé le 03/11/2026) : ni table, ni colonne, ni migration, ni donnée de test (et jamais de `Base.metadata.create_all()`). Si une fonctionnalité demande un changement de schéma, une vue ou une donnée, le signaler et rédiger la demande pour l'équipe BD (issue GitHub avec l'étiquette `bd` : besoin, table ou colonne suggérée, date), sans l'appliquer.
 
@@ -169,41 +169,29 @@ Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx)
 | Opérateur | Centre d'appel : retrouve ou crée un usager, réserve et annule à sa place |
 | Administrateur | Gère les comptes, les tarifs, les statistiques, le support |
 
-## Périmètre du MVP
+## Périmètre
 
-À faire valider par le client avant de s'y tenir.
+Fixé par le [cahier des charges](docs/cahier-des-charges-v1.0.docx) (§5, §7.4, §18). Notre proposition, à faire accepter par la cliente : **le palier P1 complet sur M0, M4 et M9**, puis des éléments du P2 après la soutenance. Le détail, exigence par exigence, est dans [docs/decisions.md](docs/decisions.md#ce-que-fixe-le-cahier-des-charges-v10).
 
-**Dans le MVP**
-- Création de compte et connexion
-- Réservation immédiate ou programmée
-- Mise en relation avec un chauffeur disponible
-- Côté chauffeur : accepter, démarrer, clôturer une course
-- Suivi du trajet sur carte, avec la photo et le profil du chauffeur (demandé par la cliente pour la sécurité ; colonne `photo` prévue dans `sql/schema-mvp.sql`)
-- Évaluation du trajet
-- Zone desservie limitée au pilote : Cayenne, Rémire-Montjoly et Matoury (environ 5 km autour de Cayenne). Kourou viendra ensuite
-- Bons solidaires : émission, utilisation à la réservation, suivi de consommation. Leur fonctionnement n'est pas encore spécifié par la cliente : hors du schéma MVP pour l'instant (proposition dans `sql/schema-hors-scope.sql`)
-- Écran opérateur pour réserver au nom d'un usager (tient lieu de centre d'appel)
-- Statistiques administrateur de base
+**Palier P1, avant le gel du 10/12** (✓ fait)
+- M0 : compte par téléphone sans courriel obligatoire, code simulé ✓, récupération par téléphone ✓, demande de suppression ; rôles ✓ ; textes dans des fichiers de traduction et changement de langue ; PWA installable ✓ ; accessibilité de base ; aide (« Être rappelé », FAQ, signaler un problème).
+- M4, passager : départ et arrivée par adresse ✓, repère ou point sur carte ; date et horaire ✓, passagers, bagages, besoin d'un véhicule adapté ✓ ; zones ✓ et horaires autorisés ; prix ✓, réduction, reste à payer et conditions d'annulation affichés avant envoi ; version du tarif conservée ✓ ; numéro unique et « en attente de chauffeur » ✓ ; motif ✓ ; historique ✓, chauffeur et véhicule ✓.
+- M4, chauffeur : dossier (véhicule ✓, places, zones, disponibilités, pièces), activation après validation ✓, suspension à l'expiration des pièces ; propositions avec délai de réponse, acceptation ou refus ; une course à un seul chauffeur ✓ ; arrivée, début ✓, fin ✓, absence, incident horodatés avec leur auteur.
+- M4, états : demande envoyée, attente de chauffeur ✓, confirmée ✓, chauffeur arrivé, en cours ✓, terminée ✓ ; refusée faute de disponibilité ✓ (expiration), annulée ✓, passager absent. Paiement : en attente ✓, payé ✓, échoué, remboursé ✓.
+- M9 : utilisateurs ✓, chauffeurs ✓, zones, horaires, tarifs ; affectation et réaffectation d'une course par l'administrateur, avec avertissement du passager.
+- Évaluation du trajet ✓ (demandée par la SAÉ). Statut du trajet mis à jour en direct (« suivi en temps réel » de la SAÉ), **sans suivi GPS**.
+- Projet : installation en une commande, données de démo par script, licence et AUTHORS ✓, registre simplifié des traitements et matrice des flux, tests sur prix et états ✓.
 
-**Simulé**
-- Paiement : mode test du prestataire, aucun paiement réel
-- SMS : écrits dans les logs, pas envoyés (sans le numéro ni le contenu personnel, RGPD)
+**Palier P2, après la soutenance** (selon le temps, par ordre de priorité proposé)
+- Tarifs solidaires, plafonds, tiers payeur et codes de trajet (les bons solidaires) ; éligibilité validée par un prescripteur (motif, validité, plafond), enveloppes par financeur, chaque trajet imputé à un seul financeur.
+- Réservation pour le compte d'une personne (prescripteur, accompagnant ou centre d'appel), avec son accord tracé et révocable.
+- Notifications simulées (SMS dans un journal, notifications web, courriel de test), règles d'annulation et d'absence réglables, langue de démonstration.
 
-**Hors MVP**
-- Paiement en espèces dans l'application (exclu par le cahier des charges)
-- Module de formation des chauffeurs
-- Agréments des chauffeurs pour le transport de personnes handicapées (« en deuxième partie », selon la cliente)
-- Facturation consolidée des partenaires
-- Application native
+**Simulé** : paiement (aucune transaction réelle), SMS (écrits dans les logs, sans numéro ni contenu personnel).
 
-**Demandé par le client, pas encore classé** (à trancher avec le client)
-- Tarification solidaire modulable (selon le profil et le financement) et paramétrage des tarifs par l'administrateur
-- Notifications à l'usager (citées par le sujet de la SAÉ : proposées pour l'étape 4, à faire valider par la cliente et les enseignants)
-- Gestion documentaire des chauffeurs (permis, assurance, agréments)
-- Indicateurs d'impact social et couverture territoriale dans le tableau de bord
-- Abonnement mensuel (au nombre de courses ou au montant dépensé), évoqué en visio, absent du cahier des charges
+**Hors périmètre** (cahier des charges §5) : suivi GPS en temps réel, données réelles, paiements réels, envoi massif de SMS, mise en ligne ouverte au public, applications sur les stores, décision automatisée et IA de tri. Aussi hors du projet : modules M1, M2, M3, M5, M6, M7, M10 (sauf accord contraire de la cliente), formation et agréments des chauffeurs, abonnement mensuel (absent du cahier des charges).
 
-Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
+Ne rien implémenter hors de ce périmètre sans demande explicite.
 
 ## Ordre de développement
 
@@ -211,10 +199,10 @@ Ne pas implémenter d'élément hors MVP ou non classé sans demande explicite.
 1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
 2. Authentification et rôles (fait : inscription, connexion, activation, profil, administration des comptes UC51 à UC53 ; reste : création des référents partenaires, avec les bons à l'étape 5)
 3. ~~Parcours de réservation de bout en bout, sur données factices~~ (fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation, côté chauffeur (disponibilité, position, offres, accepter, se désister, démarrer, terminer), expiration des courses (UC60, tâche chaque minute dans `utils/periodic.py`)., revenus du chauffeur (UC28)). Rien n'est en temps réel : les écrans ont un bouton « Actualiser »
-4. Temps réel et carte (Socket.IO : `ride:updated`, `ride:offer`, `driver:location` ; carte Leaflet, photo du chauffeur), plus les notifications à l'usager, demandées par la SAÉ (proposition à valider : bandeau dans l'application et SMS simulés, sans notification push). Sprint 1 : 04/11 → 17/11
-5. Branchement sur la vraie base MySQL, puis bons solidaires **ou** écran opérateur, au choix de la cliente (les bons seulement si leur fonctionnement est fixé le 17/11). Sprint 2 : 18/11 → 01/12
-6. Statistiques administrateur de base, finitions, gel le 10/12, puis démo et soutenance. Sprint 3 : 02/12 → 10/12
-7. Après la soutenance : ce qui reste entre les bons et l'écran opérateur, mise en ligne, passation. Sprint 4 : 16/12 → 10/01
+4. Sprint 1 (04/11 → 17/11) : les manques du palier P1 **sans changement de base** : statut du trajet et offres mis à jour en direct (Socket.IO : `ride:updated`, `ride:offer`, sans position GPS partagée au passager), affectation et réaffectation par l'administrateur, délai de réponse et refus d'une offre par le chauffeur, conditions d'annulation affichées avant envoi, changement de langue, FAQ, photo du chauffeur sur la page du trajet, installation en une commande (Docker Compose)
+5. Sprint 2 (18/11 → 01/12) : branchement sur la vraie base MySQL, puis les manques P1 **qui demandent des colonnes** à l'équipe BD : horaires autorisés, zones et tarifs réglables par l'administrateur, repère et passagers, états « chauffeur arrivé » et « passager absent », paiement échoué, auteur des étapes, pièces du chauffeur et suspension, demande de suppression de compte, « Être rappelé »
+6. Sprint 3 (02/12 → 10/12) : tableau de bord administrateur, dossier conformité (registre des traitements, matrice des flux), finitions, gel le 10/12, puis démo et soutenance
+7. Sprint 4, après la soutenance (16/12 → 10/01) : éléments du P2 (bons solidaires, réservation pour le compte d'une personne), puis livrables de transmission (guides, vidéo, note de transmission, remise des accès)
 
 Le détail des sprints et les questions à poser pour chacun : [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md).
 
@@ -232,16 +220,12 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 ## Points à confirmer
 
 - **Avec l'équipe BD** : relecture et validation du schéma v2 (`sql/`) **pour le 17/11** (il devient ensuite le point de départ des migrations), réécrit par les développeurs à partir de leur première version (écrite avant le contrat v2) ; confirmation de MySQL 8.4 ; stockage de la photo du chauffeur (H19) ; vues des statistiques pour le sprint 3 ; hébergement de la base en production (choisi en fin de projet). Liste complète dans le README, partie 5.
-- **Avec le client** : le fonctionnement des bons solidaires (pourcentage sur un nombre de courses, montant, plafond, budget par structure ?). Tant qu'il n'est pas fixé, les bons restent hors du schéma MVP.
-- **Avec le client** : disponibilité « 24h/24 » ou « en semaine avec créneaux élargis » (le cahier des charges dit les deux).
-- **Avec le client** : « Android/iOS » ou « Android prioritaire » (idem).
+- **Avec le client** : notre périmètre (P1 complet sur M0, M4 et M9, sans les autres modules), la langue de démonstration et ses textes, la licence (MIT ou EUPL 1.2, ou cession) et la convention tripartite, l'usage du nom et du logo d'Ingeco, la fiche de cadrage (§21). Questions dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-cahier-des-charges-v10).
+- **Avec le client** : les valeurs des réglages que le cahier des charges rend paramétrables (horaires autorisés, délai de réponse du chauffeur, délai d'annulation gratuite, frais ensuite, règle d'absence). En attendant, valeurs provisoires de [docs/decisions.md](docs/decisions.md).
+- **Avec le client** : les montants et règles des bons solidaires (P2, après la soutenance), dans le cadre fixé par le cahier des charges (éligibilité, plafond, enveloppe par financeur).
 - **Avec le client** : le centre d'appel est tenu par des personnes dédiées, et tout le monde peut réserver par téléphone (donnés comme confirmés le 13/10/2026, mais absents de la première visio : retrouver la trace écrite de cette réponse). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
-- **Avec le client** : les limites exactes de la zone du pilote (communes, rayon) et ce qu'on répond à une demande hors zone.
-- **Avec le client** : le contenu du profil du chauffeur montré au passager, en plus de la photo (« mini CV »).
-- **Avec le client** : le partage des numéros de téléphone entre usager et chauffeur pendant une course (fait dans l'application, pour qu'ils puissent s'appeler à la prise en charge).
-- **Avec le client** (cahier des charges v1.0 reçu le 03/11/2026) : notre périmètre (module M4 seul ?), le suivi en temps réel classé hors périmètre alors que la SAÉ le demande, démonstrateur ou service mis en route en janvier, Ingeco association loi 1901 ou SAS à mission, affectation manuelle des courses par l'administrateur, horaires autorisés, états « chauffeur arrivé » et « passager absent », langue de démonstration, licence du code. Questions rédigées dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-nouveau-cahier-des-charges-v10).
-- **Avec le client** : les éléments « pas encore classés » du périmètre ci-dessus.
-- **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : l'inscription par code SMS (coût des SMS réels, une étape de plus), le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
+- **Avec le client** : le contenu exact de la zone du pilote. Les zones sont réglables par l'administrateur (cahier des charges) ; valeur provisoire : Cayenne, Rémire-Montjoly et Matoury.
+- **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
 - **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` (leur première migration) et la séparation de `sql/demo-data.sql` (README, partie 5).
 - **Au déploiement** : `TRUSTED_PROXY_COUNT` selon l'hébergement ; les inscriptions en attente, les limites d'essais et les verrous sont en mémoire, valables pour un seul processus d'API.
 - **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).
