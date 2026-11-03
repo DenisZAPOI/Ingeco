@@ -37,9 +37,9 @@ Notation : soutenance /20, rendu (rapport, base de données, code) /20, avis de 
 
 | Sprint | Dates | Contenu |
 |---|---|---|
-| 1 | 04/11 → 17/11 | Manques du palier P1 **sans changement de base** : statut en direct, affectation par l'administrateur, refus d'une offre dans un délai, conditions d'annulation, choix de la langue, FAQ, installation en une commande ; commission |
-| 2 | 18/11 → 01/12 | Vraie base MySQL, puis manques du P1 **qui demandent des colonnes** : horaires, zones et tarifs réglables, repère et passagers, « arrivé » et « absent », paiement échoué, pièces du chauffeur, suppression de compte, « Être rappelé » |
-| 3 | 02/12 → 10/12 | Tableau de bord administrateur, dossier conformité, finitions ; **gel des fonctionnalités le 10/12** |
+| 1 | 04/11 → 17/11 | Tout le palier P1 qui ne demande **pas de changement de base** : maquettes, accueil par besoins, offres d'emploi et « Comment y aller ? », liens vers les formations, annuaire des aides ; affectation par l'administrateur, refus d'une offre, conditions d'annulation ; langue, FAQ, installation en une commande ; commission |
+| 2 | 18/11 → 01/12 | Vraie base MySQL avec les nouvelles tables ; questionnaire et plan d'action ; horaires, zones et tarifs réglables ; repère et passagers, « arrivé » et « absent », paiement échoué, pièces du chauffeur ; suppression de compte, « Être rappelé » |
+| 3 | 02/12 → 10/12 | Statut du trajet en direct, accessibilité, données de démo, dossier conformité, répétition du scénario de Jordan ; **gel des fonctionnalités le 10/12** |
 | – | 10/12 → 15/12 | Répétition de la démo, support de soutenance, rapport de gestion |
 | 4 | 16/12 → 10/01 | Palier P2 selon le temps (bons solidaires, réservation pour le compte d'une personne), puis transmission |
 
@@ -57,13 +57,16 @@ toutes les deux semaines).
 Reçu le 03/11/2026 : [cahier-des-charges-v1.0.docx](cahier-des-charges-v1.0.docx) (version 1.0
 du 14/10/2026). Sujet générique d'une « plateforme 360° d'accès à l'emploi » en dix modules
 (M0 à M10) et trois paliers. Toutes les équipes doivent livrer le palier P1, qui couvre aussi
-l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en premier** :
+l'orientation, les offres d'emploi, les formations et l'annuaire : **décidé le 03/11, on fait
+tout le palier P1**. **À poser en premier** :
 
-1. **Cliente** : avec deux développeurs et un gel le 10/12, pouvons-nous livrer le palier P1
-   complet sur la mobilité (M4), le socle (M0) et l'administration (M9), sans l'orientation
-   (M1), les offres d'emploi (M2), les formations (M3) ni l'annuaire (M5) ? Le scénario A
-   (Jordan) se démontrerait à partir de la demande de trajet.
-   *Par défaut : oui, P1 complet sur M0, M4 et M9.*
+1. **Cliente** : en plus des trajets, nous faisons le questionnaire d'orientation, les offres
+   d'emploi, les formations et l'annuaire des aides. Pouvez-vous nous envoyer d'ici le 10/11 des
+   exemples de services d'aide de Guyane, d'offres d'emploi types et les questions que vous
+   voulez voir dans le questionnaire ? Tout restera fictif dans l'application.
+   *Par défaut : nous les rédigeons, vous les validez.*
+   Et : pouvez-vous valider nos maquettes des nouveaux écrans à la revue du 10/11 ? (le cahier
+   des charges demande votre validation avant le développement)
 2. **Cliente** : quelle langue de démonstration voulez-vous, et quand pouvez-vous en fournir les
    textes ? Le cahier des charges prévoit que le porteur les fournit.
    *Par défaut : français seulement, avec le changement de langue en place.*
@@ -83,7 +86,8 @@ l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en 
 9. **BD** : la relecture du schéma v2 (`sql/`) peut-elle être finie pour le 17/11 ? Sinon, le
    branchement sur MySQL glisse, et la démo de décembre tourne sur des données factices.
 10. **BD** : le cahier des charges demande des données que le schéma n'a pas encore. Pouvez-vous
-    les ajouter au sprint 2 ? Horaires de service ; repère et nombre de passagers sur une
+    les ajouter au sprint 2 ? Nouvelles tables : offres d'emploi, services d'aide, fiches
+    pratiques, réponses au questionnaire et plans d'action. Sur les trajets : horaires de service ; repère et nombre de passagers sur une
     course ; états « chauffeur arrivé » et « passager absent » ; paiement « échoué » ; auteur de
     chaque étape d'une course ; pièces du chauffeur et leur date d'expiration ; demandes de
     suppression de compte et de rappel. Une issue `bd` par besoin.
@@ -93,10 +97,15 @@ l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en 
 
 ## Sprint 1 (04/11 → 17/11) : le palier P1 sans changement de base
 
-**Ce qu'on fait :**
-- Socket.IO : la page du trajet se met à jour seule (`ride:updated`), et les nouvelles courses
-  arrivent seules chez les chauffeurs en ligne (`ride:offer`). Pas de position du chauffeur
-  montrée au passager (suivi GPS hors périmètre).
+**Ce qu'on fait :** sur données factices en mémoire, comme les trajets aujourd'hui.
+- Maquettes des nouveaux parcours, montrées à la cliente le 10/11.
+- Accueil par besoins : « Je cherche un travail », « J'ai besoin d'un trajet », « J'ai besoin
+  d'aide ».
+- Offres d'emploi fictives avec filtres (commune, horaires, débutant accepté, sans diplôme), et
+  « Comment y aller ? » qui ouvre une demande de trajet déjà remplie, en 3 actions au plus.
+- Une page de liens vers les catalogues de formation.
+- Annuaire des services d'aide (recherche par commune et par besoin) et fiches pratiques
+  « Comment faire ? ».
 - Affectation et réaffectation d'une course par l'administrateur, avec avertissement du passager.
 - Proposition d'une course au chauffeur avec un délai de réponse ; il accepte ou refuse.
 - Conditions d'annulation affichées avant l'envoi de la demande.
@@ -104,11 +113,12 @@ l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en 
 - Photo, prénom et note du chauffeur sur la page du trajet.
 - Installation en une commande : le back et le front ajoutés à Docker Compose.
 - À côté : la commission dans « Mes revenus ».
+- Dès le début : demander à l'équipe BD les tables et colonnes du sprint 2.
 
 **Questions :**
 
-1. **Interne** : qui prend quoi ? Par exemple, le temps réel et l'affectation d'un côté, la
-   langue, la FAQ et Docker de l'autre.
+1. **Interne** : qui prend quoi ? Proposition dans `repartition-travail.md` : les nouveaux
+   modules d'un côté, les trajets, l'administration et l'infrastructure de l'autre.
 2. **Interne** : comment note-t-on le temps passé par chacun, pour le rapport de gestion ? Un
    tableur partagé, ou les issues GitHub ?
 3. **Cliente** : le chauffeur a-t-il besoin de connaître le motif du trajet (emploi, santé…)
@@ -130,8 +140,11 @@ l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en 
 ## Sprint 2 (18/11 → 01/12) : vraie base, puis le palier P1 avec la base
 
 **Ce qu'on fait :**
-- On branche l'API sur la base MySQL de l'équipe BD, à la place des données factices. Le rendu
-  de la SAÉ est noté avec la base de données, et l'équipe BD présente sa partie à la soutenance.
+- On branche l'API sur la base MySQL de l'équipe BD, à la place des données factices, y compris
+  les nouvelles tables (offres, services, fiches pratiques). Le rendu de la SAÉ est noté avec la
+  base de données, et l'équipe BD présente sa partie à la soutenance.
+- Le questionnaire d'orientation et « Mon plan d'action » (3 à 5 étapes, règles simples, contact
+  humain, aucune décision automatique).
 - Puis les manques du P1 qui demandent des colonnes (demandées au sprint 1, question 10) :
   horaires autorisés et refus expliqué hors horaire ; zones et tarifs réglables par
   l'administrateur ; repère et nombre de passagers ; étapes « chauffeur arrivé » et « passager
@@ -156,13 +169,15 @@ l'orientation, les offres d'emploi, les formations et l'annuaire. **À poser en 
 
 ---
 
-## Sprint 3 (02/12 → 10/12) : tableau de bord et gel avant la soutenance
+## Sprint 3 (02/12 → 10/12) : finitions et gel avant la soutenance
 
-**Ce qu'on fait :** un tableau de bord administrateur (demandes en attente, courses,
-annulations, chauffeurs disponibles, cahier des charges §7.9) ; le dossier conformité du palier
-P1 (registre simplifié des traitements, matrice des flux), le fichier `LICENSE` et l'inventaire
-des dépendances ; on corrige les bogues et on fait le passage « Regular 2G » de tout le
-parcours, puis **plus aucune nouvelle fonctionnalité après le 10/12**. Du 10 au 15/12 :
+**Ce qu'on fait :** le statut du trajet mis à jour en direct (Socket.IO : `ride:updated`,
+`ride:offer`, sans position GPS), demandé par la SAÉ ; l'accessibilité de base (contrastes,
+libellés, clavier) ; les données de démo par script ; le dossier conformité du palier P1
+(registre simplifié des traitements, matrice des flux), le fichier `LICENSE` et l'inventaire
+des dépendances ; un tableau de bord administrateur s'il reste du temps ; la répétition du
+scénario de Jordan de bout en bout ; on corrige les bogues et on fait le passage « Regular 2G »
+de tout le parcours, puis **plus aucune nouvelle fonctionnalité après le 10/12**. Du 10 au 15/12 :
 répétition de la démo, support de soutenance, rapport de gestion.
 
 **Questions (à poser au sprint 1) :**
