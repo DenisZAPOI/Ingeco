@@ -152,6 +152,9 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
   (« Étape 2 sur 4 »), une phrase en dessous (`hero-lead`) ou la barre de progression.
 - **Feuille** (`PageSheet`) : le contenu de l'écran, sur une feuille blanche aux coins arrondis
   qui chevauche le bas du bandeau, avec une ombre douce. Derrière, le fond de page `page`.
+- **Pied de page** (`footer`, dans `Layout.tsx` et recopié dans `index.html`) : « Projet
+  étudiant — démonstrateur · À propos », centré, en petit texte gris, sous la feuille de chaque
+  écran. Exigé par le cahier des charges (§14) : ne jamais le retirer. Rien d'autre n'y va.
 - **Ordre d'un écran** : bandeau avec le titre, puis dans la feuille : une phrase d'explication si
   besoin, le contenu, le bouton principal **en bas, en pleine largeur** (`button-block`), puis les
   liens secondaires.
@@ -315,6 +318,19 @@ d'aide ? » du centre d'appel.
 
 Un message d'erreur porte `role="alert"`, une confirmation `role="status"` : un lecteur d'écran
 les annonce.
+
+### À propos
+
+Page publique `/a-propos`, ouverte depuis le pied de page. Trois parties en `h2` : ce qu'est le
+démonstrateur (en liste : exemples, paiement et SMS simulés, aucun chauffeur réel), qui l'a
+réalisé (liste `credits` : rôle en gras, noms en dessous), puis le crédit des cartes
+(© contributeurs d'OpenStreetMap, lien vers leur page de droits d'auteur, obligatoire).
+
+- Les noms viennent de `FRONTEND/src/lib/about.ts`, la même liste que le fichier `AUTHORS` à la
+  racine : modifier les deux ensemble.
+- Le nom du client n'apparaît qu'avec son accord (cahier des charges, §14) : `CLIENT_NAME`,
+  marqué `CHANGER_SELON_DECISION`. Sans accord, « une structure d'insertion de Guyane ». Pas de
+  logo du client.
 
 ### Chargement et erreur
 

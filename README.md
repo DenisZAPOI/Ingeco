@@ -14,6 +14,8 @@ Auteurs du projet :
 - Kurtys TSHIBOLA
 - Boude HANOUNE
 
+Rôles dans [AUTHORS](AUTHORS), repris dans l'application (page « À propos »).
+
 ---
 
 ## Sommaire
