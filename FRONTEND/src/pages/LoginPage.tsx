@@ -6,6 +6,7 @@ import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
 import { useLogin } from '../hooks/useAuthForms';
+import { PASSWORD_RESET_PATH } from '../lib/paths';
 
 export function LoginPage() {
   const [phone, setPhone] = useState('');
@@ -38,8 +39,7 @@ export function LoginPage() {
           />
         </Form>
         <p className="note">
-          Mot de passe oublié ? Appelez le centre d'appel : on vous donnera un code, à saisir dans{' '}
-          <Link to="/activation">« J'ai reçu un code »</Link>.
+          <Link to={PASSWORD_RESET_PATH}>Mot de passe oublié ?</Link>
         </p>
         <p className="note">
           Pas encore de compte ? <Link to="/inscription">Créer un compte</Link>

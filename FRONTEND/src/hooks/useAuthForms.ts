@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import {
   activate,
+  askPasswordResetCode,
   askRegistrationCode,
   confirmRegistration,
   login,
@@ -31,6 +32,11 @@ export function useConfirmRegistration() {
   return useSubmit(
     useCallback((data: ConfirmRegistrationData) => confirmRegistration(data).then(keep(setUser)), [setUser]),
   );
+}
+
+/** Forgotten password: sends the SMS code. No session yet. */
+export function useAskPasswordResetCode() {
+  return useSubmit(askPasswordResetCode);
 }
 
 export function useActivate() {

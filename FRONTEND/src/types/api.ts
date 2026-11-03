@@ -166,6 +166,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgotten password: sends by SMS an 8-digit code, valid 15 minutes, to type in POST /auth/activate.
+         * @description Same answer whether the number has an account or not. No SMS for an
+         *     administrator (another administrator issues their code) nor for a
+         *     suspended account. Replaces the previous code. 429 after 3 codes an hour
+         *     for a number, or 10 for a network address.
+         */
+        post: operations["passwordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/refresh": {
         parameters: {
             query?: never;
@@ -896,6 +919,22 @@ export interface components {
              * @enum {string}
              */
             type: "immediate" | "scheduled";
+        };
+        /** PasswordResetBody */
+        PasswordResetBody: {
+            /** Phone */
+            phone: string;
+        };
+        /**
+         * PasswordResetCodeDto
+         * @description Same answer whether a code was sent or not: it does not tell who has an account.
+         */
+        PasswordResetCodeDto: {
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
         };
         /** PhotoBody */
         PhotoBody: {
@@ -1865,6 +1904,48 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    passwordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetBody"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordResetCodeDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

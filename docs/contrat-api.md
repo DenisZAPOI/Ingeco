@@ -128,16 +128,22 @@ veut dire que l'API en fournira toujours une valeur.
 | `email` | texte | non | Unique s'il est renseigné |
 | mot de passe haché | texte (prévoir 255) | non | Jamais en clair. Vide tant que le compte n'est pas activé |
 | code d'activation haché | texte (prévoir 255) | non | Jamais en clair. Vide hors période d'activation |
-| `activationCodeExpiresAt` | date-heure | non | Fin de validité du code (48 h après sa création) |
+| `activationCodeExpiresAt` | date-heure | non | Fin de validité du code (48 h après sa création par un administrateur, 15 min pour un code de mot de passe oublié) |
 | `sessionVersion` | entier | oui | 0 à la création. Augmente à chaque nouveau mot de passe (profil, activation) et à chaque suspension : les sessions ouvertes avant prennent fin. Jamais envoyé au front |
 | `createdAt` | date-heure | oui | |
 
 **Activation.** Un compte créé par quelqu'un d'autre (usager créé par l'opérateur, chauffeur,
 référent, opérateur, administrateur) n'a pas de mot de passe. Un administrateur génère un code à usage unique, le
 transmet à la personne (par téléphone ou en main propre), et celle-ci choisit son mot de passe
-avec `POST /auth/activate`. Le même mécanisme sert au mot de passe oublié : pas de
-réinitialisation en libre-service tant que les SMS sont simulés (H12). Le code fait 8 chiffres,
-facile à dicter.
+avec `POST /auth/activate`. Le code fait 8 chiffres, facile à dicter.
+
+**Mot de passe oublié** (exigé par le cahier des charges v1.0 : une personne sans courriel
+récupère son compte par téléphone). `POST /auth/password-reset` envoie par SMS un code de
+8 chiffres, valable 15 minutes, rangé dans les mêmes colonnes que le code d'activation ; la
+personne le saisit avec son nouveau mot de passe dans `POST /auth/activate`. Il remplace le code
+précédent, y compris celui remis par l'équipe (48 h). Aucun SMS pour un compte suspendu ni pour
+un administrateur : son compte ouvre tout, un autre administrateur lui génère un code. La réponse
+est la même dans tous les cas. Le centre d'appel peut toujours générer un code (UC53).
 
 **Inscription.** Un usager s'inscrit en deux temps : `POST /auth/register` envoie un code de
 6 chiffres par SMS, valable 10 minutes ; `POST /auth/register/confirm` avec ce code crée le compte.
@@ -316,6 +322,7 @@ La colonne « En base » résume ce que la route lit (**L**) et écrit (**E**).
 |---|---|---|---|
 | `POST /auth/register` | public | Première étape : envoie un code de 6 chiffres par SMS, valable 10 minutes (`202`, `{ expiresAt }`). Ne crée rien. Même réponse si le numéro a déjà un compte. `429` après 3 codes en une heure pour un numéro, ou 10 depuis une même adresse réseau | L : téléphone déjà pris ? |
 | `POST /auth/register/confirm` | public | Téléphone + code reçu : crée le compte `rider` actif et ouvre la session (`201`). Jamais un autre rôle. `422` si le code est faux ou expiré (après 5 erreurs, il faut un nouveau code) ; `409` si l'e-mail est déjà pris | L : e-mail déjà pris ? E : un compte |
+| `POST /auth/password-reset` | public | Mot de passe oublié : téléphone seul. Envoie par SMS un code de 8 chiffres valable 15 minutes, à saisir dans `POST /auth/activate` (`202`, `{ expiresAt }`). Même réponse quel que soit le numéro ; aucun SMS pour un administrateur ni un compte suspendu. `429` après 3 codes en une heure pour un numéro, ou 10 depuis une même adresse réseau | L : compte par téléphone. E : code haché et échéance |
 | `POST /auth/activate` | public | Téléphone + code d'activation + nouveau mot de passe, puis ouvre la session. Efface le code et coupe les autres sessions. `422` si le code est faux ou expiré, `429` après 5 échecs en 15 minutes pour un numéro, ou 30 depuis une même adresse réseau | L : compte par téléphone. E : mot de passe, code remis à vide, `sessionVersion + 1` |
 | `POST /auth/login` | public | Connexion par téléphone + mot de passe. `429` après 5 échecs en 15 minutes pour le même numéro, ou 30 depuis une même adresse réseau, ou quand trop de connexions arrivent en même temps | L : compte par téléphone |
 | `POST /auth/refresh` | connecté | Renouvelle le jeton d'accès (15 min) à partir du jeton de renouvellement (30 jours). Relit le compte : un compte suspendu, ou une session plus ancienne que le dernier mot de passe, est déconnecté ici | L : compte par id |
@@ -712,7 +719,7 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 | H9 | Le chauffeur touche le prix total de la course, sans commission | Un taux de commission, un montant « chauffeur » sur la course, un suivi des versements |
 | H10 | Paiement simulé : un simple statut sur la course | Une table de paiements (référence du prestataire, tentatives, remboursements) |
 | H11 | Un désistement de chauffeur n'est pas mémorisé (seulement journalisé) | Une table des désistements, ou un compteur sur le chauffeur |
-| H12 | Activation et mot de passe oublié par un code généré par un administrateur | Avec de vrais SMS : réinitialisation en libre-service, même stockage du code |
+| H12 | ~~Activation et mot de passe oublié par un code généré par un administrateur~~ Fait (03/11/2026) : mot de passe oublié en libre-service par SMS (`POST /auth/password-reset`), même stockage du code, sauf pour les administrateurs | – |
 | H13 | Adresses et distance par la route viennent d'un **service externe** appelé par l'API : **OpenRouteService**, sur données OpenStreetMap (choisi le 02/11/2026). L'usager choisit lui-même la commune dans la liste | Si la commune doit être déduite de la position : les contours des communes en base, avec un type spatial |
 | H14 | Par téléphone, l'usager paie par un lien reçu par SMS ([6.9](#69-lien-de-paiement-par-sms)) | Carte dictée à l'opérateur : règles de sécurité des cartes bancaires au centre d'appel, déconseillé. Sans effet sur le schéma |
 | H15 | `isPriority` n'a aucun effet automatique (ni sur le prix, ni sur l'attribution) | Un ordre de priorité dans la recherche de chauffeur, ou un tarif lié au profil (rejoint H8) |

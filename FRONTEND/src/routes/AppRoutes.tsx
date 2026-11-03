@@ -17,6 +17,7 @@ import { DriverRidesPage } from '../pages/DriverRidesPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { PasswordResetPage } from '../pages/PasswordResetPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RidePage } from '../pages/RidePage';
@@ -35,6 +36,7 @@ export function AppRoutes() {
           <Route path="connexion" element={<LoginPage />} />
           <Route path="inscription" element={<RegisterPage />} />
           <Route path="activation" element={<ActivatePage />} />
+          <Route path="mot-de-passe-oublie" element={<PasswordResetPage />} />
         </Route>
         <Route element={<LoggedInRoutes />}>
           <Route path="profil" element={<ProfilePage />} />

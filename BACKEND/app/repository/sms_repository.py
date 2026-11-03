@@ -25,6 +25,8 @@ ALREADY_REGISTERED = "already_registered"
 # An administrator issued a new activation code for an account that already
 # has a password (audit F19): its holder is warned.
 NEW_ACTIVATION_CODE = "new_activation_code"
+# Forgotten password: the code to type with the new password.
+PASSWORD_RESET_CODE = "password_reset_code"
 # A rider was suspended: their rides not taken yet are cancelled and refunded.
 SUSPENDED_RIDES_CANCELLED = "suspended_rides_cancelled"
 
@@ -34,7 +36,7 @@ def send(_session: Session, *, user_id: int, kind: str, ride_id: int | None = No
 
 
 def send_to_number(_session: Session, *, phone: str, kind: str, code: str | None = None) -> None:
-    """To a number without an account yet (registration). `code`: the code to send in it.
+    """To the number typed by a visitor (registration, forgotten password). `code`: the code to send in it.
 
     Neither the number nor the code reaches the logs (the code would open the
     account): the real gateway will receive them, the simulation drops them.
