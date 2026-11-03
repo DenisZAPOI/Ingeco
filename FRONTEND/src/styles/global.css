@@ -307,6 +307,24 @@ a:hover {
   color: var(--color-muted);
 }
 
+/* "Projet étudiant — démonstrateur" on every screen (cahier des charges, §14),
+   below the content: seen without taking the place of the alerts at the top. */
+.footer {
+  padding: 0 var(--space) var(--space-l);
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  text-align: center;
+}
+
+/* Name / value pairs of the "À propos" page. */
+.credits dt {
+  font-weight: var(--font-weight-strong);
+}
+
+.credits dd {
+  margin: 0 0 var(--space);
+}
+
 .panel {
   margin: 0 0 var(--space);
   padding: var(--space) var(--space-l);

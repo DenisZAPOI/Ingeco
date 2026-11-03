@@ -1,0 +1,14 @@
+En route pour l'emploi : auteurs du démonstrateur
+Projet de BUT 3 Informatique, IUT de Montreuil, 2026-2027.
+
+Développement (back et front)
+  Denis ZAPOI
+  Boude HANOUNE
+
+Base de données
+  Yanis OUADAH
+  Baptiste DURAND-KEOHAVONG
+  Kurtys TSHIBOLA
+
+Même liste dans l'application, page « À propos » (FRONTEND/src/lib/about.ts) :
+modifier les deux ensemble.

@@ -30,3 +30,6 @@ export function driverRidePath(id: number): string {
 // Administration: "comptes", the word of its screens.
 export const ADMIN_ACCOUNTS_PATH = '/admin/comptes';
 export const NEW_ACCOUNT_PATH = '/admin/comptes/nouveau';
+
+// Public, linked from the footer of every screen.
+export const ABOUT_PATH = '/a-propos';

@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { BookingDraftProvider } from '../context/BookingDraftProvider';
 import { BOOKING_PATHS } from '../lib/paths';
+import { AboutPage } from '../pages/AboutPage';
 import { ActivatePage } from '../pages/ActivatePage';
 import { AdminAccountPage } from '../pages/AdminAccountPage';
 import { AdminAccountsPage } from '../pages/AdminAccountsPage';
@@ -31,6 +32,7 @@ export function AppRoutes() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="diagnostic" element={<DiagnosticPage />} />
+        <Route path="a-propos" element={<AboutPage />} />
         <Route element={<VisitorRoutes />}>
           <Route path="connexion" element={<LoginPage />} />
           <Route path="inscription" element={<RegisterPage />} />

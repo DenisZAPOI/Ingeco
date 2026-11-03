@@ -5,6 +5,7 @@ import { DriverLocationProvider } from '../../context/DriverLocationProvider';
 import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
 import { errorMessage } from '../../lib/errorMessage';
+import { ABOUT_PATH } from '../../lib/paths';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { LogoMark } from '../ui/icons';
 
@@ -74,6 +75,10 @@ export function Layout() {
           <Outlet />
         </DriverLocationProvider>
       </main>
+      {/* Required on every screen by the cahier des charges (§14). Copied in index.html. */}
+      <footer className="footer">
+        Projet étudiant — démonstrateur · <Link to={ABOUT_PATH}>À propos</Link>
+      </footer>
     </>
   );
 }
