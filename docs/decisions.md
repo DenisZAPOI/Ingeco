@@ -90,6 +90,7 @@ ne tranche pas, ce qu'il laisse à son choix, ou ce qui reste flou. Les § renvo
 | Appareils | PWA ; tests sur un Android d'entrée de gamme ou en émulation (§3, §20) | « Android/iOS ou Android prioritaire ? » | Tests d'abord sur Android d'entrée de gamme ; l'iPhone reste supporté par la PWA |
 | Prix du trajet | Le trajet a un prix, réduit par les aides solidaires (§7.4, §7.9) ; la gratuité du code du travail (art. L.5321-3) vise le service d'accompagnement | Question 10 du 04/11 | Le trajet reste payant ; l'aide passe par les financeurs |
 | Hors périmètre | Données et paiements réels, envoi massif de SMS, mise en ligne publique, stores, suivi GPS en temps réel, décision automatisée, IA de tri (§5) | UC79 abonnement mensuel (absent du cahier des charges) | Abonnement hors projet |
+| Fonctions déjà codées hors du palier P1 | Le cahier des charges classe certaines fonctions en évolution future ou aux paliers P2 et P3 (§5, §20) | – | **Décision du 03/11** : ce qui est déjà codé reste tel quel, sans retravail : réservation immédiate (« évolution possible », §20), paiement simulé et annulation remboursée (P2), désistement du chauffeur et anti-doublon (P3), revenus du chauffeur, statut d'usager prioritaire. On ne retouche que ce que le cahier des charges contredit |
 
 ### Réponses du client et décisions internes
 
