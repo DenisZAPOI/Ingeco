@@ -152,6 +152,8 @@ Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx)
 **Projet**
 - **Une ADR par choix technique** ([docs/adr/](docs/adr/README.md), `NNN-titre.md` : contexte, décision, alternatives, conséquences), écrite avant la pull request de toute nouvelle dépendance ou de tout nouveau service externe. Une fiche acceptée ne se réécrit pas : une nouvelle la remplace (§11).
 - **Outils libres ou gratuits uniquement**, aucune carte bancaire personnelle (§20). Toute nouvelle dépendance : licence compatible, notée dans l'inventaire des dépendances (§14, §17).
+- **Comptes des services externes** (GitHub, OpenRouteService, hébergement, paiement, SMS) ouverts au nom d'Ingeco ou de l'IUT, et remis à la fin du projet (§20) : tout nouveau service s'ajoute d'abord au tableau du README, partie « Comptes des services externes ».
+- Le **guide de lancement pas à pas** en tête du README s'adresse à des personnes peu à l'aise avec l'informatique : le mettre à jour à chaque changement d'installation ou de lancement.
 - Objectif d'**installation en une commande** (Docker Compose : base, back et front) et de données de démonstration générées par script (§11, §17).
 - L'**usage de l'IA générative** (dont Claude Code) est déclaré dans le rapport ; aucune donnée confidentielle transmise à un outil tiers (§14).
 - Les maquettes ou la démo d'un parcours sont montrées à la cliente avant de le considérer comme fini (§10).
