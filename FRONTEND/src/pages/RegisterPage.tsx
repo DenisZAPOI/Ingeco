@@ -8,6 +8,7 @@ import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
 import { useAskRegistrationCode, useConfirmRegistration } from '../hooks/useAuthForms';
+import { t } from '../i18n';
 
 /** Rider registration, in two steps: the details, then the code received by
  *  SMS, which proves the phone. Drivers and staff are created by an administrator. */
@@ -35,14 +36,14 @@ export function RegisterPage() {
 
   return (
     <section>
-      <PageHero title="Créer un compte" />
+      <PageHero title={t('auth.registerTitle')} />
       <PageSheet>
-        <Form onSubmit={send} submitLabel="Recevoir mon code par SMS" submitting={submitting} error={error}>
-          <TextField label="Prénom" value={firstName} onChange={setFirstName} autoComplete="given-name" required error={errors.firstName} />
-          <TextField label="Nom" value={lastName} onChange={setLastName} autoComplete="family-name" required error={errors.lastName} />
+        <Form onSubmit={send} submitLabel={t('auth.sendCodeBySms')} submitting={submitting} error={error}>
+          <TextField label={t('fields.firstName')} value={firstName} onChange={setFirstName} autoComplete="given-name" required error={errors.firstName} />
+          <TextField label={t('fields.lastName')} value={lastName} onChange={setLastName} autoComplete="family-name" required error={errors.lastName} />
           <TextField
-            label="Numéro de téléphone"
-            hint="Il servira à vous connecter. Vous allez recevoir un code par SMS."
+            label={t('fields.phone')}
+            hint={t('auth.phoneHint')}
             value={phone}
             onChange={setPhone}
             type="tel"
@@ -53,14 +54,14 @@ export function RegisterPage() {
             error={errors.phone}
           />
           <PasswordField
-            label="Mot de passe"
+            label={t('fields.password')}
             value={password}
             onChange={setPassword}
             autoComplete="new-password"
             error={errors.password}
           />
           <TextField
-            label="Adresse e-mail (facultatif)"
+            label={t('fields.emailOptional')}
             value={email}
             onChange={setEmail}
             type="email"
@@ -69,14 +70,14 @@ export function RegisterPage() {
             error={errors.email}
           />
           <CheckboxField
-            label="J'ai besoin d'un véhicule adapté (fauteuil roulant)"
+            label={t('fields.accessibleVehicle')}
             checked={needsAccessibleVehicle}
             onChange={setNeedsAccessibleVehicle}
             error={errors.needsAccessibleVehicle}
           />
         </Form>
         <p className="note">
-          Déjà un compte ? <Link to="/connexion">Se connecter</Link>
+          {t('auth.hasAccount')} <Link to="/connexion">{t('auth.loginTitle')}</Link>
         </p>
       </PageSheet>
     </section>
@@ -99,20 +100,21 @@ function CodeStep({ details, onChangeDetails }: { details: RegisterData; onChang
 
   return (
     <section>
-      <PageHero title="Code reçu par SMS" />
+      <PageHero title={t('auth.codeTitle')} />
       <PageSheet>
         <p>
-          Nous avons envoyé un code à 6 chiffres au <strong>{details.phone}</strong>. Il est valable 10 minutes.
+          {t('auth.codeSentBefore')} <strong>{details.phone}</strong>
+          {t('auth.codeSentAfter')}
         </p>
         <Form
           onSubmit={() => confirm.submit({ phone: details.phone, code })}
-          submitLabel="Créer mon compte"
+          submitLabel={t('auth.confirmSubmit')}
           submitting={confirm.submitting}
           error={confirm.error ?? resend.error}
-          success={resent ? 'Un nouveau code vous a été envoyé.' : null}
+          success={resent ? t('auth.codeResent') : null}
         >
           <TextField
-            label="Code reçu"
+            label={t('fields.code')}
             value={code}
             onChange={setCode}
             inputMode="numeric"
@@ -124,14 +126,14 @@ function CodeStep({ details, onChangeDetails }: { details: RegisterData; onChang
         </Form>
         <div className="stack">
           <button type="button" className="button button-block button-secondary" onClick={sendAgain} disabled={resend.submitting}>
-            {resend.submitting ? 'Envoi…' : 'Renvoyer le code'}
+            {resend.submitting ? t('auth.resending') : t('auth.resend')}
           </button>
           <button type="button" className="button button-block button-secondary" onClick={onChangeDetails}>
-            Changer de numéro
+            {t('auth.changeNumber')}
           </button>
         </div>
         <p className="note">
-          Ce numéro a déjà un compte ? Le SMS vous le dit : <Link to="/connexion">connectez-vous</Link>.
+          {t('auth.numberTaken')} <Link to="/connexion">{t('auth.numberTakenLink')}</Link>.
         </p>
       </PageSheet>
     </section>

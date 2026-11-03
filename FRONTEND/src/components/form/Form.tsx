@@ -1,6 +1,7 @@
 import { useEffect, useRef, type FormEvent, type ReactNode } from 'react';
 
 import { useSlowNetwork } from '../../hooks/useSlowNetwork';
+import { t } from '../../i18n';
 
 type FormProps = {
   onSubmit: () => void;
@@ -49,11 +50,11 @@ export function Form({ onSubmit, submitLabel, submitting, error, success, childr
       {/* Without it, on 2G, the user taps again or leaves while the request is on its way. */}
       {slow && (
         <p role="status" className="note">
-          Le réseau est lent. Ne fermez pas l'application, l'envoi continue.
+          {t('common.sendingSlow')}
         </p>
       )}
       <button type="submit" className="button button-block" disabled={submitting}>
-        {submitting ? 'Envoi en cours…' : submitLabel}
+        {submitting ? t('common.sending') : submitLabel}
       </button>
     </form>
   );

@@ -1,3 +1,4 @@
+import { t, tn } from '../i18n';
 import { formatDay, guyanaDateTime, guyanaToday } from './format';
 
 // The driver's periods (UC28), counted like a driver does: the week starts on
@@ -5,11 +6,9 @@ import { formatDay, guyanaDateTime, guyanaToday } from './format';
 
 export type EarningsPeriod = 'today' | 'week' | 'month';
 
-export const PERIOD_LABELS: Record<EarningsPeriod, string> = {
-  today: "Aujourd'hui",
-  week: 'Cette semaine',
-  month: 'Ce mois-ci',
-};
+export function periodLabel(period: EarningsPeriod): string {
+  return t(`driver.${period}`);
+}
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MONDAY = 1;
@@ -36,5 +35,5 @@ export function formatEarningsDay(day: string): string {
 
 /** 1 → '1 course', 3 → '3 courses' */
 export function formatRideCount(count: number): string {
-  return `${count} course${count > 1 ? 's' : ''}`;
+  return tn('driver.rideCount', count);
 }

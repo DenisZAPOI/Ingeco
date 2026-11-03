@@ -10,7 +10,8 @@ import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { RequestState } from '../components/ui/RequestState';
 import { useAccounts } from '../hooks/useAdmin';
-import { ROLE_LABELS } from '../lib/accounts';
+import { t } from '../i18n';
+import { ROLES, roleLabel } from '../lib/accounts';
 import { NEW_ACCOUNT_PATH } from '../lib/paths';
 
 // In the address: the Back button, from an account, returns to the same search.
@@ -19,15 +20,17 @@ const ROLE_PARAM = 'role';
 const STATUS_PARAM = 'statut';
 const ALL = 'all';
 
-const ROLE_CHOICES: Choice<AccountRole | typeof ALL>[] = [
-  { value: ALL, label: 'Tous les rôles' },
-  ...(Object.entries(ROLE_LABELS) as [AccountRole, string][]).map(([value, label]) => ({ value, label })),
-];
-const STATUS_CHOICES: Choice<AccountStatus | typeof ALL>[] = [
-  { value: ALL, label: 'Actifs et suspendus' },
-  { value: 'active', label: 'Actifs' },
-  { value: 'suspended', label: 'Suspendus' },
-];
+function roleChoices(): Choice<AccountRole | typeof ALL>[] {
+  return [{ value: ALL, label: t('admin.allRoles') }, ...ROLES.map((role) => ({ value: role, label: roleLabel(role) }))];
+}
+
+function statusChoices(): Choice<AccountStatus | typeof ALL>[] {
+  return [
+    { value: ALL, label: t('admin.allStatuses') },
+    { value: 'active', label: t('admin.activeAccounts') },
+    { value: 'suspended', label: t('admin.suspendedAccounts') },
+  ];
+}
 
 /** UC51: find an account by name or phone, filter by role and status. */
 export function AdminAccountsPage() {
@@ -50,10 +53,10 @@ export function AdminAccountsPage() {
 
   return (
     <section>
-      <PageHero title="Comptes" />
+      <PageHero title={t('admin.accountsTitle')} />
       <PageSheet>
         <Link to={NEW_ACCOUNT_PATH} className="button button-block">
-          Créer un compte
+          {t('admin.createAccount')}
         </Link>
         {/* Searched on "Rechercher", not at every letter: on 2G, one call per word typed. */}
         <form
@@ -65,24 +68,24 @@ export function AdminAccountsPage() {
           }}
         >
           <TextField
-            label="Nom ou numéro de téléphone"
+            label={t('admin.search')}
             value={search}
             onChange={setSearch}
             type="search"
-            hint="Exemple : Chloé, ou 0694 12"
+            hint={t('admin.searchHint')}
           />
           <button type="submit" className="button button-block button-secondary">
-            Rechercher
+            {t('admin.searchSubmit')}
           </button>
           <SelectField
-            label="Rôle"
-            choices={ROLE_CHOICES}
+            label={t('admin.role')}
+            choices={roleChoices()}
             value={filters.role ?? ALL}
             onChange={(role) => apply({ role: role === ALL ? null : role })}
           />
           <SelectField
-            label="Statut"
-            choices={STATUS_CHOICES}
+            label={t('admin.status')}
+            choices={statusChoices()}
             value={filters.status ?? ALL}
             onChange={(status) => apply({ status: status === ALL ? null : status })}
           />
@@ -99,7 +102,7 @@ function Results({ filters }: { filters: AccountFilters }) {
 
   return (
     <RequestState loading={list.loading} error={list.error} onRetry={list.retry}>
-      {list.accounts.length === 0 ? <p>Aucun compte ne correspond.</p> : <AccountList accounts={list.accounts} />}
+      {list.accounts.length === 0 ? <p>{t('admin.noAccount')}</p> : <AccountList accounts={list.accounts} />}
       {list.moreError && <ErrorAlert message={list.moreError} onRetry={list.loadMore} />}
       {list.hasMore && !list.moreError && (
         <button
@@ -108,7 +111,7 @@ function Results({ filters }: { filters: AccountFilters }) {
           onClick={list.loadMore}
           disabled={list.loadingMore}
         >
-          {list.loadingMore ? 'Chargement…' : 'Voir plus de comptes'}
+          {list.loadingMore ? t('common.loading') : t('admin.moreAccounts')}
         </button>
       )}
     </RequestState>

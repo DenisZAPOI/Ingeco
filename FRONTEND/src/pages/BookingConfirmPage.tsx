@@ -9,6 +9,7 @@ import { Form } from '../components/form/Form';
 import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useBookRide, useEstimate } from '../hooks/useRides';
+import { t } from '../i18n';
 import { guyanaDateTime } from '../lib/format';
 import { BOOKING_PATHS, paymentPath } from '../lib/paths';
 import { newRequestId } from '../lib/requestId';
@@ -53,7 +54,7 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
 
   return (
     <section>
-      <StepHeader step={4} title="Votre trajet" />
+      <StepHeader step={4} title={t('booking.confirmTitle')} />
       <PageSheet>
         <RequestState loading={estimate.loading} error={estimate.error} onRetry={estimate.retry}>
           {estimate.data && (
@@ -66,13 +67,13 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
                 distanceKm={estimate.data.distanceKm}
                 priceCents={estimate.data.riderAmountCents}
               />
-              <p className="note">Vous payez par carte à l'étape suivante, avant le départ.</p>
-              <Form onSubmit={confirm} submitLabel="Réserver ce trajet" submitting={booking.submitting} error={bookingError} />
+              <p className="note">{t('booking.payNext')}</p>
+              <Form onSubmit={confirm} submitLabel={t('booking.book')} submitting={booking.submitting} error={bookingError} />
             </>
           )}
         </RequestState>
         <Link to={BOOKING_PATHS.pickup} className="link-action">
-          Modifier le trajet
+          {t('booking.change')}
         </Link>
       </PageSheet>
     </section>

@@ -6,6 +6,7 @@ import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
 import { useActivate } from '../hooks/useAuthForms';
+import { t } from '../i18n';
 import { PASSWORD_RESET_PATH, sentPhoneFromState } from '../lib/paths';
 
 /** First access of an account created by the team, or new password after a
@@ -20,27 +21,26 @@ export function ActivatePage() {
 
   return (
     <section>
-      <PageHero title="J'ai reçu un code" />
+      <PageHero title={t('auth.activateTitle')} />
       <PageSheet>
         {sentTo ? (
           // Same words whether the number has an account or not: the API does not say.
           <p>
-            Si le <strong>{sentTo}</strong> a un compte, un code à 8 chiffres vient de lui être envoyé par SMS. Il est
-            valable 15 minutes. Choisissez ici votre nouveau mot de passe.
+            {t('auth.activateSentBefore')} <strong>{sentTo}</strong> {t('auth.activateSentAfter')}
           </p>
         ) : (
           <p>
-            Vous avez reçu un code à 8 chiffres, par SMS ou par le centre d'appel. Choisissez ici votre mot de passe.
+            {t('auth.activateIntro')}
           </p>
         )}
         <Form
           onSubmit={() => submit({ phone, code, password })}
-          submitLabel="Valider"
+          submitLabel={t('auth.activateSubmit')}
           submitting={submitting}
           error={error}
         >
           <TextField
-            label="Numéro de téléphone"
+            label={t('fields.phone')}
             value={phone}
             onChange={setPhone}
             type="tel"
@@ -51,7 +51,7 @@ export function ActivatePage() {
             error={errors.phone}
           />
           <TextField
-            label="Code reçu"
+            label={t('fields.code')}
             value={code}
             onChange={setCode}
             inputMode="numeric"
@@ -61,7 +61,7 @@ export function ActivatePage() {
             error={errors.code}
           />
           <PasswordField
-            label="Nouveau mot de passe"
+            label={t('fields.newPassword')}
             value={password}
             onChange={setPassword}
             autoComplete="new-password"
@@ -69,7 +69,7 @@ export function ActivatePage() {
           />
         </Form>
         <p className="note">
-          Pas de code, ou code expiré ? <Link to={PASSWORD_RESET_PATH}>Recevoir un nouveau code par SMS</Link>
+          {t('auth.noCode')} <Link to={PASSWORD_RESET_PATH}>{t('auth.newCodeBySms')}</Link>
         </p>
       </PageSheet>
     </section>

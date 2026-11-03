@@ -6,6 +6,7 @@ import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
 import { useLogin } from '../hooks/useAuthForms';
+import { t } from '../i18n';
 import { PASSWORD_RESET_PATH } from '../lib/paths';
 
 export function LoginPage() {
@@ -16,11 +17,11 @@ export function LoginPage() {
   // Once logged in, the session context switches the routes to the user's home.
   return (
     <section>
-      <PageHero title="Se connecter" />
+      <PageHero title={t('auth.loginTitle')} />
       <PageSheet>
-        <Form onSubmit={() => submit({ phone, password })} submitLabel="Se connecter" submitting={submitting} error={error}>
+        <Form onSubmit={() => submit({ phone, password })} submitLabel={t('auth.loginSubmit')} submitting={submitting} error={error}>
           <TextField
-            label="Numéro de téléphone"
+            label={t('fields.phone')}
             value={phone}
             onChange={setPhone}
             type="tel"
@@ -31,7 +32,7 @@ export function LoginPage() {
             error={errors.phone}
           />
           <PasswordField
-            label="Mot de passe"
+            label={t('fields.password')}
             value={password}
             onChange={setPassword}
             autoComplete="current-password"
@@ -39,10 +40,10 @@ export function LoginPage() {
           />
         </Form>
         <p className="note">
-          <Link to={PASSWORD_RESET_PATH}>Mot de passe oublié ?</Link>
+          <Link to={PASSWORD_RESET_PATH}>{t('auth.forgotPassword')}</Link>
         </p>
         <p className="note">
-          Pas encore de compte ? <Link to="/inscription">Créer un compte</Link>
+          {t('auth.noAccount')} <Link to="/inscription">{t('auth.createAccount')}</Link>
         </p>
       </PageSheet>
     </section>

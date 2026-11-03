@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import type { FieldErrors } from '../../lib/fieldErrors';
 import { MAX_SEATS, MIN_SEATS, type VehicleDraft } from '../../lib/vehicle';
 import { CheckboxField } from '../form/CheckboxField';
@@ -18,24 +19,24 @@ export function VehicleFields({ draft, onChange, errors, prefix }: VehicleFields
   return (
     <>
       <TextField
-        label="Immatriculation"
+        label={t('admin.plate')}
         value={draft.plate}
         onChange={(plate) => onChange({ ...draft, plate })}
         autoCapitalize="characters"
-        hint="Exemple : AB-123-CD"
+        hint={t('admin.plateHint')}
         required
         error={error('plate')}
       />
       <TextField
-        label="Marque et modèle"
+        label={t('admin.model')}
         value={draft.model}
         onChange={(model) => onChange({ ...draft, model })}
-        hint="Tel que le passager le verra. Exemple : Renault Kangoo blanche"
+        hint={t('admin.modelHint')}
         required
         error={error('model')}
       />
       <TextField
-        label="Nombre de places passagers"
+        label={t('admin.seats')}
         value={draft.seats}
         onChange={(seats) => onChange({ ...draft, seats })}
         type="number"
@@ -46,7 +47,7 @@ export function VehicleFields({ draft, onChange, errors, prefix }: VehicleFields
         error={error('seats')}
       />
       <CheckboxField
-        label="Véhicule adapté au fauteuil roulant"
+        label={t('admin.accessibleVehicle')}
         checked={draft.isAccessible}
         onChange={(isAccessible) => onChange({ ...draft, isAccessible })}
         error={error('isAccessible')}

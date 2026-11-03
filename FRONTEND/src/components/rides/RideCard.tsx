@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 
 import type { Ride } from '../../api/rides';
-import { DRIVER_STATUS_LABELS } from '../../lib/driver';
+import { t } from '../../i18n';
+import { driverStatusLabel } from '../../lib/driver';
 import { formatDateTime } from '../../lib/format';
 import { driverRidePath, ridePath } from '../../lib/paths';
-import { STATUS_LABELS, canRate, rideDate } from '../../lib/ride';
+import { canRate, rideDate, statusLabel } from '../../lib/ride';
 import { ArrowRightIcon } from '../ui/icons';
 
 type RideCardProps = {
@@ -21,12 +22,12 @@ export function RideCard({ ride, forDriver = false }: RideCardProps) {
         <span className="ride-card-when">{formatDateTime(rideDate(ride))}</span>
         <span>
           {ride.pickup.address}
-          <span className="ride-card-to"> vers </span>
+          <span className="ride-card-to">{t('ride.to')}</span>
           {ride.dropoff.address}
         </span>
         <span className="ride-card-status">
-          {(forDriver ? DRIVER_STATUS_LABELS : STATUS_LABELS)[ride.status]}
-          {!forDriver && canRate(ride) && <span className="badge">À noter</span>}
+          {(forDriver ? driverStatusLabel : statusLabel)(ride.status)}
+          {!forDriver && canRate(ride) && <span className="badge">{t('ride.toRate')}</span>}
         </span>
       </span>
       <ArrowRightIcon className="action-card-arrow" />

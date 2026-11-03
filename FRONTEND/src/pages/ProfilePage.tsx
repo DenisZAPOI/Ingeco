@@ -9,6 +9,7 @@ import { TextField } from '../components/form/TextField';
 import { LoadingMessage } from '../components/ui/LoadingMessage';
 import { useUpdateProfile } from '../hooks/useAuthForms';
 import { useSession } from '../hooks/useSession';
+import { t } from '../i18n';
 import { formatPhone } from '../lib/phone';
 
 export function ProfilePage() {
@@ -16,7 +17,7 @@ export function ProfilePage() {
 
   return (
     <section>
-      <PageHero title="Mon profil" />
+      <PageHero title={t('profile.title')} />
       <PageSheet>
         {/* Shown from the last session's hint: the account itself (phone,
             e-mail) arrives with the API's confirmation of the session. */}
@@ -30,9 +31,9 @@ function Profile({ user }: { user: User }) {
   return (
     <>
       <p>
-        Numéro de téléphone : <strong>{formatPhone(user.phone)}</strong>
+        {t('profile.phone')} <strong>{formatPhone(user.phone)}</strong>
         <br />
-        <span className="note">Pour le changer, contactez le centre d'appel.</span>
+        <span className="note">{t('profile.phoneChange')}</span>
       </p>
       <IdentityForm user={user} />
       <PasswordForm />
@@ -62,18 +63,18 @@ function IdentityForm({ user }: { user: User }) {
 
   return (
     <>
-      <h2>Mes informations</h2>
+      <h2>{t('profile.infoTitle')}</h2>
       <Form
         onSubmit={send}
-        submitLabel="Enregistrer"
+        submitLabel={t('profile.save')}
         submitting={submitting}
         error={error}
-        success={saved ? 'Vos informations sont enregistrées.' : null}
+        success={saved ? t('profile.saved') : null}
       >
-        <TextField label="Prénom" value={firstName} onChange={setFirstName} autoComplete="given-name" required error={errors.firstName} />
-        <TextField label="Nom" value={lastName} onChange={setLastName} autoComplete="family-name" required error={errors.lastName} />
+        <TextField label={t('fields.firstName')} value={firstName} onChange={setFirstName} autoComplete="given-name" required error={errors.firstName} />
+        <TextField label={t('fields.lastName')} value={lastName} onChange={setLastName} autoComplete="family-name" required error={errors.lastName} />
         <TextField
-          label="Adresse e-mail (facultatif)"
+          label={t('fields.emailOptional')}
           value={email}
           onChange={setEmail}
           type="email"
@@ -83,7 +84,7 @@ function IdentityForm({ user }: { user: User }) {
         />
         {isRider && (
           <CheckboxField
-            label="J'ai besoin d'un véhicule adapté (fauteuil roulant)"
+            label={t('fields.accessibleVehicle')}
             checked={needsAccessibleVehicle}
             onChange={setNeedsAccessibleVehicle}
             error={errors.needsAccessibleVehicle}
@@ -112,23 +113,23 @@ function PasswordForm() {
 
   return (
     <>
-      <h2>Changer de mot de passe</h2>
+      <h2>{t('profile.passwordTitle')}</h2>
       <Form
         onSubmit={send}
-        submitLabel="Changer le mot de passe"
+        submitLabel={t('profile.passwordSubmit')}
         submitting={submitting}
         error={error}
-        success={saved ? 'Votre mot de passe est changé.' : null}
+        success={saved ? t('profile.passwordSaved') : null}
       >
         <PasswordField
-          label="Mot de passe actuel"
+          label={t('fields.currentPassword')}
           value={currentPassword}
           onChange={setCurrentPassword}
           autoComplete="current-password"
           error={errors.currentPassword}
         />
         <PasswordField
-          label="Nouveau mot de passe"
+          label={t('fields.newPassword')}
           value={newPassword}
           onChange={setNewPassword}
           autoComplete="new-password"

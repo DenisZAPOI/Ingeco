@@ -1,32 +1,28 @@
 import { ApiError } from '../api/client';
+import { t } from '../i18n';
 
 // Short, plain-language messages: the public is not always at ease with
 // digital tools, a technical message would not help them.
-const FALLBACK_BY_STATUS: Record<number, string> = {
-  401: 'Vous devez vous reconnecter.',
-  403: "Vous n'avez pas accès à cette page.",
-};
-const GENERIC = "Une erreur s'est produite.";
-/** General message of a form whose fields are in error (charter, part 6). */
-export const CHECK_FIELDS = 'Vérifiez les informations en rouge.';
 
 export function errorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
-    return GENERIC;
+    return t('errors.generic');
   }
   if (error.status === 0) {
-    return 'Pas de connexion internet. Vérifiez votre réseau.';
+    return t('errors.offline');
   }
   if (error.status >= 500) {
-    return 'Le service ne répond pas pour le moment.';
+    return t('errors.server');
   }
   if (error.status === 400) {
     // The detail lists the faulty fields: each form shows them next to the field.
-    return CHECK_FIELDS;
+    return t('errors.checkFields');
   }
-  // The API writes its business messages in French, for the user.
+  // The API writes its business messages in French, for the user (docs/adr/013).
   if (typeof error.detail === 'string') {
     return error.detail;
   }
-  return FALLBACK_BY_STATUS[error.status] ?? GENERIC;
+  if (error.status === 401) return t('errors.unauthorized');
+  if (error.status === 403) return t('errors.forbidden');
+  return t('errors.generic');
 }

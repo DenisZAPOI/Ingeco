@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { RequestState } from '../components/ui/RequestState';
 import { useEarnings } from '../hooks/useDriver';
-import { PERIOD_LABELS, formatEarningsDay, formatRideCount, type EarningsPeriod } from '../lib/earnings';
+import { t } from '../i18n';
+import { formatEarningsDay, formatRideCount, periodLabel, type EarningsPeriod } from '../lib/earnings';
 import { formatPrice } from '../lib/format';
 
 // In the address: the Back button returns to the period the driver was on.
@@ -22,9 +23,9 @@ export function DriverEarningsPage() {
 
   return (
     <section>
-      <PageHero title="Mes revenus" />
+      <PageHero title={t('driver.earningsTitle')} />
       <PageSheet>
-        <div className="tabs" role="tablist" aria-label="Période">
+        <div className="tabs" role="tablist" aria-label={t('driver.period')}>
           {PERIODS.map((entry) => (
             <button
               key={entry.key}
@@ -34,7 +35,7 @@ export function DriverEarningsPage() {
               aria-selected={period === entry.period}
               onClick={() => setParams({ [PERIOD_PARAM]: entry.key }, { replace: true })}
             >
-              {PERIOD_LABELS[entry.period]}
+              {periodLabel(entry.period)}
             </button>
           ))}
         </div>
@@ -56,13 +57,13 @@ function PeriodEarnings({ period }: { period: EarningsPeriod }) {
       {data && (
         <>
           <dl className="panel summary">
-            <dt>Total</dt>
+            <dt>{t('driver.total')}</dt>
             <dd className="summary-price">{formatPrice(data.totalCents)}</dd>
-            <dt>Courses terminées</dt>
+            <dt>{t('driver.completedRides')}</dt>
             <dd>{data.rideCount}</dd>
           </dl>
           {data.days.length === 0 ? (
-            <p>Aucune course terminée sur cette période.</p>
+            <p>{t('driver.noEarnings')}</p>
           ) : (
             <ul className="earnings-days">
               {data.days.map((day) => (
@@ -76,7 +77,7 @@ function PeriodEarnings({ period }: { period: EarningsPeriod }) {
               ))}
             </ul>
           )}
-          <p className="note">Le prix entier de chaque course terminée, le jour où elle s'est terminée.</p>
+          <p className="note">{t('driver.earningsNote')}</p>
         </>
       )}
     </RequestState>

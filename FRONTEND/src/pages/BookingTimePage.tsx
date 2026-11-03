@@ -8,18 +8,22 @@ import { ChoiceGroup } from '../components/form/ChoiceGroup';
 import { Form } from '../components/form/Form';
 import { TextField } from '../components/form/TextField';
 import { useBookingDraft } from '../hooks/useBookingDraft';
+import { t } from '../i18n';
 import type { When } from '../lib/bookingDraft';
 import { guyanaToday } from '../lib/format';
-import { CHECK_FIELDS } from '../lib/errorMessage';
 import { BOOKING_PATHS } from '../lib/paths';
-import { PURPOSE_LABELS, PURPOSES, scheduleError } from '../lib/ride';
+import { PURPOSES, purposeLabel, scheduleError } from '../lib/ride';
 
-const WHEN_CHOICES = [
-  { value: 'now', label: 'Maintenant' },
-  { value: 'later', label: 'Plus tard (dans 30 minutes ou plus)' },
-] as const satisfies readonly { value: When; label: string }[];
+function whenChoices(): { value: When; label: string }[] {
+  return [
+    { value: 'now', label: t('booking.now') },
+    { value: 'later', label: t('booking.later') },
+  ];
+}
 
-const PURPOSE_CHOICES = PURPOSES.map((purpose) => ({ value: purpose, label: PURPOSE_LABELS[purpose] }));
+function purposeChoices(): { value: Purpose; label: string }[] {
+  return PURPOSES.map((purpose) => ({ value: purpose, label: purposeLabel(purpose) }));
+}
 
 /** Step 3: why, and when. */
 export function BookingTimePage() {
@@ -37,7 +41,7 @@ export function BookingTimePage() {
 
   function next() {
     const found = {
-      purpose: purpose ? undefined : 'Choisissez le motif du trajet.',
+      purpose: purpose ? undefined : t('booking.purposeMissing'),
       schedule: when === 'later' ? (scheduleError(day, time) ?? undefined) : undefined,
     };
     setErrors(found);
@@ -48,22 +52,22 @@ export function BookingTimePage() {
 
   return (
     <section>
-      <StepHeader step={3} title="Pourquoi et quand ?" />
+      <StepHeader step={3} title={t('booking.timeTitle')} />
       <PageSheet>
         <Form
           onSubmit={next}
-          submitLabel="Voir le prix"
+          submitLabel={t('booking.seePrice')}
           submitting={false}
-          error={errors.purpose || errors.schedule ? CHECK_FIELDS : null}
+          error={errors.purpose || errors.schedule ? t('errors.checkFields') : null}
         >
-          <ChoiceGroup legend="Motif du trajet" choices={PURPOSE_CHOICES} value={purpose} onChange={setPurpose} error={errors.purpose} />
-          <ChoiceGroup legend="Départ" choices={WHEN_CHOICES} value={when} onChange={setWhen} />
+          <ChoiceGroup legend={t('booking.purposeLegend')} choices={purposeChoices()} value={purpose} onChange={setPurpose} error={errors.purpose} />
+          <ChoiceGroup legend={t('booking.whenLegend')} choices={whenChoices()} value={when} onChange={setWhen} />
           {when === 'later' && (
             <>
-              <TextField label="Jour" type="date" value={day} onChange={setDay} min={guyanaToday()} required />
+              <TextField label={t('booking.day')} type="date" value={day} onChange={setDay} min={guyanaToday()} required />
               <TextField
-                label="Heure de départ"
-                hint="Heure de Guyane."
+                label={t('booking.time')}
+                hint={t('booking.timeHint')}
                 type="time"
                 value={time}
                 onChange={setTime}
@@ -74,7 +78,7 @@ export function BookingTimePage() {
           )}
         </Form>
         <Link to={BOOKING_PATHS.dropoff} className="link-action">
-          Revenir à l'étape précédente
+          {t('booking.previousStep')}
         </Link>
       </PageSheet>
     </section>

@@ -1,26 +1,25 @@
 import type { Account, AccountRole, AccountStatus, ActivationCode } from '../api/admin';
+import { t } from '../i18n';
 import { ADMIN_ACCOUNTS_PATH } from './paths';
 
-export const ROLE_LABELS: Record<AccountRole, string> = {
-  rider: 'Usager',
-  driver: 'Chauffeur',
-  partner: 'Référent partenaire',
-  operator: 'Opérateur',
-  admin: 'Administrateur',
-};
+/** In the order of the filters. */
+export const ROLES: readonly AccountRole[] = ['rider', 'driver', 'partner', 'operator', 'admin'];
 
-export const ACCOUNT_STATUS_LABELS: Record<AccountStatus, string> = {
-  active: 'Actif',
-  suspended: 'Suspendu',
-};
+export function roleLabel(role: AccountRole): string {
+  return t(`admin.roles.${role}`);
+}
+
+export function accountStatusLabel(status: AccountStatus): string {
+  return t(`admin.statuses.${status}`);
+}
 
 /** Badges of an account in a list: what the administrator must notice. */
 export function accountBadges(account: Account): string[] {
   const badges: string[] = [];
-  if (account.status === 'suspended') badges.push('Suspendu');
-  if (!account.isActivated) badges.push('Pas encore activé');
-  if (account.isPriority) badges.push('Prioritaire');
-  if (account.role === 'driver' && !account.photoUpdatedAt) badges.push('Sans photo');
+  if (account.status === 'suspended') badges.push(accountStatusLabel('suspended'));
+  if (!account.isActivated) badges.push(t('admin.notActivated'));
+  if (account.isPriority) badges.push(t('admin.priority'));
+  if (account.role === 'driver' && !account.photoUpdatedAt) badges.push(t('admin.noPhoto'));
   return badges;
 }
 

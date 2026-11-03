@@ -63,6 +63,7 @@ FRONTEND/
   src/
     api/           # client.ts (le seul fetch) + une fonction par appel
     types/api.ts   # généré depuis l'OpenAPI du back
+    i18n/          # textes de l'interface : fr.ts, t() et tn()
     lib/           # logique pure, sans React
     hooks/         # appel + chargement + erreur + nouvelle tentative
     context/       # état global (session de l'utilisateur connecté)
@@ -105,11 +106,13 @@ cd BACKEND && .venv/Scripts/python -m pytest
 # front (http://localhost:5173)
 cd FRONTEND && npm run dev
 cd FRONTEND && npm run lint
+cd FRONTEND && npm run lint:texts          # aucun texte d'interface écrit dans le code
+cd FRONTEND && npm test                    # Vitest : traductions, formats, dates
 cd FRONTEND && npm run build
 cd FRONTEND && npm run api:types           # back lancé : régénère src/types/api.ts
 ```
 
-Avant de rendre la main : `pytest`, `npm run lint`, `npm run build`, puis test dans le navigateur, **dont un passage en « Regular 2G »** (voir ci-dessous).
+Avant de rendre la main : `pytest`, `npm test`, `npm run lint`, `npm run lint:texts`, `npm run build`, puis test dans le navigateur, **dont un passage en « Regular 2G »** (voir ci-dessous).
 
 La CI GitHub (`.github/workflows/ci.yml`) relance ces vérifications sur chaque pull request, plus la comparaison des types générés (`npm run api:types`) : elles doivent passer pour merger sur `main`.
 
@@ -141,7 +144,7 @@ Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx)
 - **Dates et rappels calculés dans le fuseau `America/Cayenne`**, côté back comme côté front, avec des tests automatisés sur les dates (§3). Le back stocke en UTC et convertit pour toute règle qui dépend du jour ou de l'heure locale.
 
 **Interface**
-- **Tous les textes d'interface dans des fichiers de traduction**, jamais écrits en dur dans les composants, pour pouvoir ajouter une langue sans toucher au code (P1, §6). Le français reste la seule langue tant que la cliente n'en fournit pas d'autre.
+- **Tous les textes d'interface dans `FRONTEND/src/i18n/fr.ts`**, affichés par `t('cle')` (ou `tn` pour un pluriel), jamais écrits en dur dans les composants ni gardés dans une constante de module, pour pouvoir ajouter une langue sans toucher au code (P1, §6). `npm run lint:texts` le vérifie. Le français reste la seule langue tant que la cliente n'en fournit pas d'autre ; les messages métier du back restent en français (ADR 013).
 - **Au plus 3 actions principales par écran**, une icône toujours accompagnée d'un texte, la couleur seule ne porte jamais une information (§6, §10). Accueil organisé par besoins (« J'ai besoin d'un trajet »), pas par fonctionnalités.
 - La mention **« Projet étudiant — démonstrateur »** reste visible dans l'application, et une page « À propos » crédite les auteurs (§14). Le nom et le logo d'Ingeco Territoires ne s'utilisent qu'avec l'accord de la cliente.
 - Aucun service d'urgence n'est promis dans les textes (§6).
