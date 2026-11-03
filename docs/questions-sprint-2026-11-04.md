@@ -40,6 +40,97 @@ toutes les deux semaines).
 
 ---
 
+## Le nouveau cahier des charges (v1.0)
+
+Reçu le 03/11/2026 : [cahier-des-charges-v1.0.docx](cahier-des-charges-v1.0.docx) (version 1.0
+du 14/10/2026). C'est un sujet générique pour des équipes de L3 à M2 : une « plateforme 360°
+d'accès à l'emploi » en dix modules (M0 à M10), où le VTC solidaire n'est que le module **M4,
+Mobilité**. Le palier attendu d'une L3 (P1) couvre aussi l'orientation, les offres d'emploi,
+l'annuaire des services d'aide et l'administration : impossible pour le 10/12. Plusieurs points
+contredisent aussi ce qu'on a fait ou décidé. **À poser demain, avant le reste** : les réponses
+changent le contenu des sprints.
+
+**Le périmètre**
+
+1. **Cliente** : ce cahier des charges décrit une plateforme complète, et la mobilité n'en est
+   qu'un module. Notre projet, c'est bien **le module mobilité (M4)** ? Faut-il y ajouter des
+   morceaux d'autres modules ?
+   *Par défaut : M4, plus ce qu'il faut du socle (M0 : comptes, rôles) et de l'administration
+   (M9 : comptes, tarifs).*
+2. **Cliente et enseignants** : le cahier des charges classe le **suivi GPS en temps réel hors
+   périmètre**, et la réservation immédiate en évolution future. Le sujet de la SAÉ cite
+   pourtant « géolocalisation des chauffeurs » et « suivi en temps réel ». Lequel suit-on ?
+   *Par défaut : le sujet de la SAÉ. La réservation immédiate est déjà faite, et le suivi sur
+   carte reste au sprint 1.*
+3. **Cliente** : le cahier des charges parle d'un **démonstrateur**, « pas un service en
+   production », avec une reprise professionnelle avant toute mise en service. Nous avions
+   compris que le service démarrait en janvier 2027. Qu'attendez-vous au 10/01 : un
+   démonstrateur documenté à transmettre, ou une mise en service ?
+   *Par défaut : un démonstrateur, avec une note de transmission.*
+4. **Cliente** : Ingeco Territoires est-elle une association loi 1901 (cahier des charges) ou
+   une SAS à mission (expression des besoins) ? C'est pour le rapport et les mentions légales.
+
+**La mobilité (M4)**
+
+5. **Cliente** : le cahier des charges demande que l'**administrateur affecte les courses à la
+   main**, et que le chauffeur accepte ou refuse dans un délai. Aujourd'hui, une course est
+   proposée à tous les chauffeurs proches et le premier qui accepte la prend. Faut-il ajouter
+   l'affectation par l'administrateur, en plus ou à la place ?
+   *Par défaut : on garde l'acceptation par le premier chauffeur, et l'administrateur pourra
+   affecter une course restée sans chauffeur (à développer seulement sur demande).*
+6. **Cliente** : faut-il des **horaires de service** réglables par l'administrateur, avec un
+   refus expliqué en dehors ? Rejoint la question 4 du sprint 4 (24 h/24 ou semaine élargie).
+   *Par défaut : aucun horaire imposé.*
+7. **Cliente** : faut-il les états **« chauffeur arrivé »** et **« passager absent »** ? Si le
+   passager ne vient pas, est-il remboursé, et le chauffeur payé ?
+   *Par défaut : pas ajoutés tant que la règle n'est pas fixée (il faudrait des colonnes en
+   base, à demander à l'équipe BD).*
+8. **Cliente** : le cahier des charges veut des **règles d'annulation réglables** (gratuite
+   jusqu'à une échéance, frais ensuite, absence du passager). Rejoint la question 12 du sprint 2.
+   *Par défaut : remboursement intégral dans tous les cas.*
+9. **Cliente** : le cahier des charges demande le dossier du chauffeur (véhicule, places, pièces)
+   et sa **suspension quand une pièce expire**. Aujourd'hui, les documents sont vérifiés en
+   personne et rien n'est stocké. Faut-il au moins garder les dates d'expiration ?
+   *Par défaut : rien n'est stocké.*
+10. **Cliente** : le cahier des charges cite la « gratuité totale du service pour les personnes
+    en recherche d'emploi » (code du travail, art. L.5321-3). Cela vise-t-il aussi le prix du
+    trajet, ou seulement l'accompagnement vers l'emploi ?
+    *Par défaut : le trajet reste payant, la prise en charge passe par les bons.*
+
+**Le socle et le projet**
+
+11. **Cliente** : l'application doit être prête pour plusieurs langues. Une **langue de
+    démonstration** (créole, portugais, anglais…) est-elle prévue, et pouvez-vous en fournir les
+    textes ?
+    *Par défaut : les textes sont rangés pour être traduits, mais l'application reste en
+    français.*
+12. **Cliente** : sous quelle **licence** voulez-vous le code : licence libre (MIT ou EUPL),
+    pour qu'une autre promotion le reprenne, ou cession écrite des droits à Ingeco ? Une
+    convention tripartite (IUT, étudiants, Ingeco) est-elle prévue ?
+    *Par défaut : licence MIT, en attendant votre choix.*
+13. **Cliente** : peut-on afficher votre nom et votre logo dans l'application, avec la mention
+    « Projet étudiant — démonstrateur » ?
+14. **Cliente** : la **fiche de cadrage** (§21 du cahier des charges) est à signer avant le
+    sprint 1. Qui la remplit, et pour quand ?
+15. **Enseignants** : le cahier des charges demande aussi des livrables que la SAÉ ne cite pas :
+    fiches de décision d'architecture (ADR), registre simplifié des traitements, matrice des
+    flux, vidéo de démo de 5 minutes, guide utilisateur. Lesquels comptent pour la note du
+    rendu ?
+
+**Équipe BD et interne**
+
+16. **BD** : le cahier des charges interdit certains champs en base : nationalité, situation de
+    séjour, numéro de sécurité sociale, origine, diagnostic médical. Pouvez-vous vérifier que le
+    schéma n'en contient aucun, et ne jamais en ajouter ?
+17. **BD** : le cahier des charges recommande PostgreSQL (avec PostGIS pour les zones). On reste
+    sur MySQL ? Le choix sera justifié dans une ADR.
+18. **Interne** : qui fait la récupération du compte par téléphone (code SMS simulé), exigée au
+    premier palier ? Aujourd'hui, seul l'administrateur peut donner un nouveau code.
+19. **Interne** : quelle bibliothèque pour les traductions (ou des fichiers maison, plus légers
+    pour le réseau faible) ? À trancher avant d'écrire de nouveaux écrans.
+
+---
+
 ## Demain en premier : les enseignants et la démo
 
 1. **Enseignants** : quelle est la date exacte de la soutenance, le 14 ou le 15/12 ?
@@ -215,8 +306,7 @@ puis la mise en ligne pour le démarrage de janvier, et la passation à la clien
 5. **Cliente** : une demande en dehors de Cayenne, Rémire-Montjoly et Matoury : un message de
    refus suffit-il ? Et quand faudra-t-il ajouter Kourou ?
    *Par défaut : on refuse, avec un message qui donne les trois communes.*
-6. **Cliente** : avez-vous un logo ou des couleurs à utiliser, et une nouvelle version du cahier
-   des charges ?
+6. **Cliente** : avez-vous un logo ou des couleurs à utiliser ?
 7. **Cliente** : qui reprend l'application après le 10/01 (corrections, évolutions) ?
 8. **BD** : où sera hébergée la base en production ?
 9. **BD** : une table des paiements, si on branche un prestataire en mode test. (H10)
