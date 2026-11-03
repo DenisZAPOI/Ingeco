@@ -5,7 +5,11 @@ déplacements vers l'emploi, la formation, les soins, les démarches administrat
 zones isolées de Guyane, avec une dimension sociale et inclusive.
 
 Client : **Ingeco Territoires** (SAS à mission). Projet de BUT 3 Informatique, IUT de Montreuil.
-Cahier des charges : [docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf).
+Besoins du client : [docs/expression-des-besoins.pdf](docs/expression-des-besoins.pdf) et
+[cahier des charges v1.0](docs/cahier-des-charges-v1.0.docx).
+
+> **Projet étudiant — démonstrateur.** Les comptes et les trajets sont des exemples, le paiement
+> et les SMS sont simulés : aucune carte n'est débitée, aucun SMS n'est envoyé.
 
 Auteurs du projet :
 - Denis ZAPOI
@@ -20,14 +24,304 @@ Rôles dans [AUTHORS](AUTHORS), repris dans l'application (page « À propos »)
 
 ## Sommaire
 
+**Pour tout le monde**
+
+- [Lancer l'application sur son ordinateur, pas à pas](#lancer-lapplication-sur-son-ordinateur-pas-à-pas)
+- [Comptes des services externes : ouverture et passation](#comptes-des-services-externes--ouverture-et-passation)
+
+**Pour les développeurs et l'équipe base de données**
+
 1. [Le projet en bref](#1-le-projet-en-bref)
 2. [Technologies](#2-technologies)
 3. [Organisation du dépôt](#3-organisation-du-dépôt)
-4. [Lancer le projet](#4-lancer-le-projet)
+4. [Lancer le projet](#4-lancer-le-projet) (version courte, pour les développeurs)
 5. [Pour l'équipe base de données](#5-pour-léquipe-base-de-données)
 6. [Règles de travail](#6-règles-de-travail)
 
 ---
+
+## Lancer l'application sur son ordinateur, pas à pas
+
+Ce guide s'adresse à quelqu'un qui n'a jamais fait de programmation. Il suffit de suivre les
+étapes dans l'ordre, et de **copier-coller** les commandes sans les modifier.
+
+**Ce qu'il faut :**
+- un ordinateur sous **Windows 10 ou 11** (sur Mac ou Linux, voir la [partie 4](#4-lancer-le-projet)) ;
+- une connexion à Internet pour l'installation ;
+- environ **30 minutes** et 2 Go d'espace libre la première fois. Les fois suivantes, l'application
+  démarre en une minute ([étape 6](#étape-6--lancer-lapplication)).
+
+Les étapes 1 à 5 ne se font **qu'une seule fois**.
+
+### Étape 1 : installer Python et Node.js
+
+L'application a deux morceaux : l'**API** (le serveur, écrit en Python) et l'**interface** (les
+écrans, qui ont besoin de Node.js). Il faut installer ces deux programmes gratuits.
+
+**Python 3.14**
+
+1. Aller sur https://www.python.org/downloads/ et télécharger la version **3.14** pour Windows.
+2. Ouvrir le fichier téléchargé. Si la case **« Add python.exe to PATH »** apparaît en bas de la
+   première fenêtre, **la cocher** : sans elle, rien ne marchera. Puis cliquer sur
+   **« Install Now »** et attendre la fin.
+
+**Node.js 24**
+
+1. Aller sur https://nodejs.org/ et télécharger la version **24 « LTS »** (le gros bouton).
+2. Ouvrir le fichier téléchargé et cliquer sur **« Next »** à chaque écran, sans rien changer,
+   puis sur **« Install »**.
+
+**Vérifier**
+
+1. Ouvrir le menu Démarrer, taper **`cmd`** et ouvrir **« Invite de commandes »**. Une fenêtre
+   noire s'ouvre : c'est là qu'on tape les commandes.
+2. Copier la commande ci-dessous, la coller dans la fenêtre (clic droit ou `Ctrl + V`), puis
+   appuyer sur **Entrée** :
+
+   ```bat
+   python --version
+   ```
+
+   La fenêtre doit répondre `Python 3.14` suivi d'un numéro, par exemple `Python 3.14.7`.
+3. Faire de même avec :
+
+   ```bat
+   node --version
+   ```
+
+   La réponse doit commencer par `v24`.
+4. Fermer la fenêtre.
+
+Si une réponse est « n'est pas reconnu en tant que commande interne », voir
+[En cas de problème](#en-cas-de-problème).
+
+### Étape 2 : télécharger le projet
+
+1. Aller sur https://github.com/DenisZAPOI/Ingeco.
+2. Cliquer sur le bouton vert **« Code »**, puis sur **« Download ZIP »**.
+3. Dans le dossier Téléchargements, faire un clic droit sur `Ingeco-main.zip`, puis
+   **« Extraire tout… »** et **« Extraire »**.
+4. Déplacer le dossier `Ingeco-main` obtenu sur le **Bureau**. Il contient notamment les dossiers
+   `BACKEND` (l'API) et `FRONTEND` (l'interface).
+
+> Les développeurs, eux, récupèrent le projet avec Git : `git clone https://github.com/DenisZAPOI/Ingeco.git`.
+
+**Astuce pour la suite** : pour ouvrir une invite de commandes directement dans un dossier, ouvrir
+ce dossier dans l'Explorateur de fichiers, cliquer dans la **barre d'adresse** en haut (là où
+est écrit le chemin du dossier), taper **`cmd`** et appuyer sur **Entrée**. La fenêtre noire
+s'ouvre déjà placée dans ce dossier.
+
+### Étape 3 : préparer l'API
+
+1. Ouvrir le dossier `Ingeco-main`, puis le dossier **`BACKEND`**, et y ouvrir une invite de
+   commandes (astuce ci-dessus).
+2. Copier-coller ces commandes **une par une**, en appuyant sur Entrée après chacune et en
+   attendant qu'elle soit finie (la ligne qui se termine par `>` réapparaît) :
+
+   ```bat
+   python -m venv .venv
+   ```
+
+   ```bat
+   .venv\Scripts\python -m pip install -r requirements.txt
+   ```
+
+   La deuxième télécharge ce dont l'API a besoin : une à deux minutes, avec beaucoup de lignes
+   qui défilent. Un message jaune ou gris « A new release of pip is available » n'est pas grave.
+
+   ```bat
+   copy .env.example .env
+   ```
+
+   La fenêtre répond `1 fichier(s) copié(s).` Le fichier `.env` contient les réglages de l'API.
+
+### Étape 4 : créer la clé secrète de l'API
+
+L'API refuse de démarrer sans une clé secrète, propre à chaque ordinateur.
+
+1. Dans la même fenêtre, lancer :
+
+   ```bat
+   .venv\Scripts\python -c "import secrets; print(secrets.token_urlsafe(48))"
+   ```
+
+   Elle affiche une longue suite de lettres et de chiffres : c'est la clé. La **sélectionner à la
+   souris** et la copier (`Ctrl + C`, ou clic droit).
+2. Ouvrir le fichier de réglages dans le Bloc-notes :
+
+   ```bat
+   notepad .env
+   ```
+
+3. Trouver la ligne `FLASK_SECRET_KEY=replace-with-a-generated-key`. Remplacer
+   `replace-with-a-generated-key` par la clé copiée, **sans espace**, pour obtenir par exemple :
+
+   ```
+   FLASK_SECRET_KEY=Xk3v9...la-suite-de-votre-cle
+   ```
+
+4. Enregistrer (`Ctrl + S`) et fermer le Bloc-notes. Ne toucher à aucune autre ligne.
+
+Cette clé ne doit être ni partagée, ni envoyée par message : chacun crée la sienne.
+
+### Étape 5 : préparer l'interface
+
+1. Revenir dans le dossier `Ingeco-main`, ouvrir le dossier **`FRONTEND`**, et y ouvrir une
+   nouvelle invite de commandes.
+2. Lancer, une par une :
+
+   ```bat
+   npm install
+   ```
+
+   Une à deux minutes. Elle se termine par une ligne du type `added 391 packages`.
+
+   ```bat
+   copy .env.example .env
+   ```
+
+L'installation est terminée. Fermer les fenêtres noires.
+
+### Étape 6 : lancer l'application
+
+À faire **à chaque fois** qu'on veut utiliser l'application. Il faut **deux fenêtres noires
+ouvertes en même temps** : une pour l'API, une pour l'interface.
+
+1. **L'API** : ouvrir une invite de commandes dans le dossier `BACKEND` et lancer :
+
+   ```bat
+   .venv\Scripts\python -m app
+   ```
+
+   Attendre la ligne `Application started`. Des lignes `WARNING` sur `ORS_API_KEY` et
+   `LOAD_DEMO_DATA` sont normales : elles rappellent que les adresses et les comptes sont des
+   exemples. **Laisser cette fenêtre ouverte.**
+2. **L'interface** : ouvrir une autre invite de commandes dans le dossier `FRONTEND` et lancer :
+
+   ```bat
+   npm run dev
+   ```
+
+   Attendre la ligne `Local: http://localhost:5173/`. **Laisser cette fenêtre ouverte aussi.**
+3. Ouvrir un navigateur (Chrome, Edge ou Firefox) à l'adresse **http://localhost:5173**.
+   L'écran « Bienvenue » de l'application s'affiche.
+
+**Pour voir l'application comme sur un téléphone** : dans Chrome ou Edge, appuyer sur `F12`, puis
+sur `Ctrl + Maj + M`.
+
+### Étape 7 : se connecter avec un compte de test
+
+Les comptes ci-dessous existent déjà. Ce sont des personnes fictives. **Mot de passe de tous les
+comptes : `Trajet-2026!`** (avec le point d'exclamation).
+
+| Pour essayer… | Téléphone | Compte |
+|---|---|---|
+| Réserver un trajet | `0694 00 00 01` | Alice, usager |
+| Accepter et conduire une course | `0694 00 00 03` | Chloé, chauffeur |
+| Gérer les comptes | `0694 00 00 06` | Farid, administrateur |
+
+- **Créer un nouveau compte** : « Créer un compte », avec un numéro inventé qui commence par 0694.
+  Le code « reçu par SMS » est toujours **`123456`**.
+- **Mot de passe oublié** : le code reçu est toujours **`12345678`**.
+- **Pour jouer l'usager et le chauffeur en même temps** : ouvrir une deuxième fenêtre du navigateur
+  en navigation privée (`Ctrl + Maj + N`) et s'y connecter avec l'autre compte.
+- La liste complète des comptes et un parcours de découverte : [Comptes de test](#comptes-de-test).
+
+Bon à savoir : pour l'instant, **tout revient à zéro quand l'API s'arrête** (comptes créés,
+trajets réservés). C'est normal : la vraie base de données sera branchée plus tard.
+
+### Étape 8 : arrêter l'application
+
+Dans chacune des deux fenêtres noires, appuyer sur **`Ctrl + C`**. Si la fenêtre demande
+« Terminer le programme de commandes (O/N) ? », taper **`O`** puis Entrée. On peut ensuite fermer
+les fenêtres.
+
+### En cas de problème
+
+| Ce qu'on voit | Ce qu'il faut faire |
+|---|---|
+| `'python' n'est pas reconnu en tant que commande interne…`, ou le Microsoft Store s'ouvre | Python n'est pas installé, ou la case « Add python.exe to PATH » n'a pas été cochée. Relancer l'installation de l'étape 1 en cochant la case, puis **fermer et rouvrir** la fenêtre noire |
+| `'npm' n'est pas reconnu…` ou `'node' n'est pas reconnu…` | Node.js n'est pas installé : refaire l'étape 1, puis fermer et rouvrir la fenêtre noire |
+| `Le chemin d'accès spécifié est introuvable`, ou `npm error code ENOENT` | La fenêtre n'est pas ouverte dans le bon dossier. Vérifier le chemin écrit avant le `>` : il doit finir par `BACKEND` (étapes 3, 4 et 6.1) ou par `FRONTEND` (étapes 5 et 6.2). Si c'est bien `BACKEND`, l'étape 3 n'a pas été faite jusqu'au bout |
+| `FLASK_SECRET_KEY must be generated, 32 characters minimum` | La clé secrète manque : refaire l'étape 4, sans oublier d'enregistrer le fichier |
+| `Port 5173 is already in use`, ou `address already in use` pour le port 5000 | L'application tourne déjà dans une autre fenêtre noire. La retrouver et l'arrêter (étape 8), ou redémarrer l'ordinateur |
+| La page http://localhost:5173 ne s'ouvre pas | La fenêtre de l'interface (étape 6.2) est fermée ou n'a pas fini de démarrer |
+| L'application affiche « Le service ne répond pas pour le moment » | La fenêtre de l'API (étape 6.1) est fermée ou arrêtée : la relancer |
+| Le mot de passe d'un compte de test est refusé | Vérifier `Trajet-2026!` : majuscule au début, point d'exclamation à la fin. Le compte de Hugo (`0694 00 00 08`) est volontairement suspendu |
+| Un trajet ou un compte créé a disparu | Normal : tout revient à zéro à chaque redémarrage de l'API (étape 7) |
+| La page « Diagnostic » indique que la base de données est injoignable | Normal sans la base MySQL : elle n'est pas nécessaire pour essayer l'application (voir ci-dessous) |
+
+Si le problème continue : copier le texte de la fenêtre noire (sélection à la souris, puis
+`Ctrl + C`) et l'envoyer à un développeur, avec une capture d'écran.
+
+### Pour aller plus loin (facultatif)
+
+- **De vraies adresses et de vraies distances** : sans réglage, l'API propose une douzaine de lieux
+  fictifs de Cayenne, Rémire-Montjoly et Matoury. Pour chercher de vraies adresses, il faut une clé
+  OpenRouteService (voir [Comptes des services externes](#comptes-des-services-externes--ouverture-et-passation)),
+  à copier dans le fichier `BACKEND\.env`, sur la ligne `ORS_API_KEY=`, de la même façon qu'à
+  l'étape 4. Relancer ensuite l'API.
+- **La base de données MySQL** : elle demande Docker, et sert surtout aux développeurs et à
+  l'équipe BD. Voir la [partie 4](#4-lancer-le-projet).
+
+---
+
+## Comptes des services externes : ouverture et passation
+
+L'application s'appuie sur des services en ligne qui demandent un compte (le dépôt du code, une
+clé d'API…). Le cahier des charges (§20) fixe trois règles :
+
+- ces comptes sont ouverts **au nom d'Ingeco Territoires ou de l'IUT**, jamais au nom personnel
+  d'un étudiant ;
+- **0 € de licence, aucune carte bancaire personnelle** : uniquement des offres gratuites ou des
+  modes test ;
+- les **accès sont remis à la fin du projet** (vers le 10/01/2027), pour que l'application puisse
+  continuer sans nous.
+
+### Les comptes
+
+| Service | À quoi il sert | Où va l'accès | Aujourd'hui |
+|---|---|---|---|
+| **GitHub** (dépôt `DenisZAPOI/Ingeco`) | Le code, son historique, les vérifications automatiques (CI), les demandes à l'équipe BD | Invitations sur le dépôt | Compte personnel de Denis ZAPOI. **À transférer** à un compte ou une organisation d'Ingeco ou de l'IUT (choix à faire avec la cliente) |
+| **OpenRouteService** | Recherche d'adresses et distance par la route (données OpenStreetMap) | `ORS_API_KEY` dans `BACKEND/.env` | Facultatif : sans clé, lieux fictifs. Compte à ouvrir au nom d'Ingeco ou de l'IUT avant la mise en service. Quotas gratuits à vérifier |
+| **Hébergement de la démo** | Mettre l'application en ligne | Selon l'hébergeur choisi | Pas encore choisi (fin de projet) |
+| **Prestataire de paiement** (Stripe ou équivalent) | Payer un trajet par carte | Clés dans `BACKEND/.env` | Pas utilisé : paiement simulé dans l'API. Si on en branche un, **mode test uniquement**, compte au nom d'Ingeco |
+| **Envoi de SMS** | Codes d'inscription, alertes de trajet | Clés dans `BACKEND/.env` | Pas utilisé : SMS simulés, écrits dans les journaux de l'API |
+
+Tout nouveau service s'ajoute à ce tableau **avant** d'être utilisé, avec sa fiche de décision
+([docs/adr/](docs/adr/README.md)).
+
+### Ouvrir un compte
+
+1. Demander à la cliente (ou à l'IUT) **l'adresse e-mail** à utiliser : une adresse de la
+   structure, pas celle d'un étudiant.
+2. Choisir l'**offre gratuite** ou le **mode test**. Si le service demande une carte bancaire,
+   s'arrêter et en parler à la cliente.
+3. Noter dans le tableau ci-dessus le service, l'adresse du compte et la date d'ouverture (jamais
+   le mot de passe ni la clé).
+
+### Ranger les accès
+
+- Les **clés d'API** vont seulement dans les fichiers `.env`, qui ne sont jamais envoyés sur
+  GitHub. Jamais dans le code, jamais dans un message WhatsApp ou un e-mail.
+- Les **mots de passe des comptes** se transmettent de vive voix ou par un gestionnaire de mots de
+  passe partagé avec la cliente, jamais par écrit en clair.
+
+### Remettre les accès en fin de projet
+
+Avant le 10/01/2027, avec la cliente, pour chaque compte du tableau :
+
+1. **Donner la main** : transférer le dépôt GitHub (Settings → General → Danger Zone → *Transfer
+   ownership*) ; pour les autres services, passer l'adresse e-mail et le mot de passe du compte à
+   ceux de la cliente.
+2. **Changer les clés** : en créer de nouvelles depuis le compte, les mettre dans le `.env` de
+   l'application en ligne, puis supprimer les anciennes, que les étudiants connaissaient.
+3. **Retirer l'accès des étudiants** (invitations GitHub, membres des comptes).
+4. **Noter la remise** dans la note de transmission : quel compte, remis à qui, quand.
+
+---
+
+# Pour les développeurs et l'équipe base de données
 
 ## 1. Le projet en bref
 
