@@ -2,8 +2,9 @@
 Shared test configuration.
 
 Environment variables are set BEFORE importing the application: config.py
-reads them when it is loaded. The tests use an in-memory SQLite database, so
-they run without any database server.
+reads them when it is loaded. The tests run on a real MySQL 8.4, built from
+the DB team's scripts (tests/mysql_setup.py): start it with
+`docker compose --profile test up -d db-test`.
 """
 
 import os
@@ -13,7 +14,11 @@ import pytest
 from flask import Blueprint, jsonify
 from flask_pydantic_spec import Response
 
-os.environ.setdefault("DATABASE_URL", "sqlite://")
+# Dropped and created again at every run: never a database whose content matters.
+TEST_DATABASE_URL = os.environ.setdefault(
+    "TEST_DATABASE_URL", "mysql+pymysql://root:tests-only@127.0.0.1:3308/enroute_test?charset=utf8mb4"
+)
+os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ.setdefault("FLASK_SECRET_KEY", "test-key-long-enough-for-hs256-0123456789")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:5173")
 os.environ.setdefault("LOG_FORMAT", "text")
@@ -35,6 +40,9 @@ from app.repository import registration_repository, ride_repository, user_reposi
 from app.services import auth_service, place_service, ride_rules, user_service  # noqa: E402
 from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
+from app.utils import database  # noqa: E402
+
+from . import mysql_setup  # noqa: E402
 
 # Signed stops are built at import time by the test modules (tests/test_rides.py).
 place_service.configure(signing_key=os.environ["FLASK_SECRET_KEY"])
@@ -77,8 +85,15 @@ def _test_routes() -> Blueprint:
     return blueprint
 
 
+@pytest.fixture(scope="session", autouse=True)
+def test_database():
+    """The schema of the DB team, loaded once per run; the API connected to it."""
+    mysql_setup.create(TEST_DATABASE_URL)
+    return database.initialize(TEST_DATABASE_URL)
+
+
 @pytest.fixture(scope="session")
-def app():
+def app(test_database):
     application = create_app()
     application.config.update(TESTING=True, PROPAGATE_EXCEPTIONS=False)
     application.register_blueprint(_test_routes())
@@ -91,8 +106,9 @@ def client(app):
 
 
 @pytest.fixture(autouse=True)
-def fresh_state():
+def fresh_state(test_database):
     """Every test starts from the development accounts, no ride (not even the development ones), and no failed attempt counted."""
+    mysql_setup.empty(test_database)
     user_repository.reset(demo_accounts=True)
     ride_repository.reset(dev_rides=False)
     auth_service.login_attempts.clear()

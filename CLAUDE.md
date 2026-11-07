@@ -44,7 +44,7 @@ Le socle reprend celui de ProjectOrganizer (R5.A.05), que Denis connaît déjà.
 - **Adresses et distance par la route** : OpenRouteService (données OpenStreetMap), appelé depuis `repository/place_repository.py`. Clé dans `ORS_API_KEY` ; sans clé, lieux factices et aucun appel à Internet (tests, CI). S'il ne répond pas : `503`, pas de prix.
 - **Contrat d'API** : l'OpenAPI généré par le back. Les types TypeScript du front en sont **générés** (`npm run api:types`), jamais écrits à la main.
 - **Auth** : JWT dans des cookies `HttpOnly` (Flask-JWT-Extended), jeton d'accès de 15 min renouvelé par un jeton de 30 jours, CSRF par double envoi, mots de passe hachés en scrypt (Werkzeug). Rôle contrôlé côté back par `@require_login(...)` (`utils/access.py`). Détail dans [docs/architecture.md](docs/architecture.md).
-- **BD** : fournie par l'équipe parcours C. MySQL 8.4 (confirmé par l'équipe BD le 03/11/2026), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307). Au premier démarrage, `sql/charger-base.sh` charge `sql/schema-mvp.sql`, puis les migrations de `sql/migrations/` dans l'ordre, puis `sql/demo-data.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé. Pilote PyMySQL. Les `repository/` sont encore sur données factices en mémoire. Les tests et la CI tournent sur SQLite en mémoire. La démo de la soutenance tourne **en local** (décidé le 03/11/2026) : pas d'hébergement de production à choisir, le livrable est un démonstrateur (cahier des charges §1). Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
+- **BD** : fournie par l'équipe parcours C. MySQL 8.4 (confirmé par l'équipe BD le 03/11/2026), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307). Au premier démarrage, `sql/charger-base.sh` charge `sql/schema-mvp.sql`, puis les migrations de `sql/migrations/` dans l'ordre, puis `sql/demo-data.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé. Pilote PyMySQL. Branchement en cours (une PR par étape) : les communes et le tarif sont lus en base ; les comptes et les trajets sont encore sur données factices en mémoire. Les tests (`pytest`) et la CI tournent sur un vrai MySQL 8.4, construit à chaque lancement depuis `sql/schema-mvp.sql` et les migrations (`tests/mysql_setup.py`) : en local, `docker compose --profile test up -d db-test` (port 3308, base jetable en mémoire). La démo de la soutenance tourne **en local** (décidé le 03/11/2026) : pas d'hébergement de production à choisir, le livrable est un démonstrateur (cahier des charges §1). Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
 
 ## Structure du repo
 
@@ -55,7 +55,7 @@ BACKEND/
     dtos/          # modèles Pydantic d'entrée/sortie (base.py : camelCase, format d'erreur)
     services/      # règles métier, droits, transactions
     repository/    # seul endroit qui parle à la BD
-    models/        # modèles ORM des tables livrées par l'équipe BD (vide pour l'instant)
+    models/        # modèles ORM des tables de l'équipe BD (noms anglais, colonnes françaises) ; tests/test_models.py les compare aux tables
     sockets/       # événements temps réel
     utils/         # database, errors, logs, request_logs, security_headers
     main.py        # create_app()
@@ -107,6 +107,7 @@ docker compose down -v                     # efface la base, rechargée depuis s
 
 # back (http://localhost:5000, Swagger sur /apidoc/swagger)
 cd BACKEND && .venv/Scripts/python -m app
+docker compose --profile test up -d db-test   # base MySQL des tests (jetable, port 3308)
 cd BACKEND && .venv/Scripts/python -m pytest
 
 # front (http://localhost:5173)

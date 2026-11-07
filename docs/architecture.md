@@ -23,7 +23,7 @@ dans les [fiches de décision (ADR)](adr/README.md).
 | Tests | pytest | 9.1.1 |
 
 Versions figées dans `requirements.txt`. Base : MySQL 8.4 en local dans Docker (`compose.yaml`,
-`sql/schema-mvp.sql`), pilote PyMySQL. Les tests tournent sur SQLite en mémoire.
+`sql/schema-mvp.sql`), pilote PyMySQL. Les tests tournent sur MySQL 8.4 (service `db-test` de `compose.yaml`, et la CI), base recréée à chaque lancement depuis `sql/`.
 
 ### Dossiers
 
@@ -40,7 +40,7 @@ BACKEND/
     ├── dtos/                   Modèles Pydantic entrée/sortie   modèle : health_dto.py (base.py)
     ├── services/               Règles métier                    modèle : health_service.py
     ├── repository/             Seul accès à la base             modèle : health_repository.py
-    ├── models/                 Modèles ORM des tables de l'équipe BD (vide pour l'instant)
+    ├── models/                 Modèles ORM des tables de l'équipe BD (classes en anglais, colonnes en français)
     ├── sockets/                Événements temps réel ; broadcast.py pour émettre
     └── utils/                  database, errors, logs, request_logs, security_headers,
                                 access (session, rôles), passwords, rate_limit, locks,
@@ -84,7 +84,7 @@ exactement les mêmes règles que les routes HTTP.
   condition fine → SQL explicite dans `repository/`.
 - Requêtes lourdes (statistiques, chauffeurs proches, consommation des bons) : écrites par
   l'équipe BD en **vues SQL**, lues par `repository/` comme des tables. Les tests tournent sur
-  SQLite : y recréer la vue (en SQL standard) pour tester le repository.
+  MySQL, chargé depuis `sql/` : la vue y existe telle quelle.
 - **Services externes** (adresses et distance par la route : OpenRouteService, H13) : appelés
   depuis `repository/` aussi, qui reste « la source des données », base ou pas
   (`place_repository.py`). Une panne y lève une exception propre au repository, que le service
