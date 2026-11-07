@@ -728,7 +728,7 @@ Choix faits pour pouvoir écrire ce document. Ils ne sont validés ni par le cli
 | H16 | 15 minutes pour payer, sinon la réservation expire et le bon est rendu | Un autre délai : aucun effet sur le schéma |
 | H17 | Remboursement intégral en cas d'annulation ou d'expiration, quels que soient l'auteur et le moment | Frais d'annulation tardive : un montant remboursé sur la course |
 | H18 | Zone du pilote = **la liste des communes desservies** : départ et arrivée doivent être dans l'une d'elles. La cliente a parlé de « Cayenne et environ 5 km autour » : Cayenne, Rémire-Montjoly, Matoury. Un rayon autour de Cayenne, s'il le faut, est un réglage de l'API | Si la zone doit être un tracé précis plutôt qu'une liste de communes : un contour en base, avec un type spatial (rejoint H13) |
-| H19 | Une photo par chauffeur, de petite taille, enregistrée **en base** (binaire) ou **en fichier** sur le serveur de l'API avec sa référence en base : **à vous de choisir, et de nous le dire**. Le reste du profil (« mini CV ») n'est pas encore défini | Des champs de profil en plus sur le chauffeur, selon la réponse de la cliente |
+| H19 | Une photo par chauffeur, de petite taille. **Réponse de l'équipe BD (03/11/2026, #22)** : **en base**, en `MEDIUMBLOB` (un `BLOB` s'arrête à 64 Ko, l'API en accepte 100), 100 Ko au plus. Le reste du profil : prénom et note seulement ([decisions.md](decisions.md), H19) | Des champs de profil en plus sur le chauffeur, selon la réponse de la cliente |
 
 **Questions pour le client** (en plus de celles de `CLAUDE.md`)
 
@@ -779,12 +779,14 @@ Le reste (connexion, données de test, livraison du script) est dans le
 
 La première version du schéma de l'équipe BD avait été écrite avant ce contrat. Les développeurs
 l'ont réécrite pour qu'elle le couvre ([sql/schema-mvp.sql](../sql/schema-mvp.sql)), en gardant
-ses choix ; elle reste à relire par l'équipe BD. Réponses qu'elle apporte :
+ses choix ; l'équipe BD l'a relue et validée le 03/11/2026 (PR #36), avec une seule correction
+(la photo en `MEDIUMBLOB`). Réponses qu'elle apporte :
 
 1. SGBD : **MySQL 8.4**, sans type spatial (filtre sur un rectangle `lat`/`lng`, voir
    [6.1](#61-trouver-les-chauffeurs-et-les-courses-proches)).
 2. Identifiants : **entiers** auto-incrémentés.
-3. Photo du chauffeur (H19) : **en base** (`BLOB`), avec sa date de modification pour le cache.
+3. Photo du chauffeur (H19) : **en base** (`MEDIUMBLOB`, 100 Ko au plus), avec sa date de
+   modification pour le cache.
 4. Montants en centimes (entiers), dates en UTC, statuts et communes contraints (`ENUM`, clés
    étrangères), règles de [6.5](#65-unicité-et-intégrité) en `CHECK`.
 

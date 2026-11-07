@@ -85,6 +85,7 @@ tout le palier P1**. **À poser en premier** :
    chacun) ? Le travail fait entre la soutenance et le 10/01 compte-t-il dans la note ?
 9. **BD** : la relecture du schéma v2 (`sql/`) peut-elle être finie pour le 17/11 ? Sinon, le
    branchement sur MySQL glisse, et la démo de décembre tourne sur des données factices.
+   *Réponse (03/11, PR #36) : schéma v2 relu et validé.*
 10. **BD** : le cahier des charges demande des données que le schéma n'a pas encore. Pouvez-vous
     les ajouter au sprint 2 ? Nouvelles tables : offres d'emploi, services d'aide, fiches
     pratiques, réponses au questionnaire et plans d'action. Sur les trajets : horaires de service ; repère et nombre de passagers sur une
@@ -132,6 +133,7 @@ tout le palier P1**. **À poser en premier** :
 6. **Cliente** : peut-on faire tester l'application à un chauffeur sur place, en Guyane, avec
    l'un de vos partenaires (cahier des charges §14 : volontaires, accord écrit) ?
 7. **BD** : la photo du chauffeur est-elle stockée en base ou en fichier ? (H19)
+   *Réponse (03/11, #22) : en base, en `MEDIUMBLOB`, 100 Ko au plus.*
 8. **BD** : si le taux de commission peut changer, il faudra une colonne sur `course` avec le
    montant reversé au chauffeur. On vous la demande après la réponse à la question 5.
 
@@ -155,8 +157,10 @@ tout le palier P1**. **À poser en premier** :
 **Questions :**
 
 1. **BD** : MySQL 8.4 est-il confirmé ?
+   *Réponse (03/11, PR #36) : oui.*
 2. **BD** : pouvez-vous ajouter la colonne `version_session` sur `utilisateur`, et séparer
    `sql/demo-data.sql` ? (README, partie 5)
+   *Réponse (03/11, PR #36) : migration 001, et `demo-data.sql` reste à part.*
 3. **Interne** : qui branche l'API sur MySQL ?
 4. **Cliente** : quels horaires autoriser pour les demandes de trajet ?
    *Par défaut : à toute heure, tous les jours (le réglage existe, il ne bloque rien).*
@@ -188,6 +192,7 @@ répétition de la démo, support de soutenance, rapport de gestion.
    quelle partie ?
 3. **Interne** : la démo tourne-t-elle en local ou en ligne ? Une démo en ligne demande d'avoir
    choisi un hébergement gratuit avant le 10/12.
+   *Décidé le 03/11 : en local.*
 
 ---
 
@@ -213,5 +218,6 @@ utilisateur, guide administrateur, vidéo de 5 minutes, note de transmission, re
    promotion ?
 6. **BD** : une table des paiements, si on branche un prestataire en mode test. (H10)
 7. **Interne** : quel hébergement gratuit pour la démo, et qui regarde les options ?
+   *Sans objet depuis le 03/11 : la démo tourne en local.*
 8. **Interne** : qui vérifie les quotas gratuits d'OpenRouteService et l'obligation de citer la
    source ?

@@ -350,7 +350,7 @@ Répartition du travail :
 |---|---|
 | Back-end (API) | Python 3.14, Flask, Flask-SocketIO (temps réel), SQLAlchemy (accès à la base), Pydantic (validation), Flask-JWT-Extended (connexion) |
 | Front-end | React 19, TypeScript, Vite, application web installable sur mobile (PWA) |
-| Base de données | **MySQL 8.4**, en local dans Docker (choix de l'équipe BD, à confirmer) |
+| Base de données | **MySQL 8.4**, en local dans Docker (choix de l'équipe BD, confirmé le 03/11/2026) |
 | Documentation de l'API | Générée automatiquement (Swagger) : http://localhost:5000/apidoc/swagger |
 
 ## 3. Organisation du dépôt
@@ -578,12 +578,14 @@ vues en SQL standard quand c'est possible, et signalez ce qui est propre à MySQ
 ### La base locale : MySQL 8.4 dans Docker
 
 En local, l'API est branchée sur un conteneur **MySQL 8.4** (`compose.yaml`, voir la
-[partie 4](#4-lancer-le-projet)), créé à partir de `sql/schema-mvp.sql`. Ce script est la version 2
-du schéma, réécrite d'après le [contrat d'API](docs/contrat-api.md) ; `sql/schema-hors-scope.sql`
-garde ce qui n'est pas encore dans le périmètre (bons solidaires, documents, formation).
+[partie 4](#4-lancer-le-projet)), créé par `sql/charger-base.sh` à partir de `sql/schema-mvp.sql`
+(version 2 du schéma, validée par l'équipe BD le 03/11/2026) et des migrations de
+`sql/migrations/` ; `sql/schema-hors-scope.sql` garde ce qui n'est pas encore dans le périmètre
+(bons solidaires, documents, formation).
 
 Les tests automatiques (`pytest`, CI) tournent encore sur SQLite en mémoire : ils ne lisent pas
-la base. Le déploiement (hébergement de la base) sera choisi en fin de projet.
+la base. La démo de la soutenance tourne en local (décidé le 03/11/2026) : pas d'hébergement de
+la base à préparer, seulement un export par `mysqldump` (#26).
 
 ### Comment l'API parle à la base : SQLAlchemy
 
@@ -652,24 +654,22 @@ Chaque fichier explique en tête comment s'en servir depuis l'API, et ce qui est
 Dans l'ordre, avec la date à laquelle on en a besoin (calendrier dans
 [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md)) :
 
-1. **Confirmer le SGBD** : MySQL 8.4, celui de votre première version. Le pilote Python et
-   quelques requêtes en dépendent.
-2. **Relire et valider le schéma** (`sql/schema-mvp.sql`), **pour le 17/11** : l'API se branche
-   sur MySQL au sprint 2 (18/11 → 01/12). Votre première version avait été écrite avant le
-   contrat d'API v2 : les développeurs l'ont réécrite (version 2) pour qu'elle couvre le contrat,
-   en gardant vos choix (MySQL, noms en français, identifiants entiers). C'était la dernière fois
-   qu'ils touchaient à `sql/` : à vous de le corriger et de le valider. Une fois validé, il devient
-   le point de départ des migrations. Le script fait foi : les classes Python suivent le script,
-   pas l'inverse.
-3. **Première migration** : la colonne `version_session` (voir « Demandes de l'audit » plus
-   bas).
-4. **Où stocker la photo du chauffeur** : en base (binaire) ou en fichier sur le serveur, avec sa
-   référence en base ([contrat-api.md](docs/contrat-api.md), H19).
-5. **Les vues des statistiques**, pour le sprint 3 (voir « Les requêtes SQL »).
-6. **Les tables des bons solidaires**, dès que la cliente aura dit comment marche un bon (point
-   de départ : `sql/schema-hors-scope.sql`).
-7. **Où héberger la base en production**, pour la mise en service de janvier.
-8. **Votre partie du rapport de gestion et de la soutenance** : le temps passé par chacun, et qui
+Le SGBD, la validation du schéma, la colonne `version_session`, la photo du chauffeur, la table
+des demandes de suppression et les vues sont livrés (tableau ci-dessus, PR #36). Il reste :
+
+1. **Le compte supprimé** (#32). Décidé par les développeurs le 03/11 : un statut `supprime` sur
+   `utilisateur` (le compte ne se connecte plus et sort des listes) ; nom et courriel effacés ;
+   téléphone remplacé par `+000` suivi de l'identifiant sur 9 chiffres (`+000000000042` pour le
+   compte 42 : l'indicatif 000 n'existe pas, et la valeur respecte la contrainte du téléphone) ;
+   les courses restent, sans identité. Pour le sprint 2.
+2. **Les tables des nouveaux modules**, pour le sprint 2 (18/11 → 01/12) : offres d'emploi,
+   services d'aide, fiches pratiques, questionnaire et plan d'action, horaires, zones, nouveaux
+   états des courses… Une issue `bd` chacune, ouverte par les développeurs.
+3. **L'export de la base** par `mysqldump`, documenté (#26). La démo de la soutenance tourne en
+   local (décidé le 03/11) : pas d'hébergement à préparer.
+4. **Les tables des bons solidaires**, dès que la cliente aura dit comment marche un bon (point
+   de départ : `sql/schema-hors-scope.sql`, #25).
+5. **Votre partie du rapport de gestion et de la soutenance** : le temps passé par chacun, et qui
    présente quoi sur la base.
 
 Et en continu : les **données de référence** (communes desservies : Cayenne, Rémire-Montjoly et
@@ -692,14 +692,13 @@ souhaitez.
 
 ### Demandes de l'audit de sécurité (02/11/2026)
 
-L'[audit](docs/audit-securite-2026-11-02.md) demande deux changements de schéma. Les développeurs
-ne les appliquent pas : à vous de les reprendre (la colonne, dans une migration), ou d'en proposer
-une autre forme.
+L'[audit](docs/audit-securite-2026-11-02.md) demandait deux changements de schéma, tous deux
+livrés.
 
 1. **Une colonne `version_session`** (entier, `NOT NULL DEFAULT 0`) sur `utilisateur`. L'API
    l'augmente à chaque nouveau mot de passe et à chaque suspension, et la relit à chaque requête
-   (par la clé primaire) : les sessions ouvertes avant prennent fin. Elle vit pour l'instant dans
-   les données factices de l'API.
+   (par la clé primaire) : les sessions ouvertes avant prennent fin. Livrée par la migration 001
+   (#21) ; l'API s'en sert dans ses données factices jusqu'au branchement sur MySQL.
 2. **Les données de test sont séparées du schéma** : `sql/demo-data.sql`, chargé en local par
    `compose.yaml` après `sql/schema-mvp.sql`. Merci de garder cette séparation dans vos versions :
    un environnement hébergé ne charge que le schéma et les données de référence.

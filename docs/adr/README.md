@@ -49,7 +49,7 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [005](005-codes-sms.md) | Inscription et mot de passe oublié par code SMS | Acceptée | 02/11/2026 |
 | [006](006-sms-simules.md) | SMS simulés dans les logs, sans donnée personnelle | Acceptée | 02/11/2026 |
 | [007](007-etat-en-memoire.md) | Limites, verrous et inscriptions en attente en mémoire | Acceptée | 02/11/2026 |
-| [008](008-mysql.md) | MySQL 8.4 plutôt que PostgreSQL et PostGIS | Acceptée, à confirmer par l'équipe BD | 20/10/2026 |
+| [008](008-mysql.md) | MySQL 8.4 plutôt que PostgreSQL et PostGIS | Acceptée, confirmée par l'équipe BD le 03/11/2026 | 20/10/2026 |
 | [009](009-openrouteservice.md) | OpenRouteService pour les adresses et la distance | Acceptée | 02/11/2026 |
 | [010](010-react-vite-pwa.md) | React, Vite et PWA, CSS maison sans framework | Acceptée | 06/10/2026 |
 | [011](011-types-generes.md) | Types TypeScript générés depuis l'OpenAPI | Acceptée | 06/10/2026 |
