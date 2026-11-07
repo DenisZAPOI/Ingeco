@@ -440,7 +440,8 @@ son compte avec son véhicule (UC52), et le chauffeur l'active avec le code reç
      elle est disponible), puis la commune et l'adresse d'arrivée.
   2. Il choisit le motif : emploi, formation, soins, démarche administrative, autre.
   3. Il saisit un code de bon s'il en a un (UC13).
-  4. Le système affiche le prix total, la part du bon et la part à payer (UC12).
+  4. Le système affiche le prix total, la part du bon et la part à payer (UC12), et les
+     conditions d'annulation (cahier des charges §7.4 ; valeurs provisoires Q7 de decisions.md).
   5. L'usager confirme : le système enregistre la réservation (`awaiting_payment`).
   6. Si sa part est supérieure à zéro, il paie (UC14). Sinon le paiement est marqué « non
      requis » et l'étape est sautée.

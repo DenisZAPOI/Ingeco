@@ -169,6 +169,11 @@ export const fr = {
       "L'heure de départ doit être au moins 30 minutes après maintenant. Pour partir plus tôt, choisissez « Maintenant ».",
     confirmTitle: 'Votre trajet',
     payNext: "Vous payez par carte à l'étape suivante, avant le départ.",
+    // CHANGER_SELON_DECISION (Q7, H17) : conditions d'annulation provisoires, voir docs/decisions.md.
+    cancelTitle: 'Si vous annulez',
+    cancelFree: "Vous pouvez annuler gratuitement jusqu'au départ, tant que le chauffeur n'a pas commencé la course.",
+    cancelRefund: 'Si vous avez déjà payé, vous êtes remboursé en entier.',
+    cancelDriver: "Si le chauffeur annule, le trajet est proposé à un autre chauffeur. Vous n'avez rien à payer en plus.",
     book: 'Réserver ce trajet',
     change: 'Modifier le trajet',
     commune: 'Commune',

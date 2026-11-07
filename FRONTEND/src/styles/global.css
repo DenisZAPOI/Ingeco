@@ -332,6 +332,17 @@ a:hover {
   background: var(--color-surface);
 }
 
+/* A panel with its own title and a short list (conditions d'annulation). */
+.panel-title {
+  margin: 0 0 var(--space-s);
+  font-size: var(--font-size-lead);
+}
+
+.panel-list {
+  margin: 0;
+  padding-left: var(--space-l);
+}
+
 /* --- Action cards: a large link with its icon (home of a role) -------------- */
 
 .action-card {

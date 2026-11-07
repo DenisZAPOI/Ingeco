@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import type { Purpose, Stop } from '../api/rides';
 import { PageSheet } from '../components/layout/PageHero';
+import { CancellationTerms } from '../components/booking/CancellationTerms';
 import { StepHeader } from '../components/booking/StepHeader';
 import { TripSummary } from '../components/booking/TripSummary';
 import { Form } from '../components/form/Form';
@@ -67,6 +68,7 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
                 distanceKm={estimate.data.distanceKm}
                 priceCents={estimate.data.riderAmountCents}
               />
+              <CancellationTerms />
               <p className="note">{t('booking.payNext')}</p>
               <Form onSubmit={confirm} submitLabel={t('booking.book')} submitting={booking.submitting} error={bookingError} />
             </>
