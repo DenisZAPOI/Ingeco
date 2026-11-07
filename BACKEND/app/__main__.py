@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # socketio.run and not app.run: the server must handle HTTP AND WebSocket.
     socketio.run(
         application,
-        host="127.0.0.1",
+        host=Config.HOST,
         port=Config.PORT,
         debug=Config.DEBUG,
         allow_unsafe_werkzeug=True,  # development server only
