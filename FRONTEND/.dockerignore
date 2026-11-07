@@ -1,0 +1,8 @@
+# The image installs its own dependencies (npm ci) and builds its own dist/.
+.env
+node_modules/
+dist/
+dev-dist/
+*.local
+*.tsbuildinfo
+*.log

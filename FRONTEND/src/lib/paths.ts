@@ -46,3 +46,4 @@ export const NEW_ACCOUNT_PATH = '/admin/comptes/nouveau';
 
 // Public, linked from the footer of every screen.
 export const ABOUT_PATH = '/a-propos';
+export const HELP_PATH = '/aide';

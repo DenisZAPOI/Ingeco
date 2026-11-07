@@ -13,6 +13,7 @@ export const ptBR: Texts = {
     offline: 'Sem conexão com a internet. O aplicativo continua assim que a rede voltar.',
     footer: 'Projeto de estudantes — demonstração',
     about: 'Sobre',
+    help: 'Ajuda',
     language: 'Idioma',
     languageFailed: 'Não foi possível carregar este idioma. Verifique sua rede e tente de novo.',
     loading: 'Carregando…',
@@ -65,6 +66,38 @@ export const ptBR: Texts = {
     mapsTitle: 'Mapas e endereços',
     mapsText: 'Endereços e distâncias calculados com o OpenRouteService, a partir dos dados dos',
     osmContributors: 'colaboradores do OpenStreetMap',
+  },
+  faq: {
+    title: 'Ajuda',
+    intro: 'As respostas às perguntas mais feitas. Toque em uma pergunta para ver a resposta.',
+    whatQ: "O que é “En route pour l'emploi”?",
+    whatA:
+      'Um serviço de viagens para ir ao trabalho, ao curso, à consulta médica ou a um atendimento público, na Guiana Francesa. Por enquanto, é uma demonstração feita por estudantes: as contas e as viagens são exemplos, e nenhum motorista vai buscar você.',
+    priceQ: 'Quanto custa uma viagem?',
+    priceA: 'O preço aparece antes de reservar. Nesta demonstração, o pagamento é simulado: nenhum cartão é cobrado.',
+    whereQ: 'Para onde posso ir?',
+    whereA:
+      'Por enquanto, o serviço atende Cayenne, Rémire-Montjoly e Matoury. A saída e a chegada precisam ser em uma dessas cidades.',
+    bookQ: 'Como reservar uma viagem?',
+    bookA:
+      'Entre na sua conta e toque em “Reservar uma viagem”. Escolha a saída, a chegada, o motivo e o horário. O preço aparece: você ainda pode mudar tudo antes de reservar.',
+    cancelQ: 'Como cancelar uma viagem?',
+    cancelA:
+      'Abra “Minhas viagens”, escolha a viagem e toque em “Cancelar esta viagem”. É de graça enquanto o motorista não tiver começado a corrida, e você recebe o reembolso total.',
+    noDriverQ: 'E se nenhum motorista estiver disponível?',
+    noDriverA:
+      'Procuramos um motorista durante 15 minutos. Se ninguém estiver livre, a viagem é cancelada e você é reembolsado. Depois, pode fazer um novo pedido.',
+    smsQ: 'Não recebi o código por SMS.',
+    smsA:
+      'Espere um minuto e confira o número digitado. No cadastro, o código vale por 10 minutos: depois disso, peça um novo. Nesta demonstração, nenhum SMS é enviado de verdade.',
+    passwordQ: 'Esqueci minha senha.',
+    passwordA: 'Na tela de entrada, toque em “Esqueceu a senha?”. Você recebe um código por SMS para escolher uma nova senha.',
+    suspendedQ: 'Minha conta está bloqueada.',
+    suspendedA:
+      'Uma conta pode ser suspensa pela equipe do serviço. Fale com a instituição que acompanha você para saber o motivo e pedir a reativação.',
+    emergencyQ: 'Em caso de emergência?',
+    emergencyA:
+      'Este serviço não é um serviço de emergência. Em caso de emergência, ligue para o 15 (SAMU), o 17 (polícia), o 18 (bombeiros) ou o 112.',
   },
   home: {
     greeting: 'Olá, {name}',
@@ -173,6 +206,10 @@ export const ptBR: Texts = {
       'O horário de saída deve ser pelo menos 30 minutos depois de agora. Para sair mais cedo, escolha “Agora”.',
     confirmTitle: 'Sua viagem',
     payNext: 'Você paga com cartão na próxima etapa, antes da saída.',
+    cancelTitle: 'Se você cancelar',
+    cancelFree: 'Você pode cancelar de graça até a saída, enquanto o motorista não tiver começado a corrida.',
+    cancelRefund: 'Se você já pagou, recebe o reembolso total.',
+    cancelDriver: 'Se o motorista cancelar, a viagem é oferecida a outro motorista. Você não paga nada a mais.',
     book: 'Reservar esta viagem',
     change: 'Mudar a viagem',
     commune: 'Cidade',

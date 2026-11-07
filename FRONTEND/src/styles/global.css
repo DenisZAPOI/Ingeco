@@ -342,6 +342,56 @@ a:hover {
   font: inherit;
 }
 
+/* A link of the footer never breaks in the middle ("À / propos"). */
+.footer a {
+  white-space: nowrap;
+}
+
+/* Questions of the help page: each one opens with a large touch target. */
+.faq-item {
+  margin: 0 0 var(--space-s);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: var(--space-s) var(--space);
+  font-weight: var(--font-weight-strong);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The arrow says the question opens (flex hid the browser's own marker). */
+.faq-item summary::after {
+  content: '';
+  flex: none;
+  width: 0.6em;
+  height: 0.6em;
+  margin-left: auto;
+  padding-left: var(--space-s);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  box-sizing: content-box;
+  background-clip: content-box;
+}
+
+.faq-item[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+.faq-item p {
+  margin: 0;
+  padding: 0 var(--space) var(--space);
+}
+
 /* Name / value pairs of the "À propos" page. */
 .credits dt {
   font-weight: var(--font-weight-strong);
@@ -356,6 +406,17 @@ a:hover {
   padding: var(--space) var(--space-l);
   border-radius: var(--radius);
   background: var(--color-surface);
+}
+
+/* A panel with its own title and a short list (conditions d'annulation). */
+.panel-title {
+  margin: 0 0 var(--space-s);
+  font-size: var(--font-size-lead);
+}
+
+.panel-list {
+  margin: 0;
+  padding-left: var(--space-l);
 }
 
 /* --- Action cards: a large link with its icon (home of a role) -------------- */

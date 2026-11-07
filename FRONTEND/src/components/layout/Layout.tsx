@@ -6,7 +6,7 @@ import { useOnline } from '../../hooks/useOnline';
 import { useSession } from '../../hooks/useSession';
 import { t } from '../../i18n';
 import { errorMessage } from '../../lib/errorMessage';
-import { ABOUT_PATH } from '../../lib/paths';
+import { ABOUT_PATH, HELP_PATH } from '../../lib/paths';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { LogoMark } from '../ui/icons';
 import { LanguageSelect } from './LanguageSelect';
@@ -81,7 +81,8 @@ export function Layout() {
       <footer className="footer">
         <LanguageSelect />
         <p>
-          {t('common.footer')} · <Link to={ABOUT_PATH}>{t('common.about')}</Link>
+          {t('common.footer')} · <Link to={HELP_PATH}>{t('common.help')}</Link> ·{' '}
+          <Link to={ABOUT_PATH}>{t('common.about')}</Link>
         </p>
       </footer>
     </>

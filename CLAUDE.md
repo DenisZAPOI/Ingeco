@@ -43,7 +43,7 @@ Le socle reprend celui de ProjectOrganizer (R5.A.05), que Denis connaît déjà.
 - **Adresses et distance par la route** : OpenRouteService (données OpenStreetMap), appelé depuis `repository/place_repository.py`. Clé dans `ORS_API_KEY` ; sans clé, lieux factices et aucun appel à Internet (tests, CI). S'il ne répond pas : `503`, pas de prix.
 - **Contrat d'API** : l'OpenAPI généré par le back. Les types TypeScript du front en sont **générés** (`npm run api:types`), jamais écrits à la main.
 - **Auth** : JWT dans des cookies `HttpOnly` (Flask-JWT-Extended), jeton d'accès de 15 min renouvelé par un jeton de 30 jours, CSRF par double envoi, mots de passe hachés en scrypt (Werkzeug). Rôle contrôlé côté back par `@require_login(...)` (`utils/access.py`). Détail dans [docs/architecture.md](docs/architecture.md).
-- **BD** : fournie par l'équipe parcours C. MySQL 8.4 (à confirmer avec eux), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307, schéma `sql/schema-mvp.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé). Pilote PyMySQL. Les `repository/` sont encore sur données factices en mémoire. Les tests et la CI tournent sur SQLite en mémoire. Le déploiement sera choisi en fin de projet. Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
+- **BD** : fournie par l'équipe parcours C. MySQL 8.4 (confirmé par l'équipe BD le 03/11/2026), en local dans un conteneur Docker lancé depuis WSL (`compose.yaml`, port 3307). Au premier démarrage, `sql/charger-base.sh` charge `sql/schema-mvp.sql`, puis les migrations de `sql/migrations/` dans l'ordre, puis `sql/demo-data.sql` ; `sql/schema-hors-scope.sql` n'est pas chargé. Pilote PyMySQL. Les `repository/` sont encore sur données factices en mémoire. Les tests et la CI tournent sur SQLite en mémoire. La démo de la soutenance tourne **en local** (décidé le 03/11/2026) : pas d'hébergement de production à choisir, le livrable est un démonstrateur (cahier des charges §1). Le guide pour l'équipe BD est dans le README (partie 5) : le tenir à jour.
 
 ## Structure du repo
 
@@ -73,11 +73,12 @@ FRONTEND/
     routes/        # AppRoutes.tsx
     styles/        # global.css (variables)
 sql/                     # à l'équipe BD : les développeurs n'y touchent pas
-  schema-mvp.sql         # schéma v2 + données de référence, chargé dans le conteneur ; figé une fois validé par l'équipe BD
-  migrations/            # (à venir) NNN_description.sql, un changement par fichier, jamais modifié une fois mergé
+  schema-mvp.sql         # schéma v2 + données de référence, validé par l'équipe BD : ne se modifie plus
+  migrations/            # NNN_description.sql, un changement par fichier, jamais modifié une fois mergé (001 à 007 livrées)
+  charger-base.sh        # crée la base locale : schéma, migrations, puis données de test
   demo-data.sql          # comptes et courses de test (mot de passe public), local seulement
   schema-hors-scope.sql  # bons, structures, documents, formation : pas encore chargé
-compose.yaml             # base MySQL locale (Docker)
+compose.yaml             # base MySQL, API et interface en local (Docker)
 docs/
 ```
 
@@ -96,8 +97,11 @@ cd FRONTEND && npm install && cp .env.example .env
 Au quotidien :
 
 ```
-# base MySQL locale (Docker, compose.yaml ; .env à la racine copié de .env.example)
-docker compose up -d
+# tout en Docker, mode démo (base + API + interface sur http://localhost:5173)
+docker compose up -d --build
+
+# base MySQL locale seule (Docker, compose.yaml ; .env à la racine copié de .env.example)
+docker compose up -d db
 docker compose down -v                     # efface la base, rechargée depuis sql/ au prochain up
 
 # back (http://localhost:5000, Swagger sur /apidoc/swagger)
@@ -204,7 +208,7 @@ Ne rien implémenter hors de ce périmètre sans demande explicite.
 ## Ordre de développement
 
 0. ~~Socle back et front~~ (fait : couches, `/health`, page `/diagnostic`, tests, génération des types)
-1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2, schéma v2 dans `sql/` à faire relire par l'équipe BD)
+1. Modèle de données et contrat d'API, en accord avec l'équipe BD (en cours : contrat v2 ; côté base, schéma v2 validé et migrations 001 à 007 livrées par l'équipe BD le 03/11, PR #36 ; reste : les tables des nouveaux modules pour le sprint 2)
 2. Authentification et rôles (fait : inscription, connexion, activation, profil, administration des comptes UC51 à UC53 ; reste : création des référents partenaires, avec les bons après la soutenance)
 3. ~~Parcours de réservation de bout en bout, sur données factices~~ (fait : réservation immédiate ou programmée, estimation, paiement simulé, page du trajet, mes trajets, annulation, évaluation, côté chauffeur (disponibilité, position, offres, accepter, se désister, démarrer, terminer), expiration des courses (UC60, tâche chaque minute dans `utils/periodic.py`), revenus du chauffeur (UC28)). Rien n'est en temps réel : les écrans ont un bouton « Actualiser »
 4. Sprint 1 (04/11 → 17/11) : ce qui **ne demande pas de changement de base**, sur données factices en mémoire comme les trajets : maquettes des nouveaux parcours, montrées à la cliente ; accueil par besoins ; offres d'emploi avec filtres et « Comment y aller ? » ; liens vers les formations ; annuaire des aides et fiches pratiques ; refonte de l'accueil (illustration, couleurs) ; côté trajets, gratuité pour l'usager, conditions d'annulation avant envoi, photo du chauffeur ; changement de langue (5 langues), FAQ ; installation en une commande (Docker Compose). Demander dès le début à l'équipe BD les tables et colonnes du sprint 2
@@ -227,7 +231,7 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 
 ## Points à confirmer
 
-- **Avec l'équipe BD** : relecture et validation du schéma v2 (`sql/`) **pour le 17/11** (il devient ensuite le point de départ des migrations), réécrit par les développeurs à partir de leur première version (écrite avant le contrat v2) ; confirmation de MySQL 8.4 ; stockage de la photo du chauffeur (H19) ; vues des statistiques pour le sprint 3 ; hébergement de la base en production (choisi en fin de projet). Liste complète dans le README, partie 5.
+- **Avec l'équipe BD** : la migration du compte supprimé (#32, décidé le 03/11 : statut `supprime` ; nom et courriel effacés ; téléphone remplacé par `+000` suivi de l'identifiant sur 9 chiffres ; courses gardées sans identité) ; la documentation de l'export de la base par `mysqldump` (#26) ; les tables des nouveaux modules pour le sprint 2. Liste complète dans le README, partie 5.
 - **Avec le client** (suites de l'entretien du 03/11) : la rémunération des chauffeurs sans prix par course, ce que couvre l'abonnement et quelles structures sont affiliées, la relecture des textes en créole guyanais et haïtien, une photo ou une identité visuelle pour l'accueil.
 - **Avec le client** : les contenus des nouveaux modules (services d'aide, offres types, questions du questionnaire), la validation des maquettes, la licence (MIT ou EUPL 1.2, ou cession) et la convention tripartite, l'usage du nom et du logo d'Ingeco, la fiche de cadrage (§21). Questions dans [docs/questions-sprint-2026-11-04.md](docs/questions-sprint-2026-11-04.md#le-cahier-des-charges-v10).
 - **Avec le client** : les valeurs des réglages que le cahier des charges rend paramétrables (horaires autorisés, délai de réponse du chauffeur, délai d'annulation gratuite, frais ensuite, règle d'absence). En attendant, valeurs provisoires de [docs/decisions.md](docs/decisions.md).
@@ -235,7 +239,6 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 - **Avec le client** : le centre d'appel est tenu par des personnes dédiées, et tout le monde peut réserver par téléphone (donnés comme confirmés le 13/10/2026, mais absents de la première visio : retrouver la trace écrite de cette réponse). Le contrat v2 leur donne un rôle `operator` sans droits d'administration : à confirmer, ainsi que ce qu'elles peuvent faire en plus de réserver (question 2).
 - **Avec le client** : le contenu exact de la zone du pilote. Les zones sont réglables par l'administrateur (cahier des charges) ; valeur provisoire : Cayenne, Rémire-Montjoly et Matoury.
 - **Avec le client** (audit de sécurité du 02/11/2026, [docs/audit-securite-2026-11-02.md](docs/audit-securite-2026-11-02.md)) : le plafond de 1 course immédiate et 3 programmées non terminées par usager, et le motif du trajet visible du chauffeur sur une offre.
-- **Avec l'équipe BD** : la colonne `version_session` sur `utilisateur` (leur première migration) et la séparation de `sql/demo-data.sql` (README, partie 5).
 - **Au déploiement** : `TRUSTED_PROXY_COUNT` selon l'hébergement ; les inscriptions en attente, les limites d'essais et les verrous sont en mémoire, valables pour un seul processus d'API.
 - **Avec le client** : les montants du tarif (8 € de prise en charge + 0,80 €/km dans `sql/schema-mvp.sql` et les données factices sont provisoires).
 - **En interne** : les quotas gratuits d'OpenRouteService et l'obligation éventuelle de citer la source (non confirmés : à vérifier sur le compte avant la mise en service), puis valider l'appel réel avec une clé (testé seulement avec de fausses réponses).

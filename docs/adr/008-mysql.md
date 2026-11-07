@@ -1,6 +1,6 @@
 # 008. MySQL 8.4 plutôt que PostgreSQL et PostGIS
 
-- **Statut** : Acceptée, à confirmer par l'équipe BD
+- **Statut** : Acceptée, confirmée par l'équipe BD le 03/11/2026 ([PR #36](https://github.com/DenisZAPOI/Ingeco/pull/36))
 - **Date** : décidée le 20/10/2026 (schéma v2 et base locale dans Docker)
 - **Voir aussi** : [README, partie 5](../../README.md#5-pour-léquipe-base-de-données), [002](002-couches-et-repositories.md)
 

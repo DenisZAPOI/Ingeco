@@ -13,6 +13,7 @@ export const en: Texts = {
     offline: 'No internet connection. The app will carry on as soon as the network is back.',
     footer: 'Student project — demonstrator',
     about: 'About',
+    help: 'Help',
     language: 'Language',
     languageFailed: 'This language could not be loaded. Check your network, then try again.',
     loading: 'Loading…',
@@ -65,6 +66,39 @@ export const en: Texts = {
     mapsTitle: 'Maps and addresses',
     mapsText: 'Addresses and distances computed with OpenRouteService, from the data of',
     osmContributors: 'OpenStreetMap contributors',
+  },
+  faq: {
+    title: 'Help',
+    intro: 'Answers to the most common questions. Tap a question to see the answer.',
+    whatQ: "What is “En route pour l'emploi”?",
+    whatA:
+      'A ride service to get to work, training, health care or an administrative appointment, in French Guiana. For now, it is a demonstrator made by students: the accounts and trips are examples, and no driver will come to pick you up.',
+    priceQ: 'How much does a trip cost?',
+    priceA: 'The price is shown before you book. In this demonstrator, payment is simulated: no card is charged.',
+    whereQ: 'Where can I go?',
+    whereA:
+      'For now, the service covers Cayenne, Rémire-Montjoly and Matoury. The departure and the arrival must both be in one of these towns.',
+    bookQ: 'How do I book a trip?',
+    bookA:
+      'Log in, then tap “Book a trip”. Choose the departure, the arrival, the reason and the time. The price is shown: you can still change everything before booking.',
+    cancelQ: 'How do I cancel a trip?',
+    cancelA:
+      'Open “My trips”, choose the trip, then “Cancel this trip”. It is free as long as the driver has not started the ride, and you get a full refund.',
+    noDriverQ: 'What if no driver is available?',
+    noDriverA:
+      'We look for a driver for 15 minutes. If nobody is free, the trip is cancelled and you are refunded. You can then make a new request.',
+    smsQ: 'I did not receive the code by text message.',
+    smsA:
+      'Wait a minute, then check the number you entered. When you sign up, the code is valid for 10 minutes: after that, ask for a new one. In this demonstrator, no text message is really sent.',
+    passwordQ: 'I forgot my password.',
+    passwordA:
+      'On the log in screen, tap “Forgot your password?”. You get a code by text message to choose a new password.',
+    suspendedQ: 'My account is blocked.',
+    suspendedA:
+      'An account can be suspended by the service team. Contact the organisation that supports you to find out why and have it reactivated.',
+    emergencyQ: 'In an emergency?',
+    emergencyA:
+      'This service is not an emergency service. In an emergency, call 15 (ambulance), 17 (police), 18 (fire brigade) or 112.',
   },
   home: {
     greeting: 'Hello {name}',
@@ -172,6 +206,10 @@ export const en: Texts = {
     scheduleTooSoon: 'The departure time must be at least 30 minutes from now. To leave sooner, choose “Now”.',
     confirmTitle: 'Your trip',
     payNext: 'You pay by card at the next step, before departure.',
+    cancelTitle: 'If you cancel',
+    cancelFree: 'You can cancel for free until departure, as long as the driver has not started the ride.',
+    cancelRefund: 'If you have already paid, you get a full refund.',
+    cancelDriver: 'If the driver cancels, the trip is offered to another driver. You have nothing more to pay.',
     book: 'Book this trip',
     change: 'Change the trip',
     commune: 'Town',
