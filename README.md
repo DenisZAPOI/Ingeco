@@ -314,6 +314,9 @@ Tout nouveau service s'ajoute à ce tableau **avant** d'être utilisé, avec sa 
 
 ### Remettre les accès en fin de projet
 
+Pour la suite (passer du démonstrateur à un vrai service : options, chantiers, ordre conseillé),
+voir [docs/passage-en-production.md](docs/passage-en-production.md).
+
 Avant le 10/01/2027, avec la cliente, pour chaque compte du tableau :
 
 1. **Donner la main** : transférer le dépôt GitHub (Settings → General → Danger Zone → *Transfer
