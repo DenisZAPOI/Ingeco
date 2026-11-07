@@ -88,5 +88,37 @@ services:
     ports:
       - "127.0.0.1:5173:5173"
 
+  # Base des tests automatiques (pytest), lancée seulement à la demande :
+  #   docker compose --profile test up -d db-test
+  # Jetable : en mémoire (tmpfs), rien sur le disque, effacée à l'arrêt. Les
+  # tests la vident et la recréent depuis sql/ à chaque lancement : elle ne
+  # contient jamais rien d'utile, d'où un mot de passe fixe, connu, et un port
+  # ouvert seulement sur cet ordinateur. Jamais la base de développement.
+  db-test:
+    image: mysql:8.4
+    container_name: enroute-db-test
+    profiles: ["test"]
+    environment:
+      MYSQL_ROOT_PASSWORD: tests-only
+    command:
+      - --default-time-zone=+00:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --skip-name-resolve
+      # Rien n'est à protéger : on échange la durabilité contre la vitesse.
+      - --innodb-flush-log-at-trx-commit=0
+      - --skip-log-bin
+    tmpfs:
+      - /var/lib/mysql
+    ports:
+      - "127.0.0.1:3308:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
 volumes:
   db-data:

@@ -45,57 +45,41 @@ Rôles dans [AUTHORS](AUTHORS), repris dans l'application (page « À propos »)
 Ce guide s'adresse à quelqu'un qui n'a jamais fait de programmation. Il suffit de suivre les
 étapes dans l'ordre, et de **copier-coller** les commandes sans les modifier.
 
+L'application a trois morceaux : la **base de données** (où sont gardés les comptes et les
+trajets), l'**API** (le serveur) et l'**interface** (les écrans). Un seul programme gratuit,
+**Docker Desktop**, les installe et les lance tous les trois : pas besoin d'installer Python ni
+Node.js.
+
 **Ce qu'il faut :**
-- un ordinateur sous **Windows 10 ou 11** (sur Mac ou Linux, voir la [partie 4](#4-lancer-le-projet)) ;
+- un ordinateur sous **Windows 10 ou 11** (sur Mac : même principe, avec Docker Desktop pour Mac ;
+  sur Linux, voir la [partie 4](#4-lancer-le-projet)) ;
 - une connexion à Internet pour l'installation ;
-- environ **30 minutes** et 2 Go d'espace libre la première fois. Les fois suivantes, l'application
-  démarre en une minute ([étape 6](#étape-6--lancer-lapplication)).
+- environ **45 minutes** et 5 Go d'espace libre la première fois. Les fois suivantes, l'application
+  démarre en une minute ([étape 5](#étape-5--lancer-lapplication)).
 
-Les étapes 1 à 5 ne se font **qu'une seule fois**.
+Les étapes 1 à 4 ne se font **qu'une seule fois**.
 
-> **Docker Desktop est déjà installé ?** Une seule commande suffit, sans Python ni Node.js :
-> voir [Tout lancer avec Docker](#tout-lancer-avec-docker-en-une-commande) dans la partie 4.
+### Étape 1 : installer Docker Desktop
 
-### Étape 1 : installer Python et Node.js
+1. Aller sur https://www.docker.com/products/docker-desktop/ et télécharger **Docker Desktop
+   pour Windows**.
+2. Ouvrir le fichier téléchargé et garder les choix proposés (« Use WSL 2 », coché). Cliquer sur
+   **« Ok »**, puis attendre la fin. L'ordinateur peut demander à **redémarrer** : accepter.
+3. Après le redémarrage, ouvrir **Docker Desktop** depuis le menu Démarrer. Accepter les
+   conditions d'utilisation. On peut passer la création de compte (**« Skip »**).
+4. Attendre que la fenêtre de Docker Desktop indique **« Engine running »** (en bas à gauche).
 
-L'application a deux morceaux : l'**API** (le serveur, écrit en Python) et l'**interface** (les
-écrans, qui ont besoin de Node.js). Il faut installer ces deux programmes gratuits.
+Docker Desktop doit être **ouvert** chaque fois qu'on veut utiliser l'application.
 
-**Python 3.14**
+**Vérifier** : ouvrir le menu Démarrer, taper **`cmd`** et ouvrir **« Invite de commandes »**. Une
+fenêtre noire s'ouvre : c'est là qu'on tape les commandes. Copier la commande ci-dessous, la
+coller dans la fenêtre (clic droit ou `Ctrl + V`), puis appuyer sur **Entrée** :
 
-1. Aller sur https://www.python.org/downloads/ et télécharger la version **3.14** pour Windows.
-2. Ouvrir le fichier téléchargé. Si la case **« Add python.exe to PATH »** apparaît en bas de la
-   première fenêtre, **la cocher** : sans elle, rien ne marchera. Puis cliquer sur
-   **« Install Now »** et attendre la fin.
+```bat
+docker --version
+```
 
-**Node.js 24**
-
-1. Aller sur https://nodejs.org/ et télécharger la version **24 « LTS »** (le gros bouton).
-2. Ouvrir le fichier téléchargé et cliquer sur **« Next »** à chaque écran, sans rien changer,
-   puis sur **« Install »**.
-
-**Vérifier**
-
-1. Ouvrir le menu Démarrer, taper **`cmd`** et ouvrir **« Invite de commandes »**. Une fenêtre
-   noire s'ouvre : c'est là qu'on tape les commandes.
-2. Copier la commande ci-dessous, la coller dans la fenêtre (clic droit ou `Ctrl + V`), puis
-   appuyer sur **Entrée** :
-
-   ```bat
-   python --version
-   ```
-
-   La fenêtre doit répondre `Python 3.14` suivi d'un numéro, par exemple `Python 3.14.7`.
-3. Faire de même avec :
-
-   ```bat
-   node --version
-   ```
-
-   La réponse doit commencer par `v24`.
-4. Fermer la fenêtre.
-
-Si une réponse est « n'est pas reconnu en tant que commande interne », voir
+La fenêtre doit répondre `Docker version` suivi d'un numéro. Sinon, voir
 [En cas de problème](#en-cas-de-problème).
 
 ### Étape 2 : télécharger le projet
@@ -104,8 +88,7 @@ Si une réponse est « n'est pas reconnu en tant que commande interne », voir
 2. Cliquer sur le bouton vert **« Code »**, puis sur **« Download ZIP »**.
 3. Dans le dossier Téléchargements, faire un clic droit sur `Ingeco-main.zip`, puis
    **« Extraire tout… »** et **« Extraire »**.
-4. Déplacer le dossier `Ingeco-main` obtenu sur le **Bureau**. Il contient notamment les dossiers
-   `BACKEND` (l'API) et `FRONTEND` (l'interface).
+4. Déplacer le dossier `Ingeco-main` obtenu sur le **Bureau**.
 
 > Les développeurs, eux, récupèrent le projet avec Git : `git clone https://github.com/DenisZAPOI/Ingeco.git`.
 
@@ -114,100 +97,80 @@ ce dossier dans l'Explorateur de fichiers, cliquer dans la **barre d'adresse** e
 est écrit le chemin du dossier), taper **`cmd`** et appuyer sur **Entrée**. La fenêtre noire
 s'ouvre déjà placée dans ce dossier.
 
-### Étape 3 : préparer l'API
+### Étape 3 : créer le fichier de réglages
 
-1. Ouvrir le dossier `Ingeco-main`, puis le dossier **`BACKEND`**, et y ouvrir une invite de
-   commandes (astuce ci-dessus).
-2. Copier-coller ces commandes **une par une**, en appuyant sur Entrée après chacune et en
-   attendant qu'elle soit finie (la ligne qui se termine par `>` réapparaît) :
+L'application a besoin de trois mots de passe propres à chaque ordinateur : deux pour la base de
+données et une clé secrète pour l'API.
 
-   ```bat
-   python -m venv .venv
-   ```
-
-   ```bat
-   .venv\Scripts\python -m pip install -r requirements.txt
-   ```
-
-   La deuxième télécharge ce dont l'API a besoin : une à deux minutes, avec beaucoup de lignes
-   qui défilent. Un message jaune ou gris « A new release of pip is available » n'est pas grave.
+1. Ouvrir le dossier `Ingeco-main` et y ouvrir une invite de commandes (astuce ci-dessus).
+2. Copier le fichier de réglages d'exemple :
 
    ```bat
    copy .env.example .env
    ```
 
-   La fenêtre répond `1 fichier(s) copié(s).` Le fichier `.env` contient les réglages de l'API.
-
-### Étape 4 : créer la clé secrète de l'API
-
-L'API refuse de démarrer sans une clé secrète, propre à chaque ordinateur.
-
-1. Dans la même fenêtre, lancer :
+   La fenêtre répond `1 fichier(s) copié(s).`
+3. Lancer cette commande, qui fabrique un mot de passe au hasard :
 
    ```bat
-   .venv\Scripts\python -c "import secrets; print(secrets.token_urlsafe(48))"
+   powershell -NoProfile -Command "$b=New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | ForEach-Object { $_.ToString('x2') })"
    ```
 
-   Elle affiche une longue suite de lettres et de chiffres : c'est la clé. La **sélectionner à la
-   souris** et la copier (`Ctrl + C`, ou clic droit).
-2. Ouvrir le fichier de réglages dans le Bloc-notes :
+   Elle affiche une longue suite de chiffres et de lettres. La lancer **trois fois** (flèche du
+   haut puis Entrée) : on obtient trois mots de passe différents.
+4. Ouvrir le fichier de réglages dans le Bloc-notes :
 
    ```bat
    notepad .env
    ```
 
-3. Trouver la ligne `FLASK_SECRET_KEY=replace-with-a-generated-key`. Remplacer
-   `replace-with-a-generated-key` par la clé copiée, **sans espace**, pour obtenir par exemple :
+5. Sur chacune des trois lignes ci-dessous, remplacer le texte après le `=` par **l'un** des trois
+   mots de passe (sélection à la souris dans la fenêtre noire, `Ctrl + C`, puis `Ctrl + V` dans le
+   Bloc-notes), **sans espace** :
 
    ```
-   FLASK_SECRET_KEY=Xk3v9...la-suite-de-votre-cle
+   MYSQL_ROOT_PASSWORD=...
+   MYSQL_PASSWORD=...
+   FLASK_SECRET_KEY=...
    ```
 
-4. Enregistrer (`Ctrl + S`) et fermer le Bloc-notes. Ne toucher à aucune autre ligne.
+6. Enregistrer (`Ctrl + S`) et fermer le Bloc-notes. Ne toucher à aucune autre ligne.
 
-Cette clé ne doit être ni partagée, ni envoyée par message : chacun crée la sienne.
+Ces mots de passe ne doivent être ni partagés, ni envoyés par message : chacun crée les siens.
 
-### Étape 5 : préparer l'interface
+### Étape 4 : construire l'application
 
-1. Revenir dans le dossier `Ingeco-main`, ouvrir le dossier **`FRONTEND`**, et y ouvrir une
-   nouvelle invite de commandes.
-2. Lancer, une par une :
+Dans la même fenêtre noire (dossier `Ingeco-main`), lancer :
+
+```bat
+docker compose up -d --build
+```
+
+La première fois, Docker télécharge et prépare tout : **5 à 15 minutes**, avec beaucoup de lignes
+qui défilent. C'est fini quand la fenêtre affiche plusieurs lignes `Started` ou `Healthy` et que
+la ligne qui se termine par `>` réapparaît.
+
+L'application est déjà lancée : passer à l'étape 6.
+
+### Étape 5 : lancer l'application
+
+À faire **à chaque fois** qu'on veut utiliser l'application (après un redémarrage de
+l'ordinateur, par exemple).
+
+1. Ouvrir **Docker Desktop** et attendre « Engine running ».
+2. Ouvrir une invite de commandes dans le dossier `Ingeco-main` et lancer :
 
    ```bat
-   npm install
+   docker compose up -d
    ```
 
-   Une à deux minutes. Elle se termine par une ligne du type `added 391 packages`.
+   Une minute environ. On peut fermer la fenêtre noire ensuite : l'application continue de
+   tourner.
 
-   ```bat
-   copy .env.example .env
-   ```
+### Étape 6 : ouvrir l'application
 
-L'installation est terminée. Fermer les fenêtres noires.
-
-### Étape 6 : lancer l'application
-
-À faire **à chaque fois** qu'on veut utiliser l'application. Il faut **deux fenêtres noires
-ouvertes en même temps** : une pour l'API, une pour l'interface.
-
-1. **L'API** : ouvrir une invite de commandes dans le dossier `BACKEND` et lancer :
-
-   ```bat
-   .venv\Scripts\python -m app
-   ```
-
-   Attendre la ligne `Application started`. Des lignes `WARNING` sur `ORS_API_KEY` et
-   `LOAD_DEMO_DATA` sont normales : elles rappellent que les adresses et les comptes sont des
-   exemples. **Laisser cette fenêtre ouverte.**
-2. **L'interface** : ouvrir une autre invite de commandes dans le dossier `FRONTEND` et lancer :
-
-   ```bat
-   npm run dev
-   ```
-
-   Attendre la ligne `Local: http://localhost:5173/`. **Laisser cette fenêtre ouverte aussi.**
-3. Ouvrir un navigateur (Chrome, Edge ou Firefox) à l'adresse **http://localhost:5173**.
-   L'écran « Bienvenue » de l'application s'affiche.
+Ouvrir un navigateur (Chrome, Edge ou Firefox) à l'adresse **http://localhost:5173**. L'écran
+« Bienvenue » de l'application s'affiche.
 
 **Pour voir l'application comme sur un téléphone** : dans Chrome ou Edge, appuyer sur `F12`, puis
 sur `Ctrl + Maj + M`.
@@ -230,29 +193,36 @@ comptes : `Trajet-2026!`** (avec le point d'exclamation).
   en navigation privée (`Ctrl + Maj + N`) et s'y connecter avec l'autre compte.
 - La liste complète des comptes et un parcours de découverte : [Comptes de test](#comptes-de-test).
 
-Bon à savoir : pour l'instant, **tout revient à zéro quand l'API s'arrête** (comptes créés,
-trajets réservés). C'est normal : la vraie base de données sera branchée plus tard.
+Bon à savoir : pour l'instant, **les comptes créés et les trajets réservés reviennent à zéro quand
+l'application s'arrête**. C'est normal : leur passage dans la base de données est en cours.
 
 ### Étape 8 : arrêter l'application
 
-Dans chacune des deux fenêtres noires, appuyer sur **`Ctrl + C`**. Si la fenêtre demande
-« Terminer le programme de commandes (O/N) ? », taper **`O`** puis Entrée. On peut ensuite fermer
-les fenêtres.
+Ouvrir une invite de commandes dans le dossier `Ingeco-main` et lancer :
+
+```bat
+docker compose down
+```
+
+On peut ensuite quitter Docker Desktop (clic droit sur son icône près de l'horloge, puis
+**« Quit Docker Desktop »**).
 
 ### En cas de problème
 
 | Ce qu'on voit | Ce qu'il faut faire |
 |---|---|
-| `'python' n'est pas reconnu en tant que commande interne…`, ou le Microsoft Store s'ouvre | Python n'est pas installé, ou la case « Add python.exe to PATH » n'a pas été cochée. Relancer l'installation de l'étape 1 en cochant la case, puis **fermer et rouvrir** la fenêtre noire |
-| `'npm' n'est pas reconnu…` ou `'node' n'est pas reconnu…` | Node.js n'est pas installé : refaire l'étape 1, puis fermer et rouvrir la fenêtre noire |
-| `Le chemin d'accès spécifié est introuvable`, ou `npm error code ENOENT` | La fenêtre n'est pas ouverte dans le bon dossier. Vérifier le chemin écrit avant le `>` : il doit finir par `BACKEND` (étapes 3, 4 et 6.1) ou par `FRONTEND` (étapes 5 et 6.2). Si c'est bien `BACKEND`, l'étape 3 n'a pas été faite jusqu'au bout |
-| `FLASK_SECRET_KEY must be generated, 32 characters minimum` | La clé secrète manque : refaire l'étape 4, sans oublier d'enregistrer le fichier |
-| `Port 5173 is already in use`, ou `address already in use` pour le port 5000 | L'application tourne déjà dans une autre fenêtre noire. La retrouver et l'arrêter (étape 8), ou redémarrer l'ordinateur |
-| La page http://localhost:5173 ne s'ouvre pas | La fenêtre de l'interface (étape 6.2) est fermée ou n'a pas fini de démarrer |
-| L'application affiche « Le service ne répond pas pour le moment » | La fenêtre de l'API (étape 6.1) est fermée ou arrêtée : la relancer |
+| `'docker' n'est pas reconnu en tant que commande interne…` | Docker Desktop n'est pas installé, ou l'ordinateur n'a pas redémarré après l'installation : refaire l'étape 1, puis **fermer et rouvrir** la fenêtre noire |
+| `error during connect`, `cannot find the file specified` ou `Is the docker daemon running?` | Docker Desktop n'est pas ouvert, ou pas encore prêt : l'ouvrir et attendre « Engine running », puis relancer la commande |
+| Docker Desktop parle de **virtualisation** ou de **WSL** au démarrage | Suivre le lien proposé par Docker Desktop. S'il faut activer la virtualisation dans le BIOS, demander de l'aide à un développeur |
+| `no configuration file provided: not found` | La fenêtre n'est pas ouverte dans le bon dossier : le chemin écrit avant le `>` doit finir par `Ingeco-main` |
+| `required variable MYSQL_ROOT_PASSWORD is missing` (ou `MYSQL_PASSWORD`, `FLASK_SECRET_KEY`) | Le fichier `.env` manque ou une ligne est vide : refaire l'étape 3, sans oublier d'enregistrer |
+| `FLASK_SECRET_KEY must be generated, 32 characters minimum` (dans Docker Desktop, conteneur `enroute-api`) | La clé secrète n'a pas été remplacée : refaire l'étape 3, puis relancer `docker compose up -d` |
+| `port is already allocated` (5173, 5000 ou 3307) | Un autre programme utilise ce port, ou l'application tourne déjà. Lancer `docker compose down`, puis réessayer ; sinon redémarrer l'ordinateur |
+| La page http://localhost:5173 ne s'ouvre pas | L'application n'est pas lancée, ou pas encore prête : relancer l'étape 5 et attendre une minute |
+| L'application affiche « Le service ne répond pas pour le moment » | L'API s'est arrêtée : dans Docker Desktop, onglet **Containers**, regarder si `enroute-api` est rouge et lire son journal ; relancer `docker compose up -d` |
 | Le mot de passe d'un compte de test est refusé | Vérifier `Trajet-2026!` : majuscule au début, point d'exclamation à la fin. Le compte de Hugo (`0694 00 00 08`) est volontairement suspendu |
-| Un trajet ou un compte créé a disparu | Normal : tout revient à zéro à chaque redémarrage de l'API (étape 7) |
-| La page « Diagnostic » indique que la base de données est injoignable | Normal sans la base MySQL : elle n'est pas nécessaire pour essayer l'application (voir ci-dessous) |
+| Un trajet ou un compte créé a disparu | Normal pour l'instant : ils reviennent à zéro quand l'application s'arrête (étape 7) |
+| Le projet a été mis à jour (nouveau ZIP) | Refaire l'étape 2, recopier son fichier `.env` dans le nouveau dossier, puis lancer `docker compose up -d --build` (étape 4) |
 
 Si le problème continue : copier le texte de la fenêtre noire (sélection à la souris, puis
 `Ctrl + C`) et l'envoyer à un développeur, avec une capture d'écran.
@@ -262,12 +232,11 @@ Si le problème continue : copier le texte de la fenêtre noire (sélection à l
 - **De vraies adresses et de vraies distances** : sans réglage, l'API propose une douzaine de lieux
   fictifs de Cayenne, Rémire-Montjoly et Matoury. Pour chercher de vraies adresses, il faut une clé
   OpenRouteService (voir [Comptes des services externes](#comptes-des-services-externes--ouverture-et-passation)),
-  à copier dans le fichier `BACKEND\.env`, sur la ligne `ORS_API_KEY=`, de la même façon qu'à
-  l'étape 4. Relancer ensuite l'API.
-- **La base de données MySQL** : elle demande Docker, et sert surtout aux développeurs et à
-  l'équipe BD. Voir la [partie 4](#4-lancer-le-projet).
-- **Tout lancer d'un coup avec Docker** (base, API et interface) : voir
-  [Tout lancer avec Docker](#tout-lancer-avec-docker-en-une-commande).
+  à copier dans le fichier `.env` du dossier `Ingeco-main`, sur la ligne `ORS_API_KEY=`, comme à
+  l'étape 3. Relancer ensuite `docker compose up -d`.
+- **Effacer toutes les données** (repartir d'une base neuve) : `docker compose down -v`, puis
+  `docker compose up -d`.
+- **Modifier le code** : voir la [partie 4](#4-lancer-le-projet), pour les développeurs.
 
 ---
 
@@ -453,7 +422,18 @@ Puis :
 
 ```bash
 .venv/Scripts/python -m app        # lance l'API sur http://localhost:5000
-.venv/Scripts/python -m pytest     # lance les tests
+```
+
+La base MySQL doit être lancée avant l'API (`docker compose up -d db`, ci-dessus) : l'API y lit
+déjà les communes et le tarif, et y lira bientôt les comptes et les trajets.
+
+Les tests tournent sur une base MySQL à part, jetable, recréée à chaque lancement (jamais la base
+de développement). La démarrer une fois depuis la racine du dépôt, puis lancer les tests :
+
+```bash
+docker compose --profile test up -d db-test   # base des tests, port 3308
+cd BACKEND
+.venv/Scripts/python -m pytest
 ```
 
 ### Front-end
@@ -599,8 +579,8 @@ revient, ce sont les **requêtes lourdes**, celles qui demandent de bien connaî
 
 **Livrez-les sous forme de vues** (`CREATE VIEW`), chacune dans une migration. L'API lit une vue
 comme une table : votre requête reste à un seul endroit, dans vos fichiers, et vous pouvez la
-tester directement dans MySQL. Les tests automatiques de l'API tournent sur SQLite : écrivez les
-vues en SQL standard quand c'est possible, et signalez ce qui est propre à MySQL.
+tester directement dans MySQL. Les tests automatiques de l'API tournent sur MySQL 8.4,
+construit depuis vos scripts : vos vues y sont testées telles quelles.
 
 ### La base locale : MySQL 8.4 dans Docker
 
@@ -610,8 +590,11 @@ En local, l'API est branchée sur un conteneur **MySQL 8.4** (`compose.yaml`, vo
 `sql/migrations/` ; `sql/schema-hors-scope.sql` garde ce qui n'est pas encore dans le périmètre
 (bons solidaires, documents, formation).
 
-Les tests automatiques (`pytest`, CI) tournent encore sur SQLite en mémoire : ils ne lisent pas
-la base. La démo de la soutenance tourne en local (décidé le 03/11/2026) : pas d'hébergement de
+Les tests automatiques (`pytest`, CI) tournent sur une **base MySQL à part**, recréée à chaque
+lancement depuis `sql/schema-mvp.sql` et `sql/migrations/` (sans `demo-data.sql`) : une migration
+qui ne passe pas fait échouer les tests, et `tests/test_models.py` signale toute colonne qui ne
+correspond plus aux classes de `BACKEND/app/models/`. En local : `docker compose --profile test
+up -d db-test` (conteneur jetable, port 3308, jamais votre base de développement). La démo de la soutenance tourne en local (décidé le 03/11/2026) : pas d'hébergement de
 la base à préparer, seulement un export par `mysqldump` (#26).
 
 ### Comment l'API parle à la base : SQLAlchemy
@@ -642,7 +625,6 @@ dépend du SGBD :
 | SGBD | `DATABASE_URL` | Pilote Python à ajouter dans `requirements.txt` |
 |---|---|---|
 | MySQL (actuel) | `mysql+pymysql://utilisateur:motdepasse@127.0.0.1:3307/nom_base?charset=utf8mb4` | `PyMySQL` et `cryptography` (déjà installés) |
-| SQLite (tests) | `sqlite://` | Aucun (inclus dans Python) |
 | PostgreSQL | `postgresql+psycopg://utilisateur:motdepasse@hote:5432/nom_base` | `psycopg[binary]` |
 | SQL Server | `mssql+pyodbc://utilisateur:motdepasse@hote:1433/nom_base?driver=ODBC+Driver+18+for+SQL+Server` | `pyodbc` (+ pilote ODBC de Microsoft) |
 | Oracle | `oracle+oracledb://utilisateur:motdepasse@hote:1521/?service_name=nom_service` | `oracledb` |

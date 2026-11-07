@@ -18,7 +18,7 @@ def test_health_goes_through_every_layer_down_to_the_database(client):
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.get_json() == {"status": "ok", "database": {"reachable": True, "dialect": "sqlite"}}
+    assert response.get_json() == {"status": "ok", "database": {"reachable": True, "dialect": "mysql"}}
 
 
 def test_health_switches_to_503_without_leaking_technical_details(client, monkeypatch):
