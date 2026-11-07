@@ -1,6 +1,10 @@
-# Base de données locale (développement seulement).
-#   docker compose up -d       démarre MySQL ; la 1re fois, charge sql/ (voir sql/charger-base.sh)
-#   docker compose down -v     arrête et EFFACE la base (pour recharger le script)
+# L'application complète en local, pour une démonstration : la base MySQL,
+# l'API et l'interface (développement et démo seulement, jamais en ligne).
+#   docker compose up -d --build   tout lancer : http://localhost:5173
+#   docker compose up -d db        la base seule (pour lancer l'API et
+#                                  l'interface à la main, README partie 4)
+#   docker compose down            tout arrêter
+#   docker compose down -v         tout arrêter et EFFACER la base (pour recharger sql/)
 #
 # Image officielle plutôt qu'une image Alpine : il n'existe pas de MySQL
 # officiel sur Alpine, et les images tierces (souvent MariaDB) ne sont ni
@@ -42,6 +46,47 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # L'API en mode démo : comptes de test (mot de passe public) et cookies sur
+  # http. Les données restent en mémoire tant que les repository/ ne sont pas
+  # branchés sur la base : elles reviennent à zéro à chaque redémarrage.
+  api:
+    build: ./BACKEND
+    container_name: enroute-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-enroute}:${MYSQL_PASSWORD:?à définir dans .env}@db:3306/${MYSQL_DATABASE:-enroute}?charset=utf8mb4
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?à définir dans .env}
+      # Dans le conteneur : écoute sur toutes ses interfaces. Le port n'est
+      # publié que sur 127.0.0.1 (plus bas).
+      HOST: 0.0.0.0
+      PORT: 5000
+      CORS_ORIGINS: http://localhost:5173
+      FLASK_DEBUG: "false"
+      COOKIE_SECURE: "false"
+      LOAD_DEMO_DATA: "true"
+      API_DOCS_ENABLED: "true"
+      LOG_LEVEL: INFO
+      LOG_FORMAT: text
+      ORS_API_KEY: ${ORS_API_KEY:-}
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  # L'interface compilée, servie par nginx (FRONTEND/Dockerfile et nginx.conf).
+  web:
+    build:
+      context: ./FRONTEND
+      args:
+        VITE_API_URL: http://localhost:5000
+    container_name: enroute-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:5173:5173"
 
 volumes:
   db-data:

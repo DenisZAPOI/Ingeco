@@ -77,7 +77,7 @@ sql/                     # à l'équipe BD : les développeurs n'y touchent pas
   migrations/            # (à venir) NNN_description.sql, un changement par fichier, jamais modifié une fois mergé
   demo-data.sql          # comptes et courses de test (mot de passe public), local seulement
   schema-hors-scope.sql  # bons, structures, documents, formation : pas encore chargé
-compose.yaml             # base MySQL locale (Docker)
+compose.yaml             # base MySQL, API et interface en local (Docker)
 docs/
 ```
 
@@ -96,8 +96,11 @@ cd FRONTEND && npm install && cp .env.example .env
 Au quotidien :
 
 ```
-# base MySQL locale (Docker, compose.yaml ; .env à la racine copié de .env.example)
-docker compose up -d
+# tout en Docker, mode démo (base + API + interface sur http://localhost:5173)
+docker compose up -d --build
+
+# base MySQL locale seule (Docker, compose.yaml ; .env à la racine copié de .env.example)
+docker compose up -d db
 docker compose down -v                     # efface la base, rechargée depuis sql/ au prochain up
 
 # back (http://localhost:5000, Swagger sur /apidoc/swagger)

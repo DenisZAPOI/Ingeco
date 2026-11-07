@@ -1,0 +1,9 @@
+# Only requirements.txt and app/ go into the image (see Dockerfile).
+.env
+.venv/
+venv/
+tests/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log

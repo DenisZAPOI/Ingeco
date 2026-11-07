@@ -53,6 +53,9 @@ Ce guide s'adresse à quelqu'un qui n'a jamais fait de programmation. Il suffit 
 
 Les étapes 1 à 5 ne se font **qu'une seule fois**.
 
+> **Docker Desktop est déjà installé ?** Une seule commande suffit, sans Python ni Node.js :
+> voir [Tout lancer avec Docker](#tout-lancer-avec-docker-en-une-commande) dans la partie 4.
+
 ### Étape 1 : installer Python et Node.js
 
 L'application a deux morceaux : l'**API** (le serveur, écrit en Python) et l'**interface** (les
@@ -263,6 +266,8 @@ Si le problème continue : copier le texte de la fenêtre noire (sélection à l
   l'étape 4. Relancer ensuite l'API.
 - **La base de données MySQL** : elle demande Docker, et sert surtout aux développeurs et à
   l'équipe BD. Voir la [partie 4](#4-lancer-le-projet).
+- **Tout lancer d'un coup avec Docker** (base, API et interface) : voir
+  [Tout lancer avec Docker](#tout-lancer-avec-docker-en-une-commande).
 
 ---
 
@@ -378,6 +383,28 @@ Prérequis : **Python 3.14**, **Node.js 24**, et **Docker** pour la base de donn
 Desktop, ou Docker installé dans WSL : lancer alors les commandes `docker` depuis WSL, dans le
 dossier du dépôt, par exemple `/mnt/c/Users/.../Ingeco`).
 
+### Tout lancer avec Docker, en une commande
+
+Pour une démonstration ou pour essayer l'application : la base, l'API et l'interface démarrent
+ensemble, sans installer Python ni Node.js. Il faut seulement Docker.
+
+```bash
+cp .env.example .env               # puis remplacer les deux mots de passe et FLASK_SECRET_KEY
+docker compose up -d --build       # la 1re fois : quelques minutes (construction des images)
+```
+
+Puis ouvrir http://localhost:5173 et se connecter avec un [compte de test](#comptes-de-test).
+L'API répond sur http://localhost:5000 (Swagger sur `/apidoc/swagger`).
+
+- C'est un **mode démo** : comptes de test au mot de passe public, cookies sur `http`. À n'utiliser
+  que sur son ordinateur, jamais sur un serveur en ligne.
+- L'interface est la version compilée, comme sur un téléphone : une modification du code ne
+  s'affiche qu'après `docker compose up -d --build`. Pour développer, lancer plutôt l'API et
+  l'interface à la main (ci-dessous), avec la base seule : `docker compose up -d db`.
+- Les données de l'API restent en mémoire (les `repository/` ne sont pas encore branchés sur la
+  base) : elles reviennent à zéro à chaque redémarrage.
+- Arrêter : `docker compose down`. Tout effacer, base comprise : `docker compose down -v`.
+
 ### Base de données (MySQL dans Docker)
 
 Un conteneur MySQL 8.4 local, décrit dans `compose.yaml`. Au premier démarrage, il crée la base
@@ -388,7 +415,7 @@ développement : ses comptes ont un mot de passe public, dont un administrateur.
 
 ```bash
 cp .env.example .env               # puis remplacer les deux mots de passe
-docker compose up -d               # démarre la base sur 127.0.0.1:3307
+docker compose up -d db            # démarre la base seule sur 127.0.0.1:3307
 docker compose ps                  # « healthy » quand elle est prête
 ```
 
@@ -396,7 +423,7 @@ Les scripts ne sont relus que si la base est vide. Après une modification de `s
 
 ```bash
 docker compose down -v             # EFFACE la base
-docker compose up -d               # la recrée avec le script
+docker compose up -d db            # la recrée avec le script
 ```
 
 Pour ouvrir une console SQL : `docker compose exec db mysql -u enroute -p enroute`.
@@ -555,7 +582,7 @@ une base en production se **modifie**, elle ne se recrée pas. Les migrations se
   les données de test. C'est `sql/charger-base.sh` qui s'en charge au premier démarrage du
   conteneur : une nouvelle migration est prise en compte sans toucher à `compose.yaml`, et une
   erreur SQL arrête la création (`docker compose logs db` pour la voir). Prévenez les
-  développeurs à chaque migration : ils devront refaire `docker compose down -v` puis `up -d`.
+  développeurs à chaque migration : ils devront refaire `docker compose down -v` puis `up -d db`.
 - Les développeurs suivent chaque migration dans leurs classes Python (`models/`). Annoncez-la
   avant de la merger.
 

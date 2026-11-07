@@ -56,6 +56,10 @@ class Config:
     DEBUG: bool = _optional("FLASK_DEBUG", "false").lower() == "true"
     LOG_LEVEL: str = _optional("LOG_LEVEL", "INFO").upper()
     PORT: int = int(_optional("PORT", "5000"))
+    # Address the API listens on. 127.0.0.1: this computer only. The Docker
+    # container sets 0.0.0.0, the port being published on 127.0.0.1 by
+    # compose.yaml (the API stays out of reach from the network).
+    HOST: str = _optional("HOST", "127.0.0.1")
 
     # Addresses and road distances (OpenRouteService, H13). Empty: fake data,
     # no call to the Internet (tests, CI, development without an account).
