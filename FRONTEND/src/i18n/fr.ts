@@ -11,6 +11,7 @@ export const fr = {
     offline: "Pas de connexion internet. L'application reprendra dès le retour du réseau.",
     footer: 'Projet étudiant — démonstrateur',
     about: 'À propos',
+    help: 'Aide',
     loading: 'Chargement…',
     loadingSlow: 'Le réseau est lent. Merci de patienter, le chargement continue…',
     sending: 'Envoi en cours…',
@@ -61,6 +62,43 @@ export const fr = {
     mapsTitle: 'Cartes et adresses',
     mapsText: 'Adresses et distances calculées avec OpenRouteService, à partir des données',
     osmContributors: "contributeurs d'OpenStreetMap",
+  },
+  // Questions fréquentes (cahier des charges §6). Rédigées par les développeurs, à faire relire
+  // par la cliente. Les durées suivent les règles de l'API (services/ride_rules.py,
+  // services/auth_service.py) et les valeurs provisoires de docs/decisions.md.
+  faq: {
+    title: 'Aide',
+    intro: 'Les réponses aux questions les plus posées. Touchez une question pour voir la réponse.',
+    whatQ: "C'est quoi, « En route pour l'emploi » ?",
+    whatA:
+      "Un service de trajets pour aller au travail, en formation, aux soins ou à un rendez-vous administratif, en Guyane. Pour l'instant, c'est un démonstrateur réalisé par des étudiants : les comptes et les trajets sont des exemples, et aucun chauffeur ne viendra vous chercher.",
+    priceQ: 'Combien coûte un trajet ?',
+    priceA:
+      "Le prix est affiché avant de réserver. Dans ce démonstrateur, le paiement est simulé : aucune carte n'est débitée.",
+    whereQ: 'Où puis-je aller ?',
+    whereA:
+      "Pour l'instant, le service couvre Cayenne, Rémire-Montjoly et Matoury. Le départ et l'arrivée doivent être dans l'une de ces communes.",
+    bookQ: 'Comment réserver un trajet ?',
+    bookA:
+      "Connectez-vous, puis touchez « Réserver un trajet ». Choisissez le départ, l'arrivée, le motif et l'heure. Le prix s'affiche : vous pouvez encore tout modifier avant de réserver.",
+    cancelQ: 'Comment annuler un trajet ?',
+    cancelA:
+      "Ouvrez « Mes trajets », choisissez le trajet, puis « Annuler ». C'est gratuit tant que le chauffeur n'a pas commencé la course, et vous êtes remboursé en entier.",
+    noDriverQ: "Et si aucun chauffeur n'est disponible ?",
+    noDriverA:
+      "Nous cherchons un chauffeur pendant 15 minutes. Si personne n'est libre, le trajet est annulé et vous êtes remboursé. Vous pouvez alors refaire une demande.",
+    smsQ: "Je n'ai pas reçu le code par SMS.",
+    smsA:
+      "Attendez une minute, puis vérifiez le numéro saisi. Le code est valable 10 minutes à l'inscription : passé ce délai, demandez-en un nouveau. Dans ce démonstrateur, aucun SMS n'est vraiment envoyé.",
+    passwordQ: "J'ai oublié mon mot de passe.",
+    passwordA:
+      "Sur l'écran de connexion, touchez « Mot de passe oublié ? ». Vous recevez un code par SMS pour choisir un nouveau mot de passe.",
+    suspendedQ: 'Mon compte est bloqué.',
+    suspendedA:
+      "Un compte peut être suspendu par l'équipe du service. Contactez la structure qui vous accompagne pour savoir pourquoi et le faire réactiver.",
+    emergencyQ: "En cas d'urgence ?",
+    emergencyA:
+      "Ce service n'est pas un service d'urgence. En cas d'urgence, appelez le 15 (SAMU), le 17 (police), le 18 (pompiers) ou le 112.",
   },
   home: {
     greeting: 'Bonjour {name}',
