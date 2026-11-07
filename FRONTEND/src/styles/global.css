@@ -316,6 +316,32 @@ a:hover {
   text-align: center;
 }
 
+.footer p {
+  margin: 0;
+}
+
+/* Language choice, above the demonstrator notice: found on every screen. */
+.language-select {
+  margin-bottom: var(--space);
+}
+
+.language-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+}
+
+.language-select select {
+  min-height: var(--touch-target);
+  padding: 0 var(--space);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+}
+
 /* A link of the footer never breaks in the middle ("À / propos"). */
 .footer a {
   white-space: nowrap;

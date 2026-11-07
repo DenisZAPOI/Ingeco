@@ -12,6 +12,8 @@
  */
 
 import { fr } from './fr';
+import { gcr } from './gcr';
+import { ht } from './ht';
 import { pseudoLanguage } from './pseudo';
 
 type Widen<T> = { readonly [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
@@ -22,6 +24,10 @@ type Leaves<T, Prefix extends string = ''> = {
   [K in keyof T & string]: T[K] extends string ? `${Prefix}${K}` : Leaves<T[K], `${Prefix}${K}.`>;
 }[keyof T & string];
 export type TextKey = Leaves<typeof fr>;
+
+type Partially<T> = { readonly [K in keyof T]?: T[K] extends string ? string : Partially<T[K]> };
+/** A language still being translated: every text it lacks is shown in French. */
+export type PartialTexts = Partially<Texts>;
 
 type At<T, K extends string> = K extends `${infer Head}.${infer Rest}`
   ? Head extends keyof T
@@ -43,24 +49,43 @@ type PluralNames<B extends PluralKey> = Exclude<
   'count'
 >;
 
-export type Language = 'fr' | 'test';
+// The five languages asked by the client (interview of 03/11/2026, docs/decisions.md).
+export type Language = 'fr' | 'en' | 'pt-BR' | 'gcr' | 'ht' | 'test';
 
 type LanguageInfo = {
-  texts: Texts;
+  /** null until downloaded: see `load`. */
+  texts: PartialTexts | null;
+  /** A complete translation is a separate file, downloaded only by whoever
+   *  chooses it: French speakers do not pay its weight on a slow network. */
+  load?: () => Promise<PartialTexts>;
   /** For dates, prices and plurals (Intl). */
   locale: string;
+  /** The name of the language written in that language: read by whoever speaks it. */
+  name: string;
 };
 
 const DEFAULT_LANGUAGE: Language = 'fr';
 const STORAGE_KEY = 'langue';
 
+// The two creoles have no text yet (to be written or proofread by speakers):
+// they show French. Their dates and prices follow the French format, which
+// Intl knows; it does not know these languages.
 const LANGUAGES: Partial<Record<Language, LanguageInfo>> = {
-  fr: { texts: fr, locale: 'fr-FR' },
+  fr: { texts: fr, locale: 'fr-FR', name: 'Français' },
+  gcr: { texts: gcr, locale: 'fr-FR', name: 'Kriyòl gwiyanè' },
+  ht: { texts: ht, locale: 'fr-FR', name: 'Kreyòl ayisyen' },
+  'pt-BR': {
+    texts: null,
+    load: () => import('./pt-BR').then((module) => module.ptBR),
+    locale: 'pt-BR',
+    name: 'Português (Brasil)',
+  },
+  en: { texts: null, load: () => import('./en').then((module) => module.en), locale: 'en-GB', name: 'English' },
 };
 // Development only: every text between brackets, to spot one left in the code
 // (localStorage.langue = 'test', then reload). Absent from the built app.
 if (import.meta.env.DEV) {
-  LANGUAGES.test = { texts: pseudoLanguage(fr), locale: 'fr-FR' };
+  LANGUAGES.test = { texts: pseudoLanguage(fr), locale: 'fr-FR', name: 'Test' };
 }
 
 let current: Language = storedLanguage() ?? DEFAULT_LANGUAGE;
@@ -76,14 +101,22 @@ export function availableLanguages(): Language[] {
   return (Object.keys(LANGUAGES) as Language[]).filter((code) => code !== 'test');
 }
 
+/** The name of a language, written in that language (for the selector). */
+export function languageName(code: Language): string {
+  return info(code).name;
+}
+
 /** Tag for Intl (dates, numbers, plurals) in the current language. */
 export function locale(): string {
   return info(current).locale;
 }
 
-/** Changes the language of every screen, and remembers it on this phone. */
-export function setLanguage(code: Language): void {
+/** Changes the language of every screen, and remembers it on this phone.
+ *  Rejects if its texts cannot be downloaded (no network): the language shown
+ *  stays the same. */
+export async function setLanguage(code: Language): Promise<void> {
   if (!LANGUAGES[code] || code === current) return;
+  await loadTexts(code);
   current = code;
   try {
     localStorage.setItem(STORAGE_KEY, code);
@@ -92,6 +125,24 @@ export function setLanguage(code: Language): void {
   }
   applyToDocument();
   listeners.forEach((listener) => listener());
+}
+
+/** At startup, before the first screen: downloads the texts of the language
+ *  chosen on an earlier visit. Without network, the app starts in French. */
+export async function loadStoredLanguage(): Promise<void> {
+  try {
+    await loadTexts(current);
+  } catch {
+    current = DEFAULT_LANGUAGE;
+    applyToDocument();
+  }
+}
+
+async function loadTexts(code: Language): Promise<void> {
+  const entry = LANGUAGES[code];
+  if (entry && !entry.texts && entry.load) {
+    entry.texts = await entry.load();
+  }
 }
 
 export function subscribeToLanguage(listener: () => void): () => void {

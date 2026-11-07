@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { en } from './en';
 import { fr } from './fr';
-import { availableLanguages, language, locale, setLanguage, subscribeToLanguage, t, tn } from './index';
+import { availableLanguages, language, languageName, locale, setLanguage, subscribeToLanguage, t, tn } from './index';
+import { ptBR } from './pt-BR';
 import { pseudoLanguage } from './pseudo';
 
 /** Every 'a.b.c' key of a texts object, with its value. */
@@ -14,6 +16,7 @@ function leaves(texts: object, prefix = ''): [string, string][] {
 const PLACEHOLDER = /\{\w+\}/g;
 
 afterEach(() => setLanguage('fr'));
+
 
 describe('t', () => {
   it('returns the French text of a key', () => {
@@ -65,16 +68,16 @@ describe('the test language', () => {
   });
 
   it('is not offered to the user', () => {
-    expect(availableLanguages()).toEqual(['fr']);
+    expect(availableLanguages()).not.toContain('test');
   });
 });
 
 describe('setLanguage', () => {
-  it('changes every text at once, and tells the screens', () => {
+  it('changes every text at once, and tells the screens', async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeToLanguage(listener);
 
-    setLanguage('test');
+    await setLanguage('test');
 
     expect(language()).toBe('test');
     expect(t('auth.loginTitle')).toBe('[Se connecter]');
@@ -83,19 +86,68 @@ describe('setLanguage', () => {
     unsubscribe();
   });
 
-  it('keeps the format of dates and prices of the language', () => {
-    setLanguage('test');
+  it('keeps the format of dates and prices of the language', async () => {
+    await setLanguage('test');
 
     expect(locale()).toBe('fr-FR');
   });
 
-  it('does nothing for the language already shown', () => {
+  it('does nothing for the language already shown', async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeToLanguage(listener);
 
-    setLanguage('fr');
+    await setLanguage('fr');
 
     expect(listener).not.toHaveBeenCalled();
     unsubscribe();
+  });
+});
+
+describe('the languages offered', () => {
+  it('are the five asked by the client, French first', () => {
+    expect(availableLanguages()).toEqual(['fr', 'gcr', 'ht', 'pt-BR', 'en']);
+  });
+
+  it('are each named in their own language', () => {
+    expect(languageName('en')).toBe('English');
+    expect(languageName('pt-BR')).toBe('Português (Brasil)');
+  });
+});
+
+describe.each([
+  ['en', en],
+  ['pt-BR', ptBR],
+] as const)('the translation %s', (_code, texts) => {
+  const translated = new Map(leaves(texts));
+
+  it('has exactly the keys of fr.ts', () => {
+    expect([...translated.keys()].sort()).toEqual(leaves(fr).map(([key]) => key).sort());
+  });
+
+  it('keeps the placeholders of every text, and leaves none empty', () => {
+    for (const [key, value] of leaves(fr)) {
+      const text = translated.get(key) ?? '';
+      expect(text.trim(), key).not.toBe('');
+      expect((text.match(PLACEHOLDER) ?? []).sort(), key).toEqual((value.match(PLACEHOLDER) ?? []).sort());
+    }
+  });
+});
+
+describe('a language being translated', () => {
+  it('shows a text in its language when it has it', async () => {
+    await setLanguage('en');
+
+    expect(t('auth.loginTitle')).toBe('Log in');
+    expect(tn('driver.rideCount', 1)).toBe('1 ride');
+    expect(tn('driver.rideCount', 2)).toBe('2 rides');
+    expect(locale()).toBe('en-GB');
+  });
+
+  it('shows French for every text it does not have yet', async () => {
+    await setLanguage('gcr');
+
+    expect(language()).toBe('gcr');
+    expect(t('auth.loginTitle')).toBe('Se connecter');
+    expect(locale()).toBe('fr-FR');
   });
 });

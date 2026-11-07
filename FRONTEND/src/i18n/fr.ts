@@ -12,6 +12,8 @@ export const fr = {
     footer: 'Projet étudiant — démonstrateur',
     about: 'À propos',
     help: 'Aide',
+    language: 'Langue',
+    languageFailed: "Cette langue n'a pas pu être chargée. Vérifiez votre réseau, puis réessayez.",
     loading: 'Chargement…',
     loadingSlow: 'Le réseau est lent. Merci de patienter, le chargement continue…',
     sending: 'Envoi en cours…',

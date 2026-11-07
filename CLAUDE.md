@@ -64,7 +64,7 @@ FRONTEND/
   src/
     api/           # client.ts (le seul fetch) + une fonction par appel
     types/api.ts   # généré depuis l'OpenAPI du back
-    i18n/          # textes de l'interface : fr.ts, t() et tn()
+    i18n/          # textes de l'interface : fr.ts (référence), en.ts, pt-BR.ts, gcr.ts, ht.ts ; t() et tn()
     lib/           # logique pure, sans React
     hooks/         # appel + chargement + erreur + nouvelle tentative
     context/       # état global (session de l'utilisateur connecté)
@@ -149,7 +149,7 @@ Exigences transverses du [cahier des charges](docs/cahier-des-charges-v1.0.docx)
 - **Dates et rappels calculés dans le fuseau `America/Cayenne`**, côté back comme côté front, avec des tests automatisés sur les dates (§3). Le back stocke en UTC et convertit pour toute règle qui dépend du jour ou de l'heure locale.
 
 **Interface**
-- **Tous les textes d'interface dans `FRONTEND/src/i18n/fr.ts`**, affichés par `t('cle')` (ou `tn` pour un pluriel), jamais écrits en dur dans les composants ni gardés dans une constante de module, pour pouvoir ajouter une langue sans toucher au code (P1, §6). `npm run lint:texts` le vérifie. Le français reste la seule langue tant que la cliente n'en fournit pas d'autre ; les messages métier du back restent en français (ADR 013).
+- **Tous les textes d'interface dans `FRONTEND/src/i18n/fr.ts`**, affichés par `t('cle')` (ou `tn` pour un pluriel), jamais écrits en dur dans les composants ni gardés dans une constante de module, pour pouvoir ajouter une langue sans toucher au code (P1, §6). `npm run lint:texts` le vérifie. Tout nouveau texte s'écrit aussi dans `en.ts` et `pt-BR.ts` (TypeScript le vérifie) ; les créoles (`gcr.ts`, `ht.ts`) sont remplis par des locuteurs, et un texte qui leur manque s'affiche en français. Les messages métier du back restent en français (ADR 013, ADR 017).
 - **Au plus 3 actions principales par écran**, une icône toujours accompagnée d'un texte, la couleur seule ne porte jamais une information (§6, §10). Accueil organisé par besoins (« J'ai besoin d'un trajet »), pas par fonctionnalités.
 - La mention **« Projet étudiant — démonstrateur »** reste visible dans l'application, et une page « À propos » crédite les auteurs (§14). Le nom et le logo d'Ingeco Territoires ne s'utilisent qu'avec l'accord de la cliente.
 - Aucun service d'urgence n'est promis dans les textes (§6).
@@ -181,7 +181,7 @@ Fixé par le [cahier des charges](docs/cahier-des-charges-v1.0.docx) (§5, §7, 
 **Le fil rouge** : le scénario A du cahier des charges (§8), à dérouler de bout en bout en démonstration. Jordan, 22 ans, sans permis : questionnaire, plan d'action, offre proche, « Comment y aller ? », trajet pour l'entretien, puis trajets du premier mois. Accueil organisé par besoins : « Je cherche un travail », « J'ai besoin d'un trajet », « J'ai besoin d'aide ».
 
 **Palier P1, avant le gel du 10/12** (✓ fait)
-- M0, socle : compte par téléphone sans courriel obligatoire, code simulé ✓, récupération par téléphone ✓, demande de suppression ; rôles ✓ ; textes dans des fichiers de traduction ✓ et changement de langue (français, créole guyanais, créole haïtien, portugais du Brésil, anglais : entretien du 03/11) ; accueil illustré et plus coloré, en restant léger (entretien du 03/11) ; PWA installable ✓ ; accessibilité de base (contrastes, libellés, clavier) ; aide (« Être rappelé », FAQ, signaler un problème).
+- M0, socle : compte par téléphone sans courriel obligatoire, code simulé ✓, récupération par téléphone ✓, demande de suppression ; rôles ✓ ; textes dans des fichiers de traduction ✓ et changement de langue ✓ (français, créole guyanais, créole haïtien, portugais du Brésil, anglais : entretien du 03/11) ; accueil illustré et plus coloré, en restant léger (entretien du 03/11) ; PWA installable ✓ ; accessibilité de base (contrastes, libellés, clavier) ; aide (« Être rappelé », FAQ, signaler un problème).
 - M1, orientation : questionnaire court et visuel (situation, projet, expériences y compris informelles, disponibilités, freins exprimés en besoins, langue, équipement numérique), puis « Mon plan d'action » en 3 à 5 étapes, calculé par des règles simples, avec les services proposés et un contact humain. Aucune décision automatique, aucun diagnostic médical ni situation administrative.
 - M2, emploi : jeu d'offres fictives ; filtres par commune, horaires, débutant accepté, sans diplôme ; sur chaque offre, « Comment y aller ? » ouvre une demande de trajet en 3 actions au plus, motif prérempli.
 - M3, formation : liens vers des catalogues de formation existants.
