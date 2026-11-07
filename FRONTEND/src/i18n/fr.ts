@@ -11,6 +11,8 @@ export const fr = {
     offline: "Pas de connexion internet. L'application reprendra dès le retour du réseau.",
     footer: 'Projet étudiant — démonstrateur',
     about: 'À propos',
+    language: 'Langue',
+    languageFailed: "Cette langue n'a pas pu être chargée. Vérifiez votre réseau, puis réessayez.",
     loading: 'Chargement…',
     loadingSlow: 'Le réseau est lent. Merci de patienter, le chargement continue…',
     sending: 'Envoi en cours…',
