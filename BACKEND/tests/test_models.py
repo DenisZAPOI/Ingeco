@@ -54,7 +54,6 @@ def test_the_reference_data_comes_from_the_schema(test_database):
         assert session.scalars(select(TariffRow).where(TariffRow.is_active.is_(True))).one().id == 1
 
 
-@pytest.mark.xfail(strict=True, reason="role 'partner' asked to the DB team (issue #44, migration 008)")
 def test_every_role_of_the_api_exists_in_the_database(test_database):
     with Session(test_database) as session:
         assert set(ROLES) <= set(session.scalars(select(Role.code)))
