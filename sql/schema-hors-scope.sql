@@ -28,9 +28,6 @@ SET NAMES utf8mb4;
 -- 1. Bons solidaires et structures partenaires
 -- ------------------------------------------------------------
 
-INSERT INTO role (code, libelle) VALUES
-('partner', 'Référent partenaire');
-
 -- Association, collectivité ou entreprise qui finance des trajets
 CREATE TABLE structure_partenaire (
     id_structure  INT AUTO_INCREMENT PRIMARY KEY,
