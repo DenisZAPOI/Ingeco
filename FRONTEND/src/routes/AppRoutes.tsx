@@ -19,6 +19,7 @@ import { FaqPage } from '../pages/FaqPage';
 import { HomePage } from '../pages/HomePage';
 import { JobPage } from '../pages/JobPage';
 import { JobsPage } from '../pages/JobsPage';
+import { TrainingsPage } from '../pages/TrainingsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PasswordResetPage } from '../pages/PasswordResetPage';
@@ -40,6 +41,7 @@ export function AppRoutes() {
         <Route path="aide" element={<FaqPage />} />
         <Route path="emplois" element={<JobsPage />} />
         <Route path="emplois/:id" element={<JobPage />} />
+        <Route path="formations" element={<TrainingsPage />} />
         <Route element={<VisitorRoutes />}>
           <Route path="connexion" element={<LoginPage />} />
           <Route path="inscription" element={<RegisterPage />} />

@@ -61,6 +61,9 @@ export const HELP_PATH = '/aide';
 // Job offers (module M2), public: a visitor reads them without an account.
 export const JOBS_PATH = '/emplois';
 
+/** Training (module M3), public, reached from the job offers. */
+export const TRAININGS_PATH = '/formations';
+
 export function jobPath(id: number): string {
   return `/emplois/${id}`;
 }

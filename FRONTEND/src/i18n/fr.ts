@@ -262,6 +262,28 @@ export const fr = {
     howToGetThere: 'Comment y aller ?',
     howToGetThereHint: "Réservez un trajet jusqu'à ce lieu : il vous reste à choisir le départ et l'heure.",
     backToList: 'Retour aux offres',
+    training: 'Se former',
+    trainingHint: 'Trouver une formation pour apprendre un métier',
+  },
+  trainings: {
+    title: 'Se former',
+    lead: 'Des sites officiels pour trouver une formation près de chez vous.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          "Toutes les formations, à chercher par métier et par lieu (Cayenne, Kourou…). Beaucoup sont gratuites pour les demandeurs d'emploi.",
+        open: 'Ouvrir le site France Travail',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'Les formations que vous pouvez payer avec votre compte personnel de formation (CPF), si vous avez déjà travaillé.',
+        open: 'Ouvrir le site Mon Compte Formation',
+      },
+    },
+    outside: "Ces sites ne font pas partie de l'application. Pour revenir ici, utilisez le bouton Retour de votre téléphone.",
+    backToJobs: 'Retour aux offres',
   },
   ride: {
     pickup: 'Départ',
