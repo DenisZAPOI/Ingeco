@@ -44,6 +44,7 @@ from .ride_rules import (
     EXPIRED,
     IN_PROGRESS,
     PAYMENT_DELAY,
+    PAYMENT_NOT_REQUIRED,
     PAYMENT_PAID,
     PAYMENT_PENDING,
     PAYMENT_REFUNDED,
@@ -124,6 +125,9 @@ def book_ride(
         rider = user_repository.find_by_id(session, rider_id)
         price = _estimate(session, pickup, dropoff)
         created_at = ride_rules.now()
+        # Free for the rider: nothing to wait for, the search for a driver
+        # starts at once (same deadline as after a payment).
+        free = price.rider_amount_cents == 0
         # The signatures were checked by _estimate: not stored with the ride.
         pickup, dropoff = _unsigned(pickup), _unsigned(dropoff)
         ride = Ride(
@@ -131,7 +135,7 @@ def book_ride(
             rider_id=rider_id,
             booked_by_id=rider_id,
             channel=APP_CHANNEL,
-            status=AWAITING_PAYMENT,
+            status=PENDING if free else AWAITING_PAYMENT,
             purpose=purpose,
             pickup=pickup,
             dropoff=dropoff,
@@ -140,8 +144,8 @@ def book_ride(
             distance_km=price.distance_km,
             tariff_id=tariff_repository.active_tariff(session).id,
             price_cents=price.price_cents,
-            payment_status=PAYMENT_PENDING,
-            expires_at=created_at + PAYMENT_DELAY,
+            payment_status=PAYMENT_NOT_REQUIRED if free else PAYMENT_PENDING,
+            expires_at=(scheduled_at or created_at + DRIVER_SEARCH_DELAY) if free else created_at + PAYMENT_DELAY,
             created_at=created_at,
         )
         try:
@@ -377,8 +381,14 @@ def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:
 
     tariff = tariff_repository.active_tariff(session)
     price = ride_rules.price_cents(tariff.base_fare_cents, tariff.per_km_cents, distance_km)
-    # No voucher yet: the rider's share is the whole price.
-    return Estimate(distance_km=distance_km, price_cents=price, voucher_amount_cents=0, rider_amount_cents=price)
+    # No voucher yet (palier P2). The rider's share is the whole price, or
+    # nothing while rides are free (ride_rules.RIDES_FREE_FOR_RIDERS).
+    return Estimate(
+        distance_km=distance_km,
+        price_cents=price,
+        voucher_amount_cents=0,
+        rider_amount_cents=ride_rules.rider_amount_cents(price),
+    )
 
 
 def _unsigned(stop: Stop) -> Stop:

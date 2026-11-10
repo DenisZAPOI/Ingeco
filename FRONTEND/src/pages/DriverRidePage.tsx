@@ -66,7 +66,7 @@ function DriverRide({ ride, onRefresh, onChange }: DriverRideProps) {
         purpose={ride.purpose}
         scheduledAt={isOver(ride) ? rideDate(ride) : ride.scheduledAt}
         distanceKm={ride.distanceKm}
-        priceCents={ride.priceCents}
+        price={{ totalCents: ride.priceCents, riderCents: ride.priceCents }}
       />
       {!isOver(ride) && (
         // No real time yet (step 4): the rider may have cancelled meanwhile.

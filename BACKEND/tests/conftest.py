@@ -126,6 +126,14 @@ def fresh_state(test_database):
     auth_service.configure(demo_codes=True)
 
 
+@pytest.fixture(autouse=True)
+def paying_riders(monkeypatch):
+    """Rides are free for now (ride_rules.RIDES_FREE_FOR_RIDERS), but the
+    simulated payment stays for the subscription or the vouchers: the tests
+    keep it working. tests/test_free_rides.py checks the free rides."""
+    monkeypatch.setattr(ride_rules, "RIDES_FREE_FOR_RIDERS", False)
+
+
 @pytest.fixture
 def clock(monkeypatch):
     """Moves the API's clock: clock.move(minutes=16)."""

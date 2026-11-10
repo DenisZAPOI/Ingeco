@@ -11,9 +11,9 @@ import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useBookRide, useEstimate } from '../hooks/useRides';
 import { t } from '../i18n';
-import { bookingSteps } from '../lib/bookingDraft';
+import { bookingSteps, saveBookingDraft } from '../lib/bookingDraft';
 import { guyanaDateTime } from '../lib/format';
-import { BOOKING_PATHS, paymentPath } from '../lib/paths';
+import { BOOKING_PATHS, paymentPath, ridePath } from '../lib/paths';
 import { newRequestId } from '../lib/requestId';
 
 /** Step 4: the price computed by the API, then the booking. */
@@ -43,12 +43,18 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
   async function confirm() {
     if (!draft.requestId) return;
     const ride = await booking.submit({ clientRequestId: draft.requestId, purpose, pickup, dropoff, scheduledAt });
-    if (ride) {
+    if (!ride) return;
+    if (ride.status === 'awaiting_payment') {
       // The ride goes with the navigation: the payment screen needs no call.
       // The draft is emptied there: emptied here, this step would first send
       // back to the start of the booking.
       navigate(paymentPath(ride.id), { replace: true, state: { ride } });
+      return;
     }
+    // Free for the rider: booked and already waiting for a driver. Only the
+    // stored draft is emptied: this page is left at once, its state with it.
+    saveBookingDraft(null);
+    navigate(ridePath(ride.id), { replace: true, state: { ride } });
   }
 
   // A refused time is a field error: its own message says what to do.
@@ -67,10 +73,10 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
                 purpose={purpose}
                 scheduledAt={scheduledAt}
                 distanceKm={estimate.data.distanceKm}
-                priceCents={estimate.data.riderAmountCents}
+                price={{ totalCents: estimate.data.priceCents, riderCents: estimate.data.riderAmountCents }}
               />
-              <CancellationTerms />
-              <p className="note">{t('booking.payNext')}</p>
+              <CancellationTerms free={estimate.data.riderAmountCents === 0} />
+              <p className="note">{t(estimate.data.riderAmountCents === 0 ? 'booking.freeNote' : 'booking.payNext')}</p>
               <Form onSubmit={confirm} submitLabel={t('booking.book')} submitting={booking.submitting} error={bookingError} />
             </>
           )}

@@ -200,9 +200,10 @@ def ride_to_dto(ride: Ride) -> RideDto:
         needs_accessible_vehicle=ride.needs_accessible_vehicle,
         distance_km=float(ride.distance_km),
         price_cents=ride.price_cents,
-        # No voucher yet (not in the MVP schema): the rider pays the whole price.
+        # No voucher yet (not in the MVP schema). A ride booked free has
+        # nothing to pay; one booked before (paid or awaiting) its whole price.
         voucher_amount_cents=0,
-        rider_amount_cents=ride.price_cents,
+        rider_amount_cents=0 if ride.payment_status == ride_rules.PAYMENT_NOT_REQUIRED else ride.price_cents,
         payment_status=ride.payment_status,
         rating=_rating_to_dto(ride.rating) if ride.rating else None,
         driver=_driver_to_dto(ride.driver) if ride.driver else None,
