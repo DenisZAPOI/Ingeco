@@ -59,3 +59,4 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [015](015-leaflet-openstreetmap.md) | Leaflet et OpenStreetMap pour la carte | Proposée | – |
 | [016](016-vitest.md) | Vitest pour les tests du front | Acceptée | 03/11/2026 |
 | [017](017-cinq-langues.md) | Cinq langues, repli sur le français, traductions chargées à la demande | Proposée | 07/11/2026 |
+| [018](018-contenus-traduits-par-le-back.md) | Contenus traduits par le back, selon la langue du téléphone | Proposée | 10/11/2026 |

@@ -9,7 +9,7 @@ import { Form } from '../components/form/Form';
 import { TextField } from '../components/form/TextField';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { t } from '../i18n';
-import type { When } from '../lib/bookingDraft';
+import { bookingSteps, skipsDropoff, type When } from '../lib/bookingDraft';
 import { guyanaToday } from '../lib/format';
 import { BOOKING_PATHS } from '../lib/paths';
 import { PURPOSES, purposeLabel, scheduleError } from '../lib/ride';
@@ -52,7 +52,7 @@ export function BookingTimePage() {
 
   return (
     <section>
-      <StepHeader step={3} title={t('booking.timeTitle')} />
+      <StepHeader step={bookingSteps(draft).time} total={bookingSteps(draft).total} title={t('booking.timeTitle')} />
       <PageSheet>
         <Form
           onSubmit={next}
@@ -77,7 +77,7 @@ export function BookingTimePage() {
             </>
           )}
         </Form>
-        <Link to={BOOKING_PATHS.dropoff} className="link-action">
+        <Link to={skipsDropoff(draft) ? BOOKING_PATHS.pickup : BOOKING_PATHS.dropoff} className="link-action">
           {t('booking.previousStep')}
         </Link>
       </PageSheet>

@@ -18,6 +18,9 @@ export type BookingDraft = {
   time: string;
   /** Created at the confirmation, reused by every retry of that booking. */
   requestId: string | null;
+  /** Set by "Comment y aller ?" on a job offer: the drop-off is the job's
+   *  place, so the drop-off step is skipped (3 steps instead of 4). */
+  jobOfferId: number | null;
 };
 
 const EMPTY_DRAFT: BookingDraft = {
@@ -28,6 +31,7 @@ const EMPTY_DRAFT: BookingDraft = {
   day: '',
   time: '',
   requestId: null,
+  jobOfferId: null,
 };
 
 export function readBookingDraft(): BookingDraft {
@@ -36,7 +40,8 @@ export function readBookingDraft(): BookingDraft {
     if (typeof parsed === 'object' && parsed !== null) {
       const draft = { ...EMPTY_DRAFT, ...(parsed as Partial<BookingDraft>) };
       // A stop kept by an older version of the app has no token: chosen again.
-      return { ...draft, pickup: signedOrNull(draft.pickup), dropoff: signedOrNull(draft.dropoff) };
+      const dropoff = signedOrNull(draft.dropoff);
+      return { ...draft, pickup: signedOrNull(draft.pickup), dropoff, jobOfferId: dropoff ? draft.jobOfferId : null };
     }
   } catch {
     // Storage blocked or corrupted: start again.
@@ -64,4 +69,23 @@ export function saveBookingDraft(draft: BookingDraft | null): void {
  *  the time still to choose. A new request id: it is another booking. */
 export function draftFromRide(ride: Ride): BookingDraft {
   return { ...EMPTY_DRAFT, pickup: ride.pickup, dropoff: ride.dropoff, purpose: ride.purpose };
+}
+
+/** "Comment y aller ?" on a job offer: the trip to the job, for work. Only
+ *  the pickup and the time are left to choose (cahier des charges §18: a trip
+ *  in 3 actions at most from an offer). */
+export function draftForJobOffer(jobOfferId: number, place: Stop): BookingDraft {
+  return { ...EMPTY_DRAFT, dropoff: place, purpose: 'employment', jobOfferId };
+}
+
+/** Whether the drop-off step is skipped: it was given by a job offer. */
+export function skipsDropoff(draft: BookingDraft): boolean {
+  return draft.jobOfferId !== null && draft.dropoff !== null;
+}
+
+/** The number of each step shown in "Étape 2 sur 3", and their total. */
+export function bookingSteps(draft: BookingDraft): { pickup: number; dropoff: number; time: number; confirm: number; total: number } {
+  return skipsDropoff(draft)
+    ? { pickup: 1, dropoff: 0, time: 2, confirm: 3, total: 3 }
+    : { pickup: 1, dropoff: 2, time: 3, confirm: 4, total: 4 };
 }

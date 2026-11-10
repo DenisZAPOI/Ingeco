@@ -372,6 +372,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The job offers online, the most recent first, in the language of
+         * @description Accept-Language where translated (French otherwise: `language` says which).
+         *
+         *     All of them at once (a few dozen at most): the phone filters them itself,
+         *     without a round trip at each filter.
+         */
+        get: operations["listJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One offer. 404 if it does not exist or is no longer online. */
+        get: operations["getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/places": {
         parameters: {
             query?: never;
@@ -884,6 +924,48 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "degraded";
+        };
+        /** JobOfferDto */
+        JobOfferDto: {
+            /** Beginnerwelcome */
+            beginnerWelcome: boolean;
+            /** Communename */
+            communeName: string;
+            /**
+             * Contracttype
+             * @enum {string}
+             */
+            contractType: "permanent" | "fixed_term" | "temp" | "apprenticeship" | "seasonal";
+            /** Description */
+            description: string;
+            /** Employer */
+            employer: string;
+            /** Id */
+            id: number;
+            /** Language */
+            language: string;
+            /** Nodiplomarequired */
+            noDiplomaRequired: boolean;
+            /** Parttime */
+            partTime: boolean;
+            place: components["schemas"]["StopDto"];
+            /**
+             * Publishedat
+             * Format: date-time
+             */
+            publishedAt: string;
+            /**
+             * Schedule
+             * @enum {string}
+             */
+            schedule: "day" | "shifted" | "night";
+            /** Title */
+            title: string;
+        };
+        /** JobOfferListDto */
+        JobOfferListDto: {
+            /** Items */
+            items: components["schemas"]["JobOfferDto"][];
         };
         /** LocationBody */
         LocationBody: {
@@ -2369,6 +2451,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    listJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOfferListDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOfferDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
                 };
             };
         };
