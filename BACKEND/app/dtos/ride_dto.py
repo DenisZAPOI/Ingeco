@@ -137,6 +137,9 @@ class RideDriverDto(ApiModel):
     phone: str | None
     average_score: float | None = Field(examples=[4.7])
     vehicle: RideVehicleDto
+    # Set while the ride is under way if the driver has a photo: read it at
+    # GET /rides/<id>/driver-photo?v=<this date> (a new photo, a new address).
+    photo_updated_at: datetime | None
 
 
 class RideRiderDto(ApiModel):
@@ -264,4 +267,5 @@ def _driver_to_dto(driver: DriverInfo) -> RideDriverDto:
         vehicle=RideVehicleDto(
             plate=driver.vehicle_plate, model=driver.vehicle_model, is_accessible=driver.vehicle_is_accessible
         ),
+        photo_updated_at=driver.photo_updated_at,
     )

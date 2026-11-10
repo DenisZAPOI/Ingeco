@@ -267,6 +267,7 @@ export const en: Texts = {
     purpose: 'Reason',
     distance: 'Distance',
     price: 'Price',
+    driverPhotoAlt: 'Photo of {name}, your driver',
     purposes: {
       employment: 'Work (interview, job)',
       training: 'Training',

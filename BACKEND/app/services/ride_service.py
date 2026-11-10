@@ -57,6 +57,7 @@ MIN_DISTANCE_KM = Decimal("0.1")
 
 SAME_PLACE = "Le départ et l'arrivée sont au même endroit. Choisissez une autre adresse d'arrivée."
 RIDE_NOT_FOUND = "Ce trajet est introuvable."
+NO_DRIVER_PHOTO = "Pas de photo du chauffeur pour ce trajet."
 REQUEST_ID_TAKEN = "Cette réservation a déjà été envoyée depuis un autre compte. Recommencez la réservation."
 DISTANCE_UNAVAILABLE = "Le calcul du trajet ne répond pas pour le moment. Réessayez dans quelques minutes."
 PAYMENT_TOO_LATE = "Le délai de paiement de 15 minutes est dépassé. Refaites la réservation."
@@ -233,6 +234,9 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
                 vehicle_model=driver.vehicle.model,
                 vehicle_is_accessible=driver.vehicle.is_accessible,
                 average_score=scores.get(driver.id),
+                # Like the phone: to recognise the driver at the pick-up, so
+                # only while the ride is under way (minimisation).
+                photo_updated_at=driver.photo_updated_at if under_way or staff else None,
             )
         if staff or (under_way and user_id == ride.driver_id):
             rider = people[ride.rider_id]
@@ -250,6 +254,22 @@ def _may_see(session: Session, ride: Ride, user_id: int, role: str) -> bool:
     driver = user_repository.find_by_id(session, user_id)
     fits = not ride.needs_accessible_vehicle or (driver.vehicle is not None and driver.vehicle.is_accessible)
     return driver.is_available and fits
+
+
+def driver_photo(*, user_id: int, role: str, ride_id: int) -> bytes:
+    """The face photo of the ride's driver, for its rider while the ride is
+    under way, or for the staff. 404 otherwise, as if there were none."""
+    with database.session() as session:
+        ride = ride_repository.find_by_id(session, ride_id)
+        if ride is None or ride.driver_id is None:
+            raise NotFound(NO_DRIVER_PHOTO)
+        rider_under_way = user_id == ride.rider_id and ride.status in ride_rules.CONTACT_STATUSES
+        if not (rider_under_way or role in STAFF_ROLES):
+            raise NotFound(NO_DRIVER_PHOTO)
+        image = user_repository.find_photo(session, ride.driver_id)
+    if image is None:
+        raise NotFound(NO_DRIVER_PHOTO)
+    return image
 
 
 @dataclass(frozen=True)

@@ -271,6 +271,7 @@ export const fr = {
     purpose: 'Motif',
     distance: 'Distance',
     price: 'Prix',
+    driverPhotoAlt: 'Photo de {name}, votre chauffeur',
     purposes: {
       employment: 'Emploi (entretien, travail)',
       training: 'Formation',
