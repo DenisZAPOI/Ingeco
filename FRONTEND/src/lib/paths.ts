@@ -1,5 +1,15 @@
 // Account access, for a visitor.
 export const LOGIN_PATH = '/connexion';
+
+/** The page a visitor was sent to log in from. Only a path of this app: a
+ *  value from elsewhere ("//site.example") never leads out of it. */
+export function returnPathFromState(state: unknown): string | null {
+  if (typeof state !== 'object' || state === null || !('returnTo' in state)) return null;
+  const { returnTo } = state as { returnTo: unknown };
+  return typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.startsWith('/\\')
+    ? returnTo
+    : null;
+}
 export const ACTIVATION_PATH = '/activation';
 export const PASSWORD_RESET_PATH = '/mot-de-passe-oublie';
 
@@ -47,3 +57,10 @@ export const NEW_ACCOUNT_PATH = '/admin/comptes/nouveau';
 // Public, linked from the footer of every screen.
 export const ABOUT_PATH = '/a-propos';
 export const HELP_PATH = '/aide';
+
+// Job offers (module M2), public: a visitor reads them without an account.
+export const JOBS_PATH = '/emplois';
+
+export function jobPath(id: number): string {
+  return `/emplois/${id}`;
+}

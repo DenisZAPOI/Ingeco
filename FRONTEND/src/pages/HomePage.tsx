@@ -4,9 +4,9 @@ import type { Role } from '../api/auth';
 import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { NextRide } from '../components/rides/NextRide';
-import { ArrowRightIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
+import { ArrowRightIcon, BriefcaseIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { ADMIN_ACCOUNTS_PATH, RIDES_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, JOBS_PATH, RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -66,6 +66,18 @@ export function HomePage() {
           </>
         )}
         <div className="stack">
+          {account.role === 'rider' && (
+            <Link to={JOBS_PATH} className="action-card">
+              <span className="icon-chip">
+                <BriefcaseIcon />
+              </span>
+              <span className="action-card-text">
+                <span className="action-card-title">{t('home.jobs')}</span>
+                <span className="action-card-hint">{t('home.jobsHint')}</span>
+              </span>
+              <ArrowRightIcon className="action-card-arrow" />
+            </Link>
+          )}
           {account.role === 'rider' && (
             <Link to={RIDES_PATH} className="action-card">
               <span className="icon-chip">

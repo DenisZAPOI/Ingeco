@@ -6,16 +6,20 @@ type PageHeroProps = {
   eyebrow?: string;
   /** Under the title: a sentence, a progress bar, the logo… */
   children?: ReactNode;
+  /** Language of the title when it is a content, not an interface text. */
+  lang?: string;
 };
 
 /** The green band at the top of every screen, continuing the header. The
  *  page content follows in a <PageSheet>, which overlaps its rounded bottom. */
-export function PageHero({ title, eyebrow, children }: PageHeroProps) {
+export function PageHero({ title, eyebrow, children, lang }: PageHeroProps) {
   return (
     <div className="hero">
       <RoadMotif />
       {eyebrow && <p className="hero-eyebrow">{eyebrow}</p>}
-      <h1 className="hero-title">{title}</h1>
+      <h1 className="hero-title" lang={lang}>
+        {title}
+      </h1>
       {children}
     </div>
   );

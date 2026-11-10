@@ -2,6 +2,8 @@
 // session cookies, CSRF header, silent session renewal, timeout and error
 // translation are handled in one place.
 
+import { language } from '../i18n';
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 // On a weak network a request can hang for minutes: better to fail and offer
@@ -140,7 +142,10 @@ async function send<T>(method: Method, path: string, body?: unknown): Promise<T>
 }
 
 function buildHeaders(method: Method, path: string, body: unknown): Record<string, string> {
-  const headers: Record<string, string> = {};
+  // Contents stored as data (job offers) come back in this language when
+  // translated (ADR 018). A header the browser sends without a CORS
+  // preflight: no extra round trip.
+  const headers: Record<string, string> = { 'Accept-Language': contentLanguage() };
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
   }
@@ -151,6 +156,12 @@ function buildHeaders(method: Method, path: string, body: unknown): Record<strin
     }
   }
   return headers;
+}
+
+/** The development 'test' language has no contents: French. */
+function contentLanguage(): string {
+  const current = language();
+  return current === 'test' ? 'fr' : current;
 }
 
 function readCookie(name: string): string | null {

@@ -11,6 +11,7 @@ import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useBookRide, useEstimate } from '../hooks/useRides';
 import { t } from '../i18n';
+import { bookingSteps } from '../lib/bookingDraft';
 import { guyanaDateTime } from '../lib/format';
 import { BOOKING_PATHS, paymentPath } from '../lib/paths';
 import { newRequestId } from '../lib/requestId';
@@ -55,7 +56,7 @@ function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Sto
 
   return (
     <section>
-      <StepHeader step={4} title={t('booking.confirmTitle')} />
+      <StepHeader step={bookingSteps(draft).confirm} total={bookingSteps(draft).total} title={t('booking.confirmTitle')} />
       <PageSheet>
         <RequestState loading={estimate.loading} error={estimate.error} onRetry={estimate.retry}>
           {estimate.data && (

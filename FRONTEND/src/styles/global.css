@@ -930,6 +930,39 @@ a:hover {
   font-weight: var(--font-weight-strong);
 }
 
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+}
+
+.badges + .summary {
+  margin-top: var(--space);
+}
+
+/* The filters of the job offers: a light frame, the list follows. */
+.filters {
+  min-width: 0;
+  margin: 0 0 var(--space-l);
+  border: 0;
+}
+
+/* A legend sits on the frame of its fieldset: floated, it becomes the
+   panel's first line, like the other panel titles. */
+.filters legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+}
+
+.filters legend + * {
+  clear: both;
+}
+
+.filters .field:last-child {
+  margin-bottom: 0;
+}
+
 .confirm {
   margin-top: var(--space-l);
 }

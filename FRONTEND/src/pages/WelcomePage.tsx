@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { CarIcon, PhoneIcon, TicketIcon, WheelchairIcon } from '../components/ui/icons';
+import { ArrowRightIcon, BriefcaseIcon, CarIcon, PhoneIcon, TicketIcon, WheelchairIcon } from '../components/ui/icons';
 import { t } from '../i18n';
+import { JOBS_PATH } from '../lib/paths';
 import { formatPhone } from '../lib/phone';
 
 // Given by the client, in international format (+594…). Until then the help
@@ -34,6 +35,18 @@ export function WelcomePage() {
             </li>
           ))}
         </ul>
+
+        {/* Offers are public: someone can look before creating an account. */}
+        <Link to={JOBS_PATH} className="action-card">
+          <span className="icon-chip">
+            <BriefcaseIcon />
+          </span>
+          <span className="action-card-text">
+            <span className="action-card-title">{t('home.jobs')}</span>
+            <span className="action-card-hint">{t('home.jobsHint')}</span>
+          </span>
+          <ArrowRightIcon className="action-card-arrow" />
+        </Link>
 
         <nav className="stack" aria-label={t('welcome.accountNav')}>
           <Link to="/inscription" className="button button-block">
