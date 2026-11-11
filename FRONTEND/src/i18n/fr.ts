@@ -211,6 +211,7 @@ export const fr = {
       "L'heure de départ doit être au moins 30 minutes après maintenant. Pour partir plus tôt, choisissez « Maintenant ».",
     confirmTitle: 'Votre trajet',
     payNext: "Vous payez par carte à l'étape suivante, avant le départ.",
+    freeNote: "Vous n'avez rien à payer : votre trajet est pris en charge. Après l'envoi, nous cherchons un chauffeur.",
     // CHANGER_SELON_DECISION (Q7, H17) : conditions d'annulation provisoires, voir docs/decisions.md.
     cancelTitle: 'Si vous annulez',
     cancelFree: "Vous pouvez annuler gratuitement jusqu'au départ, tant que le chauffeur n'a pas commencé la course.",
@@ -262,6 +263,28 @@ export const fr = {
     howToGetThere: 'Comment y aller ?',
     howToGetThereHint: "Réservez un trajet jusqu'à ce lieu : il vous reste à choisir le départ et l'heure.",
     backToList: 'Retour aux offres',
+    training: 'Se former',
+    trainingHint: 'Trouver une formation pour apprendre un métier',
+  },
+  trainings: {
+    title: 'Se former',
+    lead: 'Des sites officiels pour trouver une formation près de chez vous.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          "Toutes les formations, à chercher par métier et par lieu (Cayenne, Kourou…). Beaucoup sont gratuites pour les demandeurs d'emploi.",
+        open: 'Ouvrir le site France Travail',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'Les formations que vous pouvez payer avec votre compte personnel de formation (CPF), si vous avez déjà travaillé.',
+        open: 'Ouvrir le site Mon Compte Formation',
+      },
+    },
+    outside: "Ces sites ne font pas partie de l'application. Pour revenir ici, utilisez le bouton Retour de votre téléphone.",
+    backToJobs: 'Retour aux offres',
   },
   ride: {
     pickup: 'Départ',
@@ -271,6 +294,8 @@ export const fr = {
     purpose: 'Motif',
     distance: 'Distance',
     price: 'Prix',
+    covered: 'Pris en charge',
+    toPay: 'Reste à payer',
     driverPhotoAlt: 'Photo de {name}, votre chauffeur',
     purposes: {
       employment: 'Emploi (entretien, travail)',
@@ -303,6 +328,7 @@ export const fr = {
     seeMyRides: 'Voir mes trajets',
     pay: 'Payer {amount}',
     paidWaiting: 'Votre paiement est bien reçu. Revenez sur cette page pour savoir quand un chauffeur a accepté.',
+    freeWaiting: 'Votre demande est bien reçue. Revenez sur cette page pour savoir quand un chauffeur a accepté.',
     refresh: 'Actualiser',
     refunded: 'Vous êtes remboursé de {amount}.',
     yourRating: 'Votre avis',

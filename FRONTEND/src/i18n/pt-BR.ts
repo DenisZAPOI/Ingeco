@@ -208,6 +208,7 @@ export const ptBR: Texts = {
       'O horário de saída deve ser pelo menos 30 minutos depois de agora. Para sair mais cedo, escolha “Agora”.',
     confirmTitle: 'Sua viagem',
     payNext: 'Você paga com cartão na próxima etapa, antes da saída.',
+    freeNote: 'Você não tem nada a pagar: sua viagem é custeada. Depois do envio, procuramos um motorista.',
     cancelTitle: 'Se você cancelar',
     cancelFree: 'Você pode cancelar de graça até a saída, enquanto o motorista não tiver começado a corrida.',
     cancelRefund: 'Se você já pagou, recebe o reembolso total.',
@@ -258,6 +259,28 @@ export const ptBR: Texts = {
     howToGetThere: 'Como chegar lá?',
     howToGetThereHint: 'Reserve uma viagem até este local: falta só escolher a partida e o horário.',
     backToList: 'Voltar às vagas',
+    training: 'Fazer uma formação',
+    trainingHint: 'Encontrar uma formação para aprender uma profissão',
+  },
+  trainings: {
+    title: 'Fazer uma formação',
+    lead: 'Sites oficiais para encontrar uma formação perto de você.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          'Todas as formações, para buscar por profissão e por local (Caiena, Kourou…). Muitas são gratuitas para quem procura emprego.',
+        open: 'Abrir o site France Travail',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'As formações que você pode pagar com sua conta pessoal de formação (CPF), se já trabalhou.',
+        open: 'Abrir o site Mon Compte Formation',
+      },
+    },
+    outside: 'Estes sites não fazem parte do aplicativo. Para voltar aqui, use o botão Voltar do seu celular.',
+    backToJobs: 'Voltar às vagas',
   },
   ride: {
     pickup: 'Saída',
@@ -267,6 +290,8 @@ export const ptBR: Texts = {
     purpose: 'Motivo',
     distance: 'Distância',
     price: 'Preço',
+    covered: 'Custeado',
+    toPay: 'Falta pagar',
     driverPhotoAlt: 'Foto de {name}, seu motorista',
     purposes: {
       employment: 'Trabalho (entrevista, emprego)',
@@ -299,6 +324,7 @@ export const ptBR: Texts = {
     seeMyRides: 'Ver minhas viagens',
     pay: 'Pagar {amount}',
     paidWaiting: 'Seu pagamento foi recebido. Volte a esta página para saber quando um motorista aceitar.',
+    freeWaiting: 'Seu pedido foi recebido. Volte a esta página para saber quando um motorista aceitar.',
     refresh: 'Atualizar',
     refunded: 'Você foi reembolsado em {amount}.',
     yourRating: 'Sua avaliação',

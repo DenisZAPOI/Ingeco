@@ -208,6 +208,7 @@ export const en: Texts = {
     scheduleTooSoon: 'The departure time must be at least 30 minutes from now. To leave sooner, choose “Now”.',
     confirmTitle: 'Your trip',
     payNext: 'You pay by card at the next step, before departure.',
+    freeNote: 'You have nothing to pay: your trip is covered. Once you send it, we look for a driver.',
     cancelTitle: 'If you cancel',
     cancelFree: 'You can cancel for free until departure, as long as the driver has not started the ride.',
     cancelRefund: 'If you have already paid, you get a full refund.',
@@ -258,6 +259,28 @@ export const en: Texts = {
     howToGetThere: 'How do I get there?',
     howToGetThereHint: 'Book a trip to this place: you only choose where you leave from and when.',
     backToList: 'Back to the offers',
+    training: 'Get trained',
+    trainingHint: 'Find a training course to learn a trade',
+  },
+  trainings: {
+    title: 'Get trained',
+    lead: 'Official websites to find a training course near you.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          'Every training course, to search by trade and by place (Cayenne, Kourou…). Many are free for jobseekers.',
+        open: 'Open the France Travail website',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'Courses you can pay for with your personal training account (CPF), if you have already worked.',
+        open: 'Open the Mon Compte Formation website',
+      },
+    },
+    outside: "These websites are not part of the app. To come back here, use your phone's Back button.",
+    backToJobs: 'Back to the offers',
   },
   ride: {
     pickup: 'From',
@@ -267,6 +290,8 @@ export const en: Texts = {
     purpose: 'Reason',
     distance: 'Distance',
     price: 'Price',
+    covered: 'Covered',
+    toPay: 'Left to pay',
     driverPhotoAlt: 'Photo of {name}, your driver',
     purposes: {
       employment: 'Work (interview, job)',
@@ -299,6 +324,7 @@ export const en: Texts = {
     seeMyRides: 'See my trips',
     pay: 'Pay {amount}',
     paidWaiting: 'Your payment has been received. Come back to this page to know when a driver has accepted.',
+    freeWaiting: 'Your request has been received. Come back to this page to know when a driver has accepted.',
     refresh: 'Refresh',
     refunded: 'You are refunded {amount}.',
     yourRating: 'Your review',

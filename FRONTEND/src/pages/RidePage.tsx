@@ -70,7 +70,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
       )}
       {ride.status === 'pending' && (
         <>
-          <p>{t('ride.paidWaiting')}</p>
+          <p>{t(ride.paymentStatus === 'not_required' ? 'ride.freeWaiting' : 'ride.paidWaiting')}</p>
           <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
             {t('ride.refresh')}
           </button>
@@ -108,7 +108,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
         // Once over, "Dès que possible" would mean nothing: the day it was.
         scheduledAt={isOver(ride) ? rideDate(ride) : ride.scheduledAt}
         distanceKm={ride.distanceKm}
-        priceCents={ride.priceCents}
+        price={{ totalCents: ride.priceCents, riderCents: ride.riderAmountCents }}
       />
       {canCancel(ride) && <CancelRide ride={ride} onCancelled={onChange} />}
       {ride.status === 'expired' && <RebookButton ride={ride} />}
