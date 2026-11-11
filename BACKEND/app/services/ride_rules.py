@@ -57,6 +57,21 @@ def check_scheduled_at(scheduled_at: datetime | None) -> datetime | None:
     return scheduled_at.astimezone(timezone.utc)
 
 
+# --- Who pays (interview of 03/11/2026) -------------------------------------
+# CHANGER_SELON_DECISION (docs/decisions.md, "Gratuité et abonnement"): for
+# now the app only serves the client's own structure, so the rider pays
+# nothing. The price is still computed and kept (it is what the ride is
+# worth, and what the driver's earnings show). The simulated payment stays,
+# unused, for the subscription or the solidarity vouchers (palier P2): set
+# this to False and a booking waits for its payment again.
+RIDES_FREE_FOR_RIDERS = True
+
+
+def rider_amount_cents(price_cents: int) -> int:
+    """What the rider has to pay for a ride of this price."""
+    return 0 if RIDES_FREE_FOR_RIDERS else price_cents
+
+
 # --- Price (contract 3.6, UC12) ----------------------------------------------
 # The distance shown to the user is rounded to 100 m: the price is computed
 # from that same figure, so they can check it themselves.

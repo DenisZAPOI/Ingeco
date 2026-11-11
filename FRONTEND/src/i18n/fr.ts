@@ -211,6 +211,7 @@ export const fr = {
       "L'heure de départ doit être au moins 30 minutes après maintenant. Pour partir plus tôt, choisissez « Maintenant ».",
     confirmTitle: 'Votre trajet',
     payNext: "Vous payez par carte à l'étape suivante, avant le départ.",
+    freeNote: "Vous n'avez rien à payer : votre trajet est pris en charge. Après l'envoi, nous cherchons un chauffeur.",
     // CHANGER_SELON_DECISION (Q7, H17) : conditions d'annulation provisoires, voir docs/decisions.md.
     cancelTitle: 'Si vous annulez',
     cancelFree: "Vous pouvez annuler gratuitement jusqu'au départ, tant que le chauffeur n'a pas commencé la course.",
@@ -293,6 +294,8 @@ export const fr = {
     purpose: 'Motif',
     distance: 'Distance',
     price: 'Prix',
+    covered: 'Pris en charge',
+    toPay: 'Reste à payer',
     purposes: {
       employment: 'Emploi (entretien, travail)',
       training: 'Formation',
@@ -324,6 +327,7 @@ export const fr = {
     seeMyRides: 'Voir mes trajets',
     pay: 'Payer {amount}',
     paidWaiting: 'Votre paiement est bien reçu. Revenez sur cette page pour savoir quand un chauffeur a accepté.',
+    freeWaiting: 'Votre demande est bien reçue. Revenez sur cette page pour savoir quand un chauffeur a accepté.',
     refresh: 'Actualiser',
     refunded: 'Vous êtes remboursé de {amount}.',
     yourRating: 'Votre avis',
