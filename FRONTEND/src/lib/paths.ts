@@ -10,6 +10,7 @@ export function returnPathFromState(state: unknown): string | null {
     ? returnTo
     : null;
 }
+export const PROFILE_PATH = '/profil';
 export const ACTIVATION_PATH = '/activation';
 export const PASSWORD_RESET_PATH = '/mot-de-passe-oublie';
 
@@ -23,6 +24,9 @@ export function sentPhoneFromState(state: unknown): string | null {
 
 // Paths of the booking flow, in French: users see them in the address bar.
 // One step = one path, so the phone's Back button goes to the previous step.
+
+/** Start of a booking: goes to its first step (a visitor logs in first). */
+export const BOOKING_START_PATH = '/reserver';
 
 export const BOOKING_PATHS = {
   pickup: '/reserver/depart',
@@ -56,7 +60,9 @@ export const NEW_ACCOUNT_PATH = '/admin/comptes/nouveau';
 
 // Public, linked from the footer of every screen.
 export const ABOUT_PATH = '/a-propos';
+/** "J'ai besoin d'aide": the help page, which leads to the questions and the call center. */
 export const HELP_PATH = '/aide';
+export const FAQ_PATH = '/aide/questions';
 
 // Job offers (module M2), public: a visitor reads them without an account.
 export const JOBS_PATH = '/emplois';

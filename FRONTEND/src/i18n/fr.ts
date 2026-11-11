@@ -69,7 +69,7 @@ export const fr = {
   // par la cliente. Les durées suivent les règles de l'API (services/ride_rules.py,
   // services/auth_service.py) et les valeurs provisoires de docs/decisions.md.
   faq: {
-    title: 'Aide',
+    title: 'Questions fréquentes',
     intro: 'Les réponses aux questions les plus posées. Touchez une question pour voir la réponse.',
     whatQ: "C'est quoi, « En route pour l'emploi » ?",
     whatA:
@@ -102,17 +102,31 @@ export const fr = {
     emergencyA:
       "Ce service n'est pas un service d'urgence. En cas d'urgence, appelez le 15 (SAMU), le 17 (police), le 18 (pompiers) ou le 112.",
   },
+  // Les trois besoins de l'accueil (cahier des charges §10), dans cet ordre.
+  needs: {
+    label: 'Vos besoins',
+    work: 'Je cherche un travail',
+    workHint: 'Des offres près de chez vous',
+    ride: "J'ai besoin d'un trajet",
+    rideHint: 'Travail, formation, soins, démarches',
+    help: "J'ai besoin d'aide",
+    helpHint: 'Questions et contacts',
+  },
+  helpPage: {
+    title: "J'ai besoin d'aide",
+    lead: 'Trouvez une réponse à votre question.',
+    faq: 'Questions fréquentes',
+    faqHint: 'Réserver, annuler, prix, mot de passe…',
+    callTitle: "Le centre d'appel",
+    callText: "Le centre d'appel peut créer votre compte et réserver vos trajets avec vous.",
+    call: 'Appeler',
+  },
   home: {
     greeting: 'Bonjour {name}',
-    riderLead: "Où allez-vous aujourd'hui ?",
-    book: 'Réserver un trajet',
-    bookHint: 'Emploi, formation, soins, démarches',
+    riderLead: "De quoi avez-vous besoin aujourd'hui ?",
     accounts: 'Comptes',
     accountsHint: "Créer, suspendre, codes d'activation",
     myRides: 'Mes trajets',
-    myRidesHint: 'À venir et passés',
-    jobs: 'Je cherche un travail',
-    jobsHint: 'Des offres près de chez vous, et le trajet pour y aller',
     profile: 'Mon profil',
     partnerTitle: 'Espace partenaire',
     partnerComing: 'Vous pourrez bientôt émettre des bons solidaires ici.',
@@ -121,7 +135,8 @@ export const fr = {
   },
   welcome: {
     title: 'Bienvenue',
-    lead: 'Des trajets solidaires pour aller au travail, en formation, aux soins et aux démarches.',
+    lead: "Un travail, un trajet pour y aller, de l'aide : un service solidaire en Guyane.",
+    benefitsTitle: 'Les trajets solidaires',
     benefitDriver: 'Un chauffeur vient vous chercher et vous dépose.',
     benefitFunding: 'Une association, une mairie ou un employeur peut payer tout ou partie du trajet.',
     benefitAccessible: 'Un véhicule adapté au fauteuil roulant, sur demande.',
@@ -130,9 +145,6 @@ export const fr = {
     login: "J'ai déjà un compte",
     codeQuestion: "Compte créé par le centre d'appel, ou vous êtes chauffeur ?",
     codeLink: "J'ai reçu un code",
-    helpTitle: "Besoin d'aide ?",
-    helpText: "Le centre d'appel peut créer votre compte et réserver vos trajets avec vous.",
-    call: 'Appeler',
   },
   fields: {
     phone: 'Numéro de téléphone',
