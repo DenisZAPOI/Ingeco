@@ -60,3 +60,4 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [016](016-vitest.md) | Vitest pour les tests du front | Acceptée | 03/11/2026 |
 | [017](017-cinq-langues.md) | Cinq langues, repli sur le français, traductions chargées à la demande | Proposée | 07/11/2026 |
 | [018](018-contenus-traduits-par-le-back.md) | Contenus traduits par le back, selon la langue du téléphone | Proposée | 10/11/2026 |
+| [019](019-audio-par-synthese-vocale.md) | Audio des fiches pratiques par la synthèse vocale du téléphone | Proposée | 11/11/2026 |

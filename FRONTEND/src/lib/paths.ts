@@ -70,6 +70,13 @@ export function helpServicePath(id: number): string {
   return `/aide/services/${id}`;
 }
 
+/** Practical guides "Comment faire ?" (module M5), public. */
+export const GUIDES_PATH = '/aide/fiches';
+
+export function guidePath(id: number): string {
+  return `/aide/fiches/${id}`;
+}
+
 // Job offers (module M2), public: a visitor reads them without an account.
 export const JOBS_PATH = '/emplois';
 

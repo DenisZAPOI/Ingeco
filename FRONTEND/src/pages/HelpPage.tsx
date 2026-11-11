@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 
 import { CallCenterHelp } from '../components/help/CallCenterHelp';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { ArrowRightIcon, LifebuoyIcon, QuestionIcon } from '../components/ui/icons';
+import { ArrowRightIcon, FormIcon, LifebuoyIcon, QuestionIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { FAQ_PATH, HELP_SERVICES_PATH } from '../lib/paths';
+import { FAQ_PATH, GUIDES_PATH, HELP_SERVICES_PATH } from '../lib/paths';
 
 /** "J'ai besoin d'aide" (third need of the home screen). Public, also linked
- *  from the footer: the directory of help services first, then the questions. */
+ *  from the footer: the directory of help services first, then the practical
+ *  guides and the questions. */
 export function HelpPage() {
   return (
     <section>
@@ -23,6 +24,16 @@ export function HelpPage() {
             <span className="action-card-text">
               <span className="action-card-title">{t('helpPage.services')}</span>
               <span className="action-card-hint">{t('helpPage.servicesHint')}</span>
+            </span>
+            <ArrowRightIcon className="action-card-arrow" />
+          </Link>
+          <Link to={GUIDES_PATH} className="action-card">
+            <span className="icon-chip">
+              <FormIcon />
+            </span>
+            <span className="action-card-text">
+              <span className="action-card-title">{t('helpPage.guides')}</span>
+              <span className="action-card-hint">{t('helpPage.guidesHint')}</span>
             </span>
             <ArrowRightIcon className="action-card-arrow" />
           </Link>

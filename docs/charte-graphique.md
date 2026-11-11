@@ -354,8 +354,8 @@ travail » (`/emplois`), « J'ai besoin d'un trajet » (`/reserver`), « J'ai be
 ### Page « J'ai besoin d'aide »
 
 `/aide` (aussi le lien « Aide » du pied de page) : la carte principale « Trouver un service
-d'aide » (`/aide/services`), la carte « Questions fréquentes » (`/aide/questions`), puis l'encadré
-du centre d'appel. Les fiches pratiques s'y ajouteront.
+d'aide » (`/aide/services`), les cartes « Comment faire ? » (`/aide/fiches`) et « Questions
+fréquentes » (`/aide/questions`), puis l'encadré du centre d'appel.
 
 - L'encadré du centre d'appel (`CallCenterHelp`) n'apparaît que si `VITE_CALL_CENTER_PHONE` est
   renseigné (numéro fourni par le client) : jamais de numéro inventé. Le numéro est écrit en
@@ -378,6 +378,17 @@ du centre d'appel. Les fiches pratiques s'y ajouteront.
   « Numéro fictif ». Les simulateurs n'y sont pas : ils feraient plus de trois actions principales.
 - Les numéros des services fictifs sont dans la plage que l'ARCEP réserve à la fiction
   (05 36 49 xx xx) : un appel ne sonne chez personne. Ne jamais en inventer un autre.
+
+### Fiches pratiques « Comment faire ? »
+
+- `/aide/fiches` : une fiche par besoin, en cartes d'action (icône du besoin, titre, nom du
+  besoin). On les retrouve aussi sous les services d'un besoin (`/aide/services?besoin=…`).
+- `/aide/fiches/3` : l'introduction en `lead`, le bouton secondaire « Écouter la fiche »
+  (« Arrêter la lecture » pendant la lecture), puis « Les étapes » : une phrase courte par étape,
+  le numéro dans un disque vert (`guide-steps`). Ensuite l'encadré « À apporter » s'il y a quelque
+  chose, l'encadré « Pour être sûr » avec le lien vers le site officiel (le bouton porte le nom du
+  site), et en note la date de mise à jour et « Démonstrateur : fiche à faire vérifier ».
+- « Écouter » n'apparaît que si le téléphone a une voix pour la langue de la fiche (ADR 019).
 
 ### À propos
 
