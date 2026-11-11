@@ -60,6 +60,10 @@
   /* Large touch targets: public not always at ease with digital tools. */
   --touch-target: 3.25rem;
   --checkbox-size: 1.5rem;
+  /* An open drop-down list: about six options, then it scrolls. */
+  --dropdown-max-height: 22rem;
+  /* Above the cards and fields that follow a drop-down list. */
+  --z-dropdown: 10;
   --content-width: 40rem;
   --icon-size: 1.5rem;
   --icon-chip-size: 2.75rem;
@@ -129,10 +133,19 @@ a:hover {
   outline-offset: 2px;
 }
 
-.checkbox:focus-within {
+/* A box or radio button inside a large touch target: the ring goes round the
+   whole target, only for the keyboard (a tap or a click shows none). The
+   input does not get a second ring of its own. */
+.checkbox:has(input:focus-visible) {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: 2px;
   border-radius: var(--radius);
+}
+
+.checkbox input:focus-visible,
+.choice input:focus-visible,
+.rating-star input:focus-visible {
+  outline: none;
 }
 
 /* --- Layout: green header, green band, white sheet ---------------------------
@@ -631,6 +644,94 @@ a:hover {
   border-color: var(--color-error);
 }
 
+/* --- Drop-down list drawn by us (SelectField) ---------------------------------- */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-button[aria-expanded='true'] {
+  border-color: var(--color-primary);
+}
+
+.dropdown-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-chevron {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.dropdown-button[aria-expanded='true'] .dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+/* Just below the button, over what follows, as wide as it. */
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: var(--z-dropdown);
+  max-height: var(--dropdown-max-height);
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-xs);
+  overflow-y: auto;
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  box-shadow: var(--shadow-sheet);
+  list-style: none;
+}
+
+.dropdown-list:focus {
+  outline: none;
+}
+
+/* The highlighted option (keyboard or finger) is green-tinted; the chosen one
+   also has a check mark and bold text, not only a color. */
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-m);
+  border-radius: calc(var(--radius) - var(--space-xs));
+  cursor: pointer;
+}
+
+.dropdown-option.is-active {
+  background: var(--color-primary-soft);
+  outline: var(--border-width) solid var(--color-primary);
+  outline-offset: calc(-1 * var(--border-width));
+}
+
+.dropdown-option[aria-selected='true'] {
+  font-weight: var(--font-weight-strong);
+}
+
+.dropdown-check {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
 .field-error {
   margin: 0;
   color: var(--color-error);
@@ -706,7 +807,7 @@ a:hover {
   font-weight: var(--font-weight-strong);
 }
 
-.choice:focus-within {
+.choice:has(input:focus-visible) {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -1014,7 +1115,7 @@ a:hover {
   background: var(--color-accent-soft);
 }
 
-.rating-star:focus-within {
+.rating-star:has(input:focus-visible) {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: 2px;
 }

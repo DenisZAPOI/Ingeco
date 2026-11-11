@@ -205,6 +205,26 @@ d'explication si besoin, et une flèche à droite.
 départ maintenant ou plus tard). Le choix fait est vert pâle avec une bordure verte ; le point du
 bouton radio le dit aussi, sans la couleur.
 
+### Liste déroulante
+
+`SelectField` : pour un choix parmi plusieurs dans un filtre (commune et horaires des offres,
+rôle et statut dans l'administration), là où des tuiles prendraient tout l'écran. C'est une liste
+**dessinée par nous**, pas le `<select>` du navigateur, dont la liste ouverte ne suit pas la
+charte :
+
+- un bouton de la taille d'un champ (`field-input`), avec le choix en cours et une flèche verte
+  qui se retourne à l'ouverture ;
+- la liste s'ouvre **juste sous le bouton**, par-dessus la suite de l'écran, bordée de vert,
+  en grandes lignes tactiles (`--touch-target`) ; au-delà de six choix environ, elle défile ;
+- la ligne survolée ou atteinte au clavier est vert pâle ; le choix en cours est en gras avec une
+  coche ✓ (pas seulement une couleur) ;
+- clavier (motif « listbox » ARIA) : flèches, Début, Fin, une lettre tapée pour aller au choix qui
+  commence par elle, Entrée ou Espace pour choisir, Échap pour fermer ; le focus revient au
+  bouton. Un tap ou un clic à côté ferme la liste sans rien changer.
+
+Sans bibliothèque (environ 2 Ko) ; la logique du clavier est dans `lib/listbox.ts`, testée. Le
+choix de la langue, dans le pied de page, reste un `<select>` du navigateur.
+
 ### Réservation
 
 - `StepHeader` : le bandeau d'une étape, avec « Étape 2 sur 4 », la question de l'étape et une
@@ -384,7 +404,10 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 - Contraste : 4,5:1 minimum pour un texte, 3:1 pour une bordure ou une icône (voir
   [Couleurs](#2-couleurs)).
 - **Tout se fait au clavier**, et l'élément actif se voit : anneau de 3 px, foncé sur fond clair,
-  jaune sur le vert de l'en-tête. Ne jamais supprimer `outline`.
+  jaune sur le vert de l'en-tête. Ne jamais supprimer `outline`. L'anneau suit
+  `:focus-visible` : il apparaît au clavier, pas au toucher ni au clic. Pour une case à cocher, un
+  bouton radio ou une étoile, il entoure toute la zone tactile (`:has(input:focus-visible)`), et
+  la case elle-même n'en a pas de second.
 - Toute zone qui se touche fait au moins `--touch-target` de haut.
 - Chaque champ a un `<label>` relié ; l'erreur et l'aide sont reliées par `aria-describedby`
   (déjà fait dans `TextField`, `PasswordField`, `CheckboxField`).
