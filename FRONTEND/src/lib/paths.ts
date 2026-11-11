@@ -63,6 +63,12 @@ export const ABOUT_PATH = '/a-propos';
 /** "J'ai besoin d'aide": the help page, which leads to the questions and the call center. */
 export const HELP_PATH = '/aide';
 export const FAQ_PATH = '/aide/questions';
+/** Directory of help services (module M5), public: the needs, then the list. */
+export const HELP_SERVICES_PATH = '/aide/services';
+
+export function helpServicePath(id: number): string {
+  return `/aide/services/${id}`;
+}
 
 // Job offers (module M2), public: a visitor reads them without an account.
 export const JOBS_PATH = '/emplois';

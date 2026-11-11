@@ -10,7 +10,7 @@ import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useCommunes } from '../hooks/useCommunes';
 import { t } from '../i18n';
-import { bookingSteps, skipsDropoff } from '../lib/bookingDraft';
+import { bookingSteps, NO_GIVEN_DROPOFF, skipsDropoff } from '../lib/bookingDraft';
 import { BOOKING_PATHS } from '../lib/paths';
 
 const STEPS = {
@@ -28,8 +28,8 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
   const [error, setError] = useState<string | null>(null);
   const step = STEPS[stop];
   const numbers = bookingSteps(draft);
-  // From a job offer, the drop-off is already known: straight to the time.
-  const toJob = stop === 'pickup' && skipsDropoff(draft);
+  // From a job offer or a help service, the drop-off is already known: straight to the time.
+  const toGiven = stop === 'pickup' && skipsDropoff(draft);
 
   if (stop === 'dropoff' && !draft.pickup) {
     return <Navigate to={BOOKING_PATHS.pickup} replace />;
@@ -40,13 +40,13 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
       setError(t('booking.chooseAddress'));
       return;
     }
-    // A drop-off chosen here is no longer the job's: the usual 4 steps.
-    update(stop === 'dropoff' ? { dropoff: chosen, jobOfferId: null } : { pickup: chosen });
-    navigate(toJob ? BOOKING_PATHS.time : step.next);
+    // A drop-off chosen here is no longer the one given: the usual 4 steps.
+    update(stop === 'dropoff' ? { dropoff: chosen, ...NO_GIVEN_DROPOFF } : { pickup: chosen });
+    navigate(toGiven ? BOOKING_PATHS.time : step.next);
   }
 
   function otherDestination() {
-    update({ jobOfferId: null });
+    update(NO_GIVEN_DROPOFF);
     navigate(BOOKING_PATHS.dropoff);
   }
 
@@ -54,7 +54,11 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
     <section>
       <StepHeader step={numbers[stop]} total={numbers.total} title={t(step.title)} />
       <PageSheet>
-        {toJob && draft.dropoff && <p className="note">{t('booking.toJob', { address: draft.dropoff.address })}</p>}
+        {toGiven && draft.dropoff && (
+          <p className="note">
+            {t(draft.helpServiceId !== null ? 'booking.toHelpService' : 'booking.toJob', { address: draft.dropoff.address })}
+          </p>
+        )}
         <RequestState loading={communes.loading} error={communes.error} onRetry={communes.retry}>
           <Form onSubmit={next} submitLabel={t('booking.continue')} submitting={false} error={error ? t('errors.checkFields') : null}>
             <PlacePicker
@@ -68,7 +72,7 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
             />
           </Form>
         </RequestState>
-        {toJob && (
+        {toGiven && (
           <button type="button" className="link-button link-action" onClick={otherDestination}>
             {t('booking.otherDestination')}
           </button>

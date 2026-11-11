@@ -21,6 +21,8 @@ export type BookingDraft = {
   /** Set by "Comment y aller ?" on a job offer: the drop-off is the job's
    *  place, so the drop-off step is skipped (3 steps instead of 4). */
   jobOfferId: number | null;
+  /** Set by "Comment y aller ?" on a help service, in the same way. */
+  helpServiceId: number | null;
 };
 
 const EMPTY_DRAFT: BookingDraft = {
@@ -32,6 +34,7 @@ const EMPTY_DRAFT: BookingDraft = {
   time: '',
   requestId: null,
   jobOfferId: null,
+  helpServiceId: null,
 };
 
 export function readBookingDraft(): BookingDraft {
@@ -41,7 +44,13 @@ export function readBookingDraft(): BookingDraft {
       const draft = { ...EMPTY_DRAFT, ...(parsed as Partial<BookingDraft>) };
       // A stop kept by an older version of the app has no token: chosen again.
       const dropoff = signedOrNull(draft.dropoff);
-      return { ...draft, pickup: signedOrNull(draft.pickup), dropoff, jobOfferId: dropoff ? draft.jobOfferId : null };
+      return {
+        ...draft,
+        pickup: signedOrNull(draft.pickup),
+        dropoff,
+        jobOfferId: dropoff ? draft.jobOfferId : null,
+        helpServiceId: dropoff ? draft.helpServiceId : null,
+      };
     }
   } catch {
     // Storage blocked or corrupted: start again.
@@ -78,10 +87,19 @@ export function draftForJobOffer(jobOfferId: number, place: Stop): BookingDraft 
   return { ...EMPTY_DRAFT, dropoff: place, purpose: 'employment', jobOfferId };
 }
 
-/** Whether the drop-off step is skipped: it was given by a job offer. */
-export function skipsDropoff(draft: BookingDraft): boolean {
-  return draft.jobOfferId !== null && draft.dropoff !== null;
+/** "Comment y aller ?" on a help service: the trip there, for care or a
+ *  procedure. Only the pickup and the time are left, as from a job offer. */
+export function draftForHelpService(helpServiceId: number, place: Stop, purpose: Purpose): BookingDraft {
+  return { ...EMPTY_DRAFT, dropoff: place, purpose, helpServiceId };
 }
+
+/** Whether the drop-off step is skipped: it was given by a job offer or a help service. */
+export function skipsDropoff(draft: BookingDraft): boolean {
+  return (draft.jobOfferId !== null || draft.helpServiceId !== null) && draft.dropoff !== null;
+}
+
+/** The place given by "Comment y aller ?", forgotten: the usual 4 steps. */
+export const NO_GIVEN_DROPOFF = { jobOfferId: null, helpServiceId: null } as const;
 
 /** The number of each step shown in "Étape 2 sur 3", and their total. */
 export function bookingSteps(draft: BookingDraft): { pickup: number; dropoff: number; time: number; confirm: number; total: number } {
