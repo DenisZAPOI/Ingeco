@@ -1,11 +1,13 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { JobFilters } from '../components/jobs/JobFilters';
 import { JobList } from '../components/jobs/JobCard';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { ArrowRightIcon, BookIcon } from '../components/ui/icons';
 import { RequestState } from '../components/ui/RequestState';
 import { useJobOffers } from '../hooks/useJobOffers';
 import { t, tn } from '../i18n';
+import { TRAININGS_PATH } from '../lib/paths';
 import { NO_FILTER, filterJobOffers, filtersFromParams, filtersToParams, offerCommunes, type JobFilters as Filters } from '../lib/jobs';
 
 /** The job offers (module M2), public. One call for the whole list, then the
@@ -45,6 +47,17 @@ export function JobsPage() {
           )}
           <p className="note">{t('jobs.fictional')}</p>
         </RequestState>
+        {/* Outside the loading state: reachable even when the offers cannot load. */}
+        <Link to={TRAININGS_PATH} className="action-card">
+          <span className="icon-chip">
+            <BookIcon />
+          </span>
+          <span className="action-card-text">
+            <span className="action-card-title">{t('jobs.training')}</span>
+            <span className="action-card-hint">{t('jobs.trainingHint')}</span>
+          </span>
+          <ArrowRightIcon className="action-card-arrow" />
+        </Link>
       </PageSheet>
     </section>
   );

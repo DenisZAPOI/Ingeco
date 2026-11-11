@@ -258,6 +258,28 @@ export const en: Texts = {
     howToGetThere: 'How do I get there?',
     howToGetThereHint: 'Book a trip to this place: you only choose where you leave from and when.',
     backToList: 'Back to the offers',
+    training: 'Get trained',
+    trainingHint: 'Find a training course to learn a trade',
+  },
+  trainings: {
+    title: 'Get trained',
+    lead: 'Official websites to find a training course near you.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          'Every training course, to search by trade and by place (Cayenne, Kourou…). Many are free for jobseekers.',
+        open: 'Open the France Travail website',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'Courses you can pay for with your personal training account (CPF), if you have already worked.',
+        open: 'Open the Mon Compte Formation website',
+      },
+    },
+    outside: "These websites are not part of the app. To come back here, use your phone's Back button.",
+    backToJobs: 'Back to the offers',
   },
   ride: {
     pickup: 'From',

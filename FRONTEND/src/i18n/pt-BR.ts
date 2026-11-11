@@ -258,6 +258,28 @@ export const ptBR: Texts = {
     howToGetThere: 'Como chegar lá?',
     howToGetThereHint: 'Reserve uma viagem até este local: falta só escolher a partida e o horário.',
     backToList: 'Voltar às vagas',
+    training: 'Fazer uma formação',
+    trainingHint: 'Encontrar uma formação para aprender uma profissão',
+  },
+  trainings: {
+    title: 'Fazer uma formação',
+    lead: 'Sites oficiais para encontrar uma formação perto de você.',
+    catalogues: {
+      franceTravail: {
+        name: 'France Travail',
+        description:
+          'Todas as formações, para buscar por profissão e por local (Caiena, Kourou…). Muitas são gratuitas para quem procura emprego.',
+        open: 'Abrir o site France Travail',
+      },
+      cpf: {
+        name: 'Mon Compte Formation',
+        description:
+          'As formações que você pode pagar com sua conta pessoal de formação (CPF), se já trabalhou.',
+        open: 'Abrir o site Mon Compte Formation',
+      },
+    },
+    outside: 'Estes sites não fazem parte do aplicativo. Para voltar aqui, use o botão Voltar do seu celular.',
+    backToJobs: 'Voltar às vagas',
   },
   ride: {
     pickup: 'Saída',

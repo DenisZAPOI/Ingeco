@@ -114,3 +114,12 @@ export function BriefcaseIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function BookIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" />
+      <path d="M4 21V5M8 7h7" />
+    </svg>
+  );
+}
