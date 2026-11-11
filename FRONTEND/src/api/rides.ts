@@ -1,5 +1,5 @@
 import type { components } from '../types/api';
-import { request } from './client';
+import { apiUrl, request } from './client';
 
 export type Ride = components['schemas']['RideDto'];
 export type RideStatus = Ride['status'];
@@ -15,6 +15,14 @@ export function estimateRide(pickup: Stop, dropoff: Stop): Promise<Estimate> {
 /** Sent again with the same clientRequestId, returns the ride already booked. */
 export function bookRide(booking: Booking): Promise<Ride> {
   return request<Ride>('POST', '/rides', booking);
+}
+
+/** Address of the driver's photo while the ride is under way, with its date:
+ *  a new photo is a new address, never hidden by the cache. Null without one. */
+export function driverPhotoUrl(ride: Ride): string | null {
+  const updatedAt = ride.driver?.photoUpdatedAt;
+  if (!updatedAt) return null;
+  return apiUrl(`/rides/${ride.id}/driver-photo?v=${encodeURIComponent(updatedAt)}`);
 }
 
 export function fetchRide(id: number): Promise<Ride> {

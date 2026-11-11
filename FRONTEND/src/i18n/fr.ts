@@ -296,6 +296,7 @@ export const fr = {
     price: 'Prix',
     covered: 'Pris en charge',
     toPay: 'Reste à payer',
+    driverPhotoAlt: 'Photo de {name}, votre chauffeur',
     purposes: {
       employment: 'Emploi (entretien, travail)',
       training: 'Formation',

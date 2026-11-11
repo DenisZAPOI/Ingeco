@@ -292,6 +292,7 @@ export const ptBR: Texts = {
     price: 'Preço',
     covered: 'Custeado',
     toPay: 'Falta pagar',
+    driverPhotoAlt: 'Foto de {name}, seu motorista',
     purposes: {
       employment: 'Trabalho (entrevista, emprego)',
       training: 'Curso, formação',

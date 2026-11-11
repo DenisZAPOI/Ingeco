@@ -559,6 +559,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rides/{ride_id}/driver-photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's face photo (image/jpeg), to recognise them at the pick-up.
+         * @description For the ride's rider while the ride is under way (accepted, in progress),
+         *     and for the staff. 404 for anyone else, or without a photo.
+         */
+        get: operations["driverPhoto"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rides/{ride_id}/payment": {
         parameters: {
             query?: never;
@@ -1115,6 +1136,8 @@ export interface components {
             id: number;
             /** Phone */
             phone: string | null;
+            /** Photoupdatedat */
+            photoUpdatedAt: string | null;
             vehicle: components["schemas"]["RideVehicleDto"];
         };
         /** RideDto */
@@ -3036,6 +3059,44 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    driverPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ride_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

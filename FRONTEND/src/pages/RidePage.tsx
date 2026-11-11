@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import type { Ride } from '../api/rides';
+import { driverPhotoUrl, type Ride } from '../api/rides';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { TripSummary } from '../components/booking/TripSummary';
 import { CancelRide } from '../components/rides/CancelRide';
@@ -76,7 +76,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
           </button>
         </>
       )}
-      {ride.driver && UNDER_WAY.includes(ride.status) && <DriverCard driver={ride.driver} />}
+      {ride.driver && UNDER_WAY.includes(ride.status) && <DriverCard driver={ride.driver} photoUrl={driverPhotoUrl(ride)} />}
       {UNDER_WAY.includes(ride.status) && (
         // No real time yet (step 4): the driver may have started meanwhile.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>

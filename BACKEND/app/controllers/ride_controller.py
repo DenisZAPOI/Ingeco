@@ -1,6 +1,6 @@
 """Booking a ride, its estimate, its simulated payment, its detail, then lists, cancellation and rating."""
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, make_response, request
 from flask_pydantic_spec import Response
 
 from ..dtos.base import ErrorDto
@@ -119,6 +119,27 @@ def get(ride_id: int):
     """A ride, for its rider, its driver, the call centre or an administrator. 404 for anyone else."""
     ride = ride_service.get_ride(user_id=current_user_id(), role=current_role(), ride_id=ride_id)
     return jsonify(ride_to_dto(ride).to_json()), 200
+
+
+# The address carries the photo's date (?v=…): a new photo is a new address,
+# so the phone may keep this one for a day. Private: never in a shared cache.
+_PHOTO_CACHE = "private, max-age=86400"
+
+
+@ride_bp.get("/<int:ride_id>/driver-photo")
+@require_login()
+@spec.validate(resp=Response(HTTP_401=ErrorDto, HTTP_404=ErrorDto), tags=_TAGS)
+def driver_photo(ride_id: int):
+    """The driver's face photo (image/jpeg), to recognise them at the pick-up.
+
+    For the ride's rider while the ride is under way (accepted, in progress),
+    and for the staff. 404 for anyone else, or without a photo.
+    """
+    image = ride_service.driver_photo(user_id=current_user_id(), role=current_role(), ride_id=ride_id)
+    response = make_response(image)
+    response.headers["Content-Type"] = "image/jpeg"
+    response.headers["Cache-Control"] = _PHOTO_CACHE
+    return response
 
 
 @ride_bp.post("/<int:ride_id>/payment")

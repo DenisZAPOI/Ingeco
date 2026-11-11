@@ -57,6 +57,9 @@ class DriverInfo:
     vehicle_model: str
     vehicle_is_accessible: bool
     average_score: float | None
+    # Date of the face photo, None without one or when the caller may not see
+    # it: the photo route uses it in its address, so a new photo is reloaded.
+    photo_updated_at: datetime | None = None
 
 
 @dataclass

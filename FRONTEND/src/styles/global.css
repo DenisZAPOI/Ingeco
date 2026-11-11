@@ -1128,6 +1128,27 @@ a:hover {
   border: var(--border-width) solid var(--color-primary-soft);
 }
 
+/* On the rider's trip page: the face next to the first name. */
+.driver-photo-small {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+}
+
+.driver-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space);
+  margin: 0 0 var(--space);
+}
+
+.driver-card-name {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: var(--font-size-lead);
+}
+
 /* The file input is hidden behind its label-button: the focus shows on the button. */
 .button:has(+ .visually-hidden:focus-visible) {
   outline: var(--focus-width) solid var(--color-focus);

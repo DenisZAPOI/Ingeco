@@ -292,6 +292,7 @@ export const en: Texts = {
     price: 'Price',
     covered: 'Covered',
     toPay: 'Left to pay',
+    driverPhotoAlt: 'Photo of {name}, your driver',
     purposes: {
       employment: 'Work (interview, job)',
       training: 'Training',
