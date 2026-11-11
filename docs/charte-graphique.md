@@ -59,8 +59,8 @@ s'y ajoute pour le troisième besoin de l'accueil, « J'ai besoin d'aide » (ent
 | `--color-accent` | `#f2b705` | Anneau de focus sur le vert, barre de progression, trait du motif | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
 | `--color-accent-soft` | `#fdf1c7` | Pastille « soleil » derrière une icône (action principale, état d'un trajet) | |
 | `--color-on-accent-soft` | `#6b4f00` | Icône ou texte sur `accent-soft` | 6,77:1 |
-| `--color-help` | `#1d5f99` | Bordure de la carte « J'ai besoin d'aide » | 6,67:1 sur blanc |
-| `--color-help-soft` | `#e1edf8` | Pastille derrière l'icône de l'aide | |
+| `--color-help` | `#1d5f99` | Bordure de la carte « J'ai besoin d'aide » au survol | 6,67:1 sur blanc |
+| `--color-help-soft` | `#e1edf8` | Fond de la carte « J'ai besoin d'aide » | Texte gris dessus : 6,27:1 |
 | `--color-on-help-soft` | `#124a7a` | Icône sur `help-soft` | 7,73:1 |
 | `--color-art-coral`, `--color-art-sky` | `#f4a07f`, `#9fcbef` | **Seulement dans l'illustration de l'accueil**, sur le vert : décor, jamais de texte | |
 | `--color-text` | `#1a1a1a` | Texte courant | 17,4:1 sur blanc, 15,51:1 sur `page` |
@@ -204,7 +204,7 @@ d'explication si besoin, et une flèche à droite.
 |---|---|---|
 | `action-card action-card-primary` | Fond vert, pastille jaune pâle (`icon-chip-sun`), texte blanc | La destination principale (« Réserver un trajet »), une seule par écran |
 | `action-card` | Fond blanc, bordure vert pâle, ombre légère | Les autres destinations (« Mon profil ») |
-| `action-card need-card need-work` / `need-ride` / `need-help` | Fond blanc, bordure de 2 px et pastille à la couleur du besoin : vert, brun-or (`on-accent-soft`, le jaune soleil étant trop pâle sur blanc), bleu fleuve | Les trois besoins de l'accueil (`NeedCards`), visiteur et usager |
+| `action-card need-card need-work` / `need-ride` / `need-help` | Carte remplie de la teinte pâle de son besoin (vert `primary-soft`, jaune `accent-soft`, bleu `help-soft`), bordure de la même teinte (la couleur forte au survol), pastille blanche, texte foncé | Les trois besoins de l'accueil (`NeedCards`), visiteur et usager |
 
 Les trois besoins sont de même importance : aucun n'est en `action-card-primary`. Leur couleur
 décore, le titre dit le besoin. Sous eux, les pages de l'usager (« Mes trajets », « Mon profil »)

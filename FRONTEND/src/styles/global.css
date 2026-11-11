@@ -615,29 +615,46 @@ a:hover {
   padding-inline: var(--space-m);
 }
 
-.need-work,
+/* Each card filled with the pale tint of its need, the icon on a white chip.
+   The border is the same tint at rest (the card looks full, not outlined) and
+   takes the strong color on hover. Grey hint text: at least 6.27:1 on every tint. */
+.need-card .icon-chip {
+  background: var(--color-background);
+}
+
+.need-work {
+  border-color: var(--color-primary-soft);
+  background: var(--color-primary-soft);
+}
+
 .need-work:hover {
   border-color: var(--color-primary);
 }
 
+.need-ride {
+  border-color: var(--color-accent-soft);
+  background: var(--color-accent-soft);
+}
+
 /* The sun yellow is too pale on white for a border (1.8:1): its dark text color instead. */
-.need-ride,
 .need-ride:hover {
   border-color: var(--color-on-accent-soft);
 }
 
 .need-ride .icon-chip {
-  background: var(--color-accent-soft);
   color: var(--color-on-accent-soft);
 }
 
-.need-help,
+.need-help {
+  border-color: var(--color-help-soft);
+  background: var(--color-help-soft);
+}
+
 .need-help:hover {
   border-color: var(--color-help);
 }
 
 .need-help .icon-chip {
-  background: var(--color-help-soft);
   color: var(--color-on-help-soft);
 }
 
