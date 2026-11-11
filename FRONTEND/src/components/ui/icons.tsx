@@ -124,6 +124,27 @@ export function BookIcon({ className }: IconProps) {
   );
 }
 
+/** A lifebuoy: "J'ai besoin d'aide". */
+export function LifebuoyIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6" />
+    </svg>
+  );
+}
+
+/** A question mark in a circle: the frequently asked questions. */
+export function QuestionIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01" />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon({ className }: IconProps) {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
