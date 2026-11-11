@@ -8,19 +8,34 @@ type PageHeroProps = {
   children?: ReactNode;
   /** Language of the title when it is a content, not an interface text. */
   lang?: string;
+  /** An illustration beside the title, in place of the road motif (home screen only). */
+  art?: ReactNode;
 };
 
 /** The green band at the top of every screen, continuing the header. The
- *  page content follows in a <PageSheet>, which overlaps its rounded bottom. */
-export function PageHero({ title, eyebrow, children, lang }: PageHeroProps) {
-  return (
-    <div className="hero">
-      <RoadMotif />
+ *  page content follows in a <PageSheet>, just below its straight bottom. */
+export function PageHero({ title, eyebrow, children, lang, art }: PageHeroProps) {
+  const text = (
+    <>
       {eyebrow && <p className="hero-eyebrow">{eyebrow}</p>}
       <h1 className="hero-title" lang={lang}>
         {title}
       </h1>
       {children}
+    </>
+  );
+  if (art) {
+    return (
+      <div className="hero hero-with-art">
+        <div className="hero-text">{text}</div>
+        {art}
+      </div>
+    );
+  }
+  return (
+    <div className="hero">
+      <RoadMotif />
+      {text}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { DriverEarningsPage } from '../pages/DriverEarningsPage';
 import { DriverRidePage } from '../pages/DriverRidePage';
 import { DriverRidesPage } from '../pages/DriverRidesPage';
 import { FaqPage } from '../pages/FaqPage';
+import { HelpPage } from '../pages/HelpPage';
 import { HomePage } from '../pages/HomePage';
 import { JobPage } from '../pages/JobPage';
 import { JobsPage } from '../pages/JobsPage';
@@ -38,7 +39,8 @@ export function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="diagnostic" element={<DiagnosticPage />} />
         <Route path="a-propos" element={<AboutPage />} />
-        <Route path="aide" element={<FaqPage />} />
+        <Route path="aide" element={<HelpPage />} />
+        <Route path="aide/questions" element={<FaqPage />} />
         <Route path="emplois" element={<JobsPage />} />
         <Route path="emplois/:id" element={<JobPage />} />
         <Route path="formations" element={<TrainingsPage />} />

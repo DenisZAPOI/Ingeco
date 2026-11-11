@@ -45,7 +45,9 @@ Thème **clair uniquement** : un seul thème à tester, et le meilleur contraste
 
 ## 2. Couleurs
 
-Vert forêt et jaune soleil : l'identité de l'application, qui évoque la Guyane.
+Vert forêt et jaune soleil : l'identité de l'application, qui évoque la Guyane. Un bleu fleuve
+s'y ajoute pour le troisième besoin de l'accueil, « J'ai besoin d'aide » (entretien du 03/11 :
+« plus de couleurs »).
 
 | Variable | Valeur | Usage | Contraste |
 |---|---|---|---|
@@ -57,6 +59,10 @@ Vert forêt et jaune soleil : l'identité de l'application, qui évoque la Guyan
 | `--color-accent` | `#f2b705` | Anneau de focus sur le vert, barre de progression, trait du motif | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
 | `--color-accent-soft` | `#fdf1c7` | Pastille « soleil » derrière une icône (action principale, état d'un trajet) | |
 | `--color-on-accent-soft` | `#6b4f00` | Icône ou texte sur `accent-soft` | 6,77:1 |
+| `--color-help` | `#1d5f99` | Bordure de la carte « J'ai besoin d'aide » | 6,67:1 sur blanc |
+| `--color-help-soft` | `#e1edf8` | Pastille derrière l'icône de l'aide | |
+| `--color-on-help-soft` | `#124a7a` | Icône sur `help-soft` | 7,73:1 |
+| `--color-art-coral`, `--color-art-sky` | `#f4a07f`, `#9fcbef` | **Seulement dans l'illustration de l'accueil**, sur le vert : décor, jamais de texte | |
 | `--color-text` | `#1a1a1a` | Texte courant | 17,4:1 sur blanc, 15,51:1 sur `page` |
 | `--color-muted` | `#555555` | Texte secondaire (aide, note) | 7,46:1 sur blanc, 6,81:1 sur `surface` |
 | `--color-background` | `#ffffff` | Fond des feuilles, des cartes et des champs | |
@@ -113,7 +119,7 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--space-l` | 27 px | Entre deux blocs |
 | `--space-xl` | 36 px | Avant un titre de partie |
 | `--radius` | 13,5 px | Coins de tout ce qui est cliquable ou encadré |
-| `--radius-large` | 27 px | Coins de la feuille, des cartes d'action et du bas du bandeau |
+| `--radius-large` | 27 px | Coins de la feuille et des cartes d'action (le bas du bandeau est droit) |
 | `--border-width` | 2 px | Bordures de champ et de bouton |
 | `--focus-width` | 3 px | Anneau de focus |
 | `--touch-target` | 58,5 px | **Hauteur minimale** de tout ce qui se touche (le minimum recommandé est 48 px) |
@@ -121,7 +127,7 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--content-width` | 720 px | Largeur maximale du contenu |
 | `--icon-size` | 27 px | Icône dans un bouton ou une pastille ; logo de l'en-tête |
 | `--icon-chip-size` | 49,5 px | Pastille arrondie autour d'une icône (`icon-chip`) |
-| `--sheet-overlap` | 36 px | Part de la feuille qui chevauche le bandeau |
+| `--sheet-gap` | 18 px | Espace entre le bas du bandeau et la feuille (ils ne se chevauchent pas) |
 | `--progress-height` | 6,75 px | Épaisseur de la barre de progression d'une réservation |
 | `--star-size` | 58,5 px | Une étoile de la note : aussi grande qu'une cible tactile |
 | `--textarea-height` | 126 px | Hauteur de départ d'une zone de texte (commentaire) |
@@ -131,7 +137,7 @@ Ombres, douces et teintées de vert, jamais noires et dures :
 
 | Variable | Usage |
 |---|---|
-| `--shadow-sheet` | La feuille blanche posée sur le bandeau |
+| `--shadow-sheet` | La feuille blanche, sous le bandeau |
 | `--shadow-card` | Une carte d'action secondaire (« Mon profil ») |
 | `--shadow-button` | Le bouton principal et la carte d'action principale |
 
@@ -151,7 +157,7 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
   la route en filigrane à droite. Il porte le `h1` de l'écran, et au besoin une ligne au-dessus
   (« Étape 2 sur 4 »), une phrase en dessous (`hero-lead`) ou la barre de progression.
 - **Feuille** (`PageSheet`) : le contenu de l'écran, sur une feuille blanche aux coins arrondis
-  qui chevauche le bas du bandeau, avec une ombre douce. Derrière, le fond de page `page`.
+  qui commence juste sous le bandeau, sans le chevaucher (`--sheet-gap`), avec une ombre douce. Derrière, le fond de page `page`.
 - **Pied de page** (`footer`, dans `Layout.tsx` et recopié dans `index.html`) : « Projet
   étudiant — démonstrateur · À propos », centré, en petit texte gris, sous la feuille de chaque
   écran. Exigé par le cahier des charges (§14) : ne jamais le retirer. Rien d'autre n'y va.
@@ -198,6 +204,11 @@ d'explication si besoin, et une flèche à droite.
 |---|---|---|
 | `action-card action-card-primary` | Fond vert, pastille jaune pâle (`icon-chip-sun`), texte blanc | La destination principale (« Réserver un trajet »), une seule par écran |
 | `action-card` | Fond blanc, bordure vert pâle, ombre légère | Les autres destinations (« Mon profil ») |
+| `action-card need-card need-work` / `need-ride` / `need-help` | Fond blanc, bordure de 2 px et pastille à la couleur du besoin : vert, brun-or (`on-accent-soft`, le jaune soleil étant trop pâle sur blanc), bleu fleuve | Les trois besoins de l'accueil (`NeedCards`), visiteur et usager |
+
+Les trois besoins sont de même importance : aucun n'est en `action-card-primary`. Leur couleur
+décore, le titre dit le besoin. Sous eux, les pages de l'usager (« Mes trajets », « Mon profil »)
+sont des liens `link-action` avec une icône (`quick-links`), plus discrets que les cartes.
 
 ### Choix
 
@@ -303,21 +314,33 @@ Côté chauffeur, on parle de « course » (partie 7).
 
 ### Écran d'accueil
 
-Le seul écran qui présente le service. Dans le bandeau : « Bienvenue » et une phrase
-(`hero-lead`). Dans la feuille : trois atouts en liste (`benefits` : une pastille verte claire
-`icon-chip` avec une icône, puis le texte), **« Créer un compte »** en action principale,
-« J'ai déjà un compte » en secondaire, « J'ai reçu un code » en lien, puis l'encadré « Besoin
-d'aide ? » du centre d'appel.
+Organisé **par besoins**, pas par fonctionnalités (cahier des charges §10) : « Je cherche un
+travail » (`/emplois`), « J'ai besoin d'un trajet » (`/reserver`), « J'ai besoin d'aide »
+(`/aide`), dans cet ordre, en cartes `NeedCards`. Ce sont les trois actions principales.
 
-- L'encadré d'aide n'apparaît que si `VITE_CALL_CENTER_PHONE` est renseigné (numéro fourni par
-  le client) : jamais de numéro fictif. Le numéro est écrit en entier, en gros, au-dessus du
-  bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre téléphone.
-- L'écran est recopié dans `index.html` pour s'afficher avant le JavaScript (voir
+- **Visiteur** : dans le bandeau, « Bienvenue », une phrase (`hero-lead`) et l'illustration. Dans
+  la feuille : les trois besoins, puis « Créer un compte » (principal) et « J'ai déjà un compte »
+  (secondaire), « J'ai reçu un code » en lien, puis « Les trajets solidaires » : trois atouts en
+  liste (`benefits`). « J'ai besoin d'un trajet » mène d'abord à la connexion, qui ramène ensuite
+  à la réservation ; les offres et l'aide se lisent sans compte.
+- **Usager** : « Bonjour Prénom », « De quoi avez-vous besoin aujourd'hui ? » et l'illustration ;
+  le prochain trajet s'il y en a un, les trois besoins, puis « Mes trajets » et « Mon profil » en
+  liens discrets.
+- Les autres rôles gardent leur accueil (chauffeur, administrateur), sans illustration.
+- L'écran du visiteur est recopié dans `index.html` pour s'afficher avant le JavaScript (voir
   [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)) : modifier les deux,
-  ainsi que la copie de l'en-tête et du motif du bandeau.
+  ainsi que la copie de l'en-tête, des icônes et de l'illustration.
 
-Un message d'erreur porte `role="alert"`, une confirmation `role="status"` : un lecteur d'écran
-les annonce.
+### Page « J'ai besoin d'aide »
+
+`/aide` (aussi le lien « Aide » du pied de page) : une carte « Questions fréquentes »
+(`/aide/questions`), puis l'encadré du centre d'appel. L'annuaire des services d'aide et les
+fiches pratiques s'y ajouteront.
+
+- L'encadré du centre d'appel (`CallCenterHelp`) n'apparaît que si `VITE_CALL_CENTER_PHONE` est
+  renseigné (numéro fourni par le client) : jamais de numéro fictif. Le numéro est écrit en entier,
+  en gros, au-dessus du bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre
+  téléphone.
 
 ### À propos
 
@@ -398,8 +421,14 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 ## 9. Images et icônes
 
 - **Pas de photo, pas d'illustration décorative en image** : chaque kilo-octet compte sur le
-  réseau guyanais. Seul décor : le motif de la route du logo, en SVG intégré, en filigrane dans
-  le bandeau (`PageHero`).
+  réseau guyanais. Décor des écrans : le motif de la route du logo, en SVG intégré, en filigrane
+  dans le bandeau (`PageHero`).
+- Exception : l'**illustration de l'accueil** (visiteur et usager), demandée par la cliente le
+  03/11 (inclusion, transport, travail). Un SVG intégré dans le bandeau, à la place du motif
+  (`PageHero` avec `art`, composant `HomeIllustration`) : une route vers un lieu de travail, une
+  voiture, deux personnes dont une en fauteuil, sous le soleil. Quelques centaines d'octets, sans
+  fichier à télécharger, décorative (`aria-hidden`), masquée sous 22rem de large. **Provisoire**
+  (`CHANGER_SELON_DECISION`) : dessin des développeurs, à remplacer par l'illustration définitive.
 - Seule exception : la **photo du chauffeur** sur le suivi de course, demandée par la cliente pour
   la sécurité du passager. Petite (de l'ordre de 15 Ko), chargée après le texte, avec un `alt`
   (« Photo de Prénom, votre chauffeur ») et une place réservée pour que l'écran ne saute pas.

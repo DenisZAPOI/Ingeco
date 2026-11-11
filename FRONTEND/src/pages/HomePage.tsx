@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import type { Role } from '../api/auth';
 import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { HomeIllustration } from '../components/home/HomeIllustration';
+import { NeedCards } from '../components/home/NeedCards';
 import { NextRide } from '../components/rides/NextRide';
-import { ArrowRightIcon, BriefcaseIcon, CalendarIcon, CarIcon, UserIcon } from '../components/ui/icons';
+import { ArrowRightIcon, CalendarIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { ADMIN_ACCOUNTS_PATH, JOBS_PATH, RIDES_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, PROFILE_PATH, RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -26,25 +28,32 @@ export function HomePage() {
     return <WelcomePage />;
   }
 
+  const isRider = account.role === 'rider';
   return (
     <section>
-      <PageHero title={t('home.greeting', { name: account.firstName })}>
-        {account.role === 'rider' && <p className="hero-lead">{t('home.riderLead')}</p>}
+      <PageHero title={t('home.greeting', { name: account.firstName })} art={isRider ? <HomeIllustration /> : undefined}>
+        {isRider && <p className="hero-lead">{t('home.riderLead')}</p>}
       </PageHero>
       <PageSheet>
         {account.role === 'rider' ? (
           <>
             <NextRide />
-            <Link to="/reserver" className="action-card action-card-primary">
-              <span className="icon-chip icon-chip-sun">
-                <CarIcon />
-              </span>
-              <span className="action-card-text">
-                <span className="action-card-title">{t('home.book')}</span>
-                <span className="action-card-hint">{t('home.bookHint')}</span>
-              </span>
-              <ArrowRightIcon className="action-card-arrow" />
-            </Link>
+            <NeedCards />
+            {/* Below the three needs, smaller: they are not needs but the rider's own pages. */}
+            <ul className="quick-links">
+              <li>
+                <Link to={RIDES_PATH} className="link-action">
+                  <CalendarIcon className="button-icon" />
+                  {t('home.myRides')}
+                </Link>
+              </li>
+              <li>
+                <Link to={PROFILE_PATH} className="link-action">
+                  <UserIcon className="button-icon" />
+                  {t('home.profile')}
+                </Link>
+              </li>
+            </ul>
           </>
         ) : account.role === 'driver' ? (
           <DriverHome />
@@ -65,39 +74,17 @@ export function HomePage() {
             <p>{coming(account.role).coming}</p>
           </>
         )}
-        <div className="stack">
-          {account.role === 'rider' && (
-            <Link to={JOBS_PATH} className="action-card">
+        {!isRider && (
+          <div className="stack">
+            <Link to={PROFILE_PATH} className="action-card">
               <span className="icon-chip">
-                <BriefcaseIcon />
+                <UserIcon />
               </span>
-              <span className="action-card-text">
-                <span className="action-card-title">{t('home.jobs')}</span>
-                <span className="action-card-hint">{t('home.jobsHint')}</span>
-              </span>
+              <span className="action-card-title">{t('home.profile')}</span>
               <ArrowRightIcon className="action-card-arrow" />
             </Link>
-          )}
-          {account.role === 'rider' && (
-            <Link to={RIDES_PATH} className="action-card">
-              <span className="icon-chip">
-                <CalendarIcon />
-              </span>
-              <span className="action-card-text">
-                <span className="action-card-title">{t('home.myRides')}</span>
-                <span className="action-card-hint">{t('home.myRidesHint')}</span>
-              </span>
-              <ArrowRightIcon className="action-card-arrow" />
-            </Link>
-          )}
-          <Link to="/profil" className="action-card">
-            <span className="icon-chip">
-              <UserIcon />
-            </span>
-            <span className="action-card-title">{t('home.profile')}</span>
-            <ArrowRightIcon className="action-card-arrow" />
-          </Link>
-        </div>
+          </div>
+        )}
       </PageSheet>
     </section>
   );
