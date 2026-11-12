@@ -1,6 +1,6 @@
 """PATCH /users/me: the logged-in user changes their own profile."""
 
-from app.repository.user_repository import DEV_PASSWORD
+from tests.test_auth import DEV_PASSWORD
 from tests.test_auth import DRIVER_PHONE, csrf_headers, login
 
 

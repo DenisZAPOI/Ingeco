@@ -32,10 +32,10 @@ Territoires) avant la remise.
 |---|---|---|
 | Comptes, connexion, rôles | **Réel** : mots de passe hachés, sessions sécurisées, droits vérifiés côté serveur | À garder |
 | Réservation, suivi, annulation, évaluation, côté chauffeur | **Réel** dans la logique, testé (~240 tests) | À garder |
-| Données (comptes, trajets) | **En mémoire** : tout revient à zéro quand l'API redémarre. La base MySQL existe (schéma de l'équipe BD) mais l'API ne s'en sert pas encore pour les données métier | **À brancher** (chantier 4.1) |
+| Données (comptes, trajets) | Comptes, communes et tarif **en base** (MySQL, schéma de l'équipe BD). Trajets encore **en mémoire** : ils reviennent à zéro quand l'API redémarre | **À brancher** pour les trajets (chantier 4.1) |
 | Fiches pratiques « Comment faire ? » | Écrites par nous, générales, en mémoire, avec leur source officielle ; écoute par la voix du téléphone (ADR 019) | À faire relire par la structure (§15), puis en base (issue #49) ; les règles des démarches changent : prévoir qui les tient à jour |
 | Offres d'emploi, services d'aide | **Fictifs**, écrits par nous, en mémoire. Les numéros des services sont dans la plage réservée à la fiction par l'ARCEP (05 36 49 xx xx) : ils ne sonnent chez personne | Contenus réels fournis ou validés par la structure, en base (issues #48 et #49), avec de vrais numéros |
-| Comptes de test | Mot de passe public (`Trajet-2026!`), dont un administrateur | **À supprimer** (4.3) |
+| Comptes de test | Dans `sql/demo-data.sql`, mot de passe public (`Trajet-2026!`), dont un administrateur | **Ne jamais charger ce fichier** (4.3) |
 | SMS (codes, alertes) | **Simulés** : une ligne dans les journaux, rien n'est envoyé. Codes fixes en démo (`123456`, `12345678`) | **À brancher** sur un vrai prestataire (4.4) |
 | Paiement | **Simulé** : un bouton « payer » sans carte | Selon le modèle choisi (2 et 4.5) |
 | Adresses et distances | OpenRouteService si une clé est fournie, sinon une douzaine de lieux fictifs | Clé au nom de la structure, quotas à vérifier (4.6) |
@@ -118,7 +118,8 @@ semaines), gros (plus).
 
 ### 4.1 Brancher la vraie base de données — gros, obligatoire
 
-Les données passent aujourd'hui par des listes en mémoire dans `BACKEND/app/repository/`.
+Les comptes, les communes et le tarif sont lus en base. Les trajets, les offres, les services
+d'aide et les fiches passent encore par des listes en mémoire dans `BACKEND/app/repository/`.
 L'architecture a été pensée pour ça : **seuls les fichiers de `repository/` changent**, les
 services et les écrans restent les mêmes.
 
@@ -160,7 +161,7 @@ Dans tous les cas :
 
 ### 4.3 Retirer tout ce qui est « démo » — petit, obligatoire
 
-- `LOAD_DEMO_DATA=false` (l'API refuse déjà de démarrer avec les comptes de test quand les
+- `LOAD_DEMO_DATA=false` (l'API refuse déjà de démarrer en mode démo quand les
   cookies sont en HTTPS).
 - Ne jamais charger `sql/demo-data.sql` en production.
 - Vérifier que les codes SMS fixes (`123456`, `12345678`) ne sont plus utilisés : ils ne le sont

@@ -1,25 +1,35 @@
 """
-User accounts.
+User accounts: tables utilisateur, usager, chauffeur and vehicule.
 
-FAKE DATA until the DB team delivers the schema: accounts live in memory and
-are reset at every restart. The function signatures are those the real
-repository will keep (the session comes first, unused for now): when the
-schema arrives, only the bodies of these functions change.
+The accounts of the demonstration come from sql/demo-data.sql (README, part
+"Comptes de test"); the API creates none itself.
 
-Like a database, this store hands out COPIES: changing a returned object
-changes nothing until update_user() is called.
+Like any repository, this one hands out plain objects: changing a returned
+User changes nothing until update_user() is called.
 """
 
-import copy
-import threading
-import unicodedata
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from functools import cache
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
+from decimal import Decimal
+from typing import Iterator
 
+from sqlalchemy import exists, func, select, tuple_, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..utils.passwords import hash_secret
+from ..models import DriverRow, RiderRow, UserRow, VehicleRow
+
+# The values of utilisateur.statut, in French in the rows (models/__init__.py).
+_STATUS_TO_ROW = {"active": "actif", "suspended": "suspendu"}
+_STATUS_FROM_ROW = {row: status for status, row in _STATUS_TO_ROW.items()}
+
+_RIDER = "rider"
+_DRIVER = "driver"
+
+# Characters with a meaning in LIKE: typed by an administrator, they are
+# searched as themselves.
+_LIKE_ESCAPE = "\\"
 
 
 @dataclass
@@ -58,10 +68,11 @@ class User:
     location: Location | None = None
     # When the photo was last saved (the photo itself: find_photo); None without one.
     photo_updated_at: datetime | None = None
-    # partner
+    # partner: their structure comes with the vouchers (schema-hors-scope.sql),
+    # not loaded yet, so always None for now.
     partner_id: int | None = None
     # Changed by a new password or a suspension: the sessions opened with an
-    # older version end (column to add, see README part 5).
+    # older version end (migration 001).
     session_version: int = 0
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -76,86 +87,89 @@ class Position:
 
 
 class DuplicateValue(Exception):
-    """Phone, e-mail or plate already used: what a unique constraint raises in a real database."""
+    """Phone, e-mail or plate already used: a unique constraint of the tables refused it."""
 
 
-_lock = threading.Lock()
-_users: dict[int, User] = {}
-# Apart from the accounts, like the BLOB column read only by the photo route:
-# a list of accounts never carries the images.
-_photos: dict[int, bytes] = {}
-_next_id = 1
+def find_by_id(session: Session, user_id: int) -> User | None:
+    row = session.get(UserRow, user_id)
+    return _to_users(session, [row])[0] if row else None
 
 
-def find_by_id(_session: Session, user_id: int) -> User | None:
-    with _lock:
-        user = _users.get(user_id)
-        return copy.deepcopy(user) if user else None
+def find_by_phone(session: Session, phone: str) -> User | None:
+    row = session.scalars(select(UserRow).where(UserRow.phone == phone)).one_or_none()
+    return _to_users(session, [row])[0] if row else None
 
 
-def find_by_phone(_session: Session, phone: str) -> User | None:
-    with _lock:
-        user = next((user for user in _users.values() if user.phone == phone), None)
-        return copy.deepcopy(user) if user else None
+def find_by_ids(session: Session, user_ids: set[int]) -> dict[int, User]:
+    if not user_ids:
+        return {}
+    rows = session.scalars(select(UserRow).where(UserRow.id.in_(user_ids))).all()
+    return {user.id: user for user in _to_users(session, rows)}
 
 
-def email_taken(_session: Session, email: str, except_user_id: int | None = None) -> bool:
-    with _lock:
-        return any(user.email == email and user.id != except_user_id for user in _users.values())
+def email_taken(session: Session, email: str, except_user_id: int | None = None) -> bool:
+    condition = UserRow.email == email
+    if except_user_id is not None:
+        condition &= UserRow.id != except_user_id
+    return bool(session.scalar(select(exists().where(condition))))
 
 
-def plate_taken(_session: Session, plate: str, except_user_id: int | None = None) -> bool:
-    with _lock:
-        return any(
-            user.vehicle is not None and user.vehicle.plate == plate and user.id != except_user_id
-            for user in _users.values()
-        )
+def plate_taken(session: Session, plate: str, except_user_id: int | None = None) -> bool:
+    condition = VehicleRow.plate == plate
+    if except_user_id is not None:
+        condition &= VehicleRow.driver_id != except_user_id
+    return bool(session.scalar(select(exists().where(condition))))
 
 
-def insert_user(_session: Session, user: User) -> User:
-    """Stores a new account and returns it with its id."""
-    global _next_id
-    with _lock:
-        _check_unique(user)
-        stored = copy.deepcopy(user)
-        stored.id = _next_id
-        stored.created_at = datetime.now(timezone.utc)
-        _users[stored.id] = stored
-        _next_id += 1
-        return copy.deepcopy(stored)
+def insert_user(session: Session, user: User) -> User:
+    """Stores a new account (and its rider or driver part) and returns it with its id."""
+    # DATETIME keeps whole seconds: the page positions compare what is stored.
+    row = UserRow(created_at=datetime.now(timezone.utc).replace(microsecond=0))
+    _copy_to_row(user, row)
+    with _unique_values(session):
+        session.add(row)
+        session.flush()
+        if user.role == _RIDER:
+            session.add(RiderRow(user_id=row.id))
+        elif user.role == _DRIVER:
+            session.add(DriverRow(user_id=row.id))
+        session.flush()
+        _write_role_part(session, row.id, user)
+    return _to_users(session, [row])[0]
 
 
-def update_user(_session: Session, user: User) -> None:
-    with _lock:
-        _check_unique(user)
-        _users[user.id] = copy.deepcopy(user)
+def update_user(session: Session, user: User) -> None:
+    row = session.get(UserRow, user.id)
+    if row is None:
+        raise LookupError(f"No account {user.id}.")
+    _copy_to_row(user, row)
+    with _unique_values(session):
+        _write_role_part(session, user.id, user)
 
 
-def set_availability(_session: Session, driver_id: int, available: bool) -> None:
+def set_availability(session: Session, driver_id: int, available: bool) -> None:
     """Online or offline. Offline also erases the last position (GDPR, H6)."""
-    with _lock:
-        driver = _users[driver_id]
-        driver.is_available = available
-        if not available:
-            driver.location = None
+    values: dict[str, object] = {"is_available": available}
+    if not available:
+        values |= {"last_lat": None, "last_lng": None, "last_location_at": None}
+    session.execute(update(DriverRow).where(DriverRow.user_id == driver_id).values(**values))
 
 
-def set_location(_session: Session, driver_id: int, location: Location) -> bool:
+def set_location(session: Session, driver_id: int, location: Location) -> bool:
     """Keeps the last position of an online driver. False if they are offline.
 
-    The most frequent write of the API: one row, one UPDATE, no read before
-    (`UPDATE chauffeur … WHERE id_utilisateur = :id AND est_disponible`).
+    The most frequent write of the API: one row, one UPDATE, no read before.
     """
-    with _lock:
-        driver = _users[driver_id]
-        if not driver.is_available:
-            return False
-        driver.location = copy.deepcopy(location)
-        return True
+    result = session.execute(
+        update(DriverRow)
+        .where(DriverRow.user_id == driver_id, DriverRow.is_available.is_(True))
+        .values(last_lat=_coordinate(location.lat), last_lng=_coordinate(location.lng), last_location_at=location.at)
+    )
+    return result.rowcount == 1  # type: ignore[attr-defined]
 
 
 def find_page(
-    _session: Session,
+    session: Session,
     *,
     name: str | None,
     phone_prefix: str | None,
@@ -166,120 +180,149 @@ def find_page(
 ) -> list[User]:
     """Accounts, the most recently created first, at most `limit`, starting after `after`.
 
-    `name`: contained in the first name, the last name or both (ignoring case
-    and accents, like the utf8mb4_unicode_ci collation). `phone_prefix`: the
-    start of the stored number. Filters served by idx_utilisateur_role.
+    `name`: contained in the first name, the last name or both; the
+    utf8mb4_unicode_ci collation ignores case and accents. `phone_prefix`:
+    the start of the stored number. Filters served by idx_utilisateur_role.
     """
-    wanted = _fold(name) if name is not None else None
-    with _lock:
-        users = [
-            user
-            for user in _users.values()
-            if (role is None or user.role == role)
-            and (status is None or user.status == status)
-            and (phone_prefix is None or user.phone.startswith(phone_prefix))
-            and (wanted is None or wanted in _fold(f"{user.first_name} {user.last_name}"))
-        ]
-        users.sort(key=lambda user: (user.created_at, user.id), reverse=True)
-        if after is not None:
-            users = [user for user in users if (user.created_at, user.id) < (after.created_at, after.user_id)]
-        return [copy.deepcopy(user) for user in users[:limit]]
+    query = select(UserRow)
+    if role is not None:
+        query = query.where(UserRow.role == role)
+    if status is not None:
+        query = query.where(UserRow.status == _STATUS_TO_ROW[status])
+    if phone_prefix is not None:
+        query = query.where(UserRow.phone.like(_escape_like(phone_prefix) + "%", escape=_LIKE_ESCAPE))
+    if name is not None:
+        full_name = func.concat(UserRow.first_name, " ", UserRow.last_name)
+        query = query.where(full_name.like("%" + _escape_like(name) + "%", escape=_LIKE_ESCAPE))
+    if after is not None:
+        query = query.where(tuple_(UserRow.created_at, UserRow.id) < tuple_(after.created_at, after.user_id))
+    query = query.order_by(UserRow.created_at.desc(), UserRow.id.desc()).limit(limit)
+    return _to_users(session, session.scalars(query).all())
 
 
-def save_photo(_session: Session, driver_id: int, image: bytes, at: datetime) -> None:
+def save_photo(session: Session, driver_id: int, image: bytes, at: datetime) -> None:
     """Saves or replaces the photo of a driver, with its date (for the phones' cache)."""
-    with _lock:
-        _photos[driver_id] = image
-        _users[driver_id].photo_updated_at = at
+    session.execute(
+        update(DriverRow).where(DriverRow.user_id == driver_id).values(photo=image, photo_updated_at=at)
+    )
 
 
-def find_photo(_session: Session, driver_id: int) -> bytes | None:
-    with _lock:
-        return _photos.get(driver_id)
+def find_photo(session: Session, driver_id: int) -> bytes | None:
+    return session.scalar(select(DriverRow.photo).where(DriverRow.user_id == driver_id))
 
 
-def find_by_ids(_session: Session, user_ids: set[int]) -> dict[int, User]:
-    with _lock:
-        return {user_id: copy.deepcopy(_users[user_id]) for user_id in user_ids if user_id in _users}
+# --- Rows ↔ User ------------------------------------------------------------
+
+def _copy_to_row(user: User, row: UserRow) -> None:
+    row.role = user.role
+    row.status = _STATUS_TO_ROW[user.status]
+    row.first_name = user.first_name
+    row.last_name = user.last_name
+    row.phone = user.phone
+    row.email = user.email
+    row.password_hash = user.password_hash
+    row.activation_code_hash = user.activation_code_hash
+    row.activation_code_expires_at = user.activation_code_expires_at
+    row.session_version = user.session_version
 
 
-def _check_unique(user: User) -> None:
-    for other in _users.values():
-        if other.id == user.id:
-            continue
-        if other.phone == user.phone or (user.email is not None and other.email == user.email):
-            raise DuplicateValue
-        if user.vehicle is not None and other.vehicle is not None and other.vehicle.plate == user.vehicle.plate:
-            raise DuplicateValue
+def _write_role_part(session: Session, user_id: int, user: User) -> None:
+    """The rider or driver row, and the driver's vehicle. The photo has its own function."""
+    if user.role == _RIDER:
+        rider = session.get(RiderRow, user_id)
+        if rider is not None:
+            rider.is_priority = user.is_priority
+            rider.needs_accessible_vehicle = user.needs_accessible_vehicle
+    elif user.role == _DRIVER:
+        driver = session.get(DriverRow, user_id)
+        if driver is not None:
+            driver.is_available = user.is_available
+            driver.last_lat = _coordinate(user.location.lat) if user.location else None
+            driver.last_lng = _coordinate(user.location.lng) if user.location else None
+            driver.last_location_at = user.location.at if user.location else None
+        _write_vehicle(session, user_id, user.vehicle)
+    session.flush()
 
 
-def _fold(text: str) -> str:
-    """'Chloé' → 'chloe': what an accent- and case-insensitive collation compares."""
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return "".join(character for character in decomposed if not unicodedata.combining(character))
+def _write_vehicle(session: Session, driver_id: int, vehicle: Vehicle | None) -> None:
+    if vehicle is None:
+        return
+    row = session.scalars(select(VehicleRow).where(VehicleRow.driver_id == driver_id)).one_or_none()
+    if row is None:
+        row = VehicleRow(driver_id=driver_id)
+        session.add(row)
+    row.plate = vehicle.plate
+    row.model = vehicle.model
+    row.seats = vehicle.seats
+    row.is_accessible = vehicle.is_accessible
 
 
-# --- Development accounts ----------------------------------------------------
-# Fictitious people only (GDPR). Listed in the README, part "Comptes de test".
-# Their password is public: loaded only with LOAD_DEMO_DATA=true (see main.py),
-# never in a hosted environment.
-DEV_PASSWORD = "Trajet-2026!"
-DEV_ACTIVATION_CODE = "12345678"
-_DEV_ACTIVATION_CODE_VALIDITY = timedelta(days=365)
+def _to_users(session: Session, rows) -> list[User]:
+    """The accounts with their rider or driver part: three queries for a whole page, not three per account."""
+    ids = [row.id for row in rows]
+    riders = {
+        rider.user_id: rider for rider in session.scalars(select(RiderRow).where(RiderRow.user_id.in_(ids)))
+    } if ids else {}
+    drivers = {
+        driver.user_id: driver for driver in session.scalars(select(DriverRow).where(DriverRow.user_id.in_(ids)))
+    } if ids else {}
+    vehicles = {
+        vehicle.driver_id: vehicle
+        for vehicle in session.scalars(select(VehicleRow).where(VehicleRow.driver_id.in_(ids)))
+    } if ids else {}
+    return [_to_user(row, riders.get(row.id), drivers.get(row.id), vehicles.get(row.id)) for row in rows]
 
 
-@cache
-def _dev_hashes() -> tuple[str, str]:
-    """Hashing is slow on purpose: done once, and only if the demo is loaded."""
-    return hash_secret(DEV_PASSWORD), hash_secret(DEV_ACTIVATION_CODE)
-
-
-def _dev_accounts() -> list[User]:
-    password_hash, activation_code_hash = _dev_hashes()
-
-    def account(role: str, first_name: str, number: str, **profile) -> User:
-        return User(
-            role=role,
-            status=profile.pop("status", "active"),
-            first_name=first_name,
-            last_name="Démo",
-            phone=f"+59469400000{number}",
-            password_hash=profile.pop("password_hash", password_hash),
-            **profile,
+def _to_user(row: UserRow, rider: RiderRow | None, driver: DriverRow | None, vehicle: VehicleRow | None) -> User:
+    user = User(
+        id=row.id,
+        role=row.role,
+        status=_STATUS_FROM_ROW[row.status],
+        first_name=row.first_name,
+        last_name=row.last_name,
+        phone=row.phone,
+        email=row.email,
+        password_hash=row.password_hash,
+        activation_code_hash=row.activation_code_hash,
+        activation_code_expires_at=row.activation_code_expires_at,
+        session_version=row.session_version,
+        created_at=row.created_at,
+    )
+    if rider is not None:
+        user.is_priority = rider.is_priority
+        user.needs_accessible_vehicle = rider.needs_accessible_vehicle
+    if driver is not None:
+        user.is_available = driver.is_available
+        user.photo_updated_at = driver.photo_updated_at
+        if driver.last_lat is not None and driver.last_lng is not None and driver.last_location_at is not None:
+            user.location = Location(lat=float(driver.last_lat), lng=float(driver.last_lng), at=driver.last_location_at)
+    if vehicle is not None:
+        user.vehicle = Vehicle(
+            plate=vehicle.plate, model=vehicle.model, seats=vehicle.seats, is_accessible=vehicle.is_accessible
         )
-
-    return [
-        account("rider", "Alice", "1"),
-        account("rider", "Bruno", "2", is_priority=True, needs_accessible_vehicle=True),
-        account(
-            "driver", "Chloé", "3",
-            vehicle=Vehicle(plate="AA-001-AA", model="Véhicule fictif", seats=4, is_accessible=True),
-        ),
-        account("partner", "David", "4", partner_id=1),
-        account("operator", "Emma", "5"),
-        account("admin", "Farid", "6"),
-        # Created by the call centre: no password yet, activates with the code.
-        account(
-            "rider", "Gaëlle", "7",
-            password_hash=None,
-            activation_code_hash=activation_code_hash,
-            activation_code_expires_at=datetime.now(timezone.utc) + _DEV_ACTIVATION_CODE_VALIDITY,
-        ),
-        account("rider", "Hugo", "8", status="suspended"),
-    ]
+    return user
 
 
-def reset(*, demo_accounts: bool = False) -> None:
-    """Empties the store, then adds the development accounts if asked.
+@contextmanager
+def _unique_values(session: Session) -> Iterator[None]:
+    """Turns a refused unique value (phone, e-mail, plate) into DuplicateValue.
 
-    Called at startup with LOAD_DEMO_DATA, and by the tests. The store starts
-    empty: without the flag, no account with a public password exists.
+    A savepoint: the session stays usable, and the service decides what to
+    answer (a 409 that rolls the whole transaction back).
     """
-    global _next_id
-    with _lock:
-        _users.clear()
-        _photos.clear()
-        _next_id = 1
-    if demo_accounts:
-        for user in _dev_accounts():
-            insert_user(None, user)  # type: ignore[arg-type]
+    try:
+        with session.begin_nested():
+            yield
+    except IntegrityError as error:
+        raise DuplicateValue from error
+
+
+def _coordinate(value: float) -> Decimal:
+    """DECIMAL(9,6) in the schema: six decimals, about 10 cm."""
+    return Decimal(str(round(value, 6)))
+
+
+def _escape_like(text: str) -> str:
+    return (
+        text.replace(_LIKE_ESCAPE, _LIKE_ESCAPE * 2).replace("%", _LIKE_ESCAPE + "%").replace("_", _LIKE_ESCAPE + "_")
+    )

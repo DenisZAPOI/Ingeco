@@ -9,8 +9,6 @@ import pytest
 
 from app.config import Config, UnsafeConfiguration
 from app.main import EXAMPLE_SECRET_KEY, check_safety, create_app
-from app.repository import user_repository
-from tests.test_auth import ADMIN_PHONE, login
 
 GOOD_KEY = "k" * 40
 
@@ -49,20 +47,6 @@ def test_the_debug_mode_is_refused_over_https():
 
 def test_local_development_may_load_the_demo_in_debug():
     check_safety(settings(JWT_COOKIE_SECURE=False, LOAD_DEMO_DATA=True, DEBUG=True))
-
-
-def test_without_the_flag_no_account_has_the_public_password():
-    user_repository.reset()
-    application = create_app(settings(JWT_COOKIE_SECURE=False))
-
-    assert login(application.test_client(), phone=ADMIN_PHONE).status_code == 401
-
-
-def test_with_the_flag_the_demo_accounts_are_loaded():
-    user_repository.reset()
-    application = create_app(settings(JWT_COOKIE_SECURE=False, LOAD_DEMO_DATA=True))
-
-    assert login(application.test_client(), phone=ADMIN_PHONE).status_code == 200
 
 
 # --- Documentation and headers (audit F11, F12) -------------------------------

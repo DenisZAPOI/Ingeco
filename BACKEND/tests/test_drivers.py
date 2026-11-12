@@ -9,12 +9,13 @@ from datetime import timedelta
 import pytest
 
 from app.repository import user_repository
-from app.repository.user_repository import User, Vehicle
 from app.services import ride_rules
+from app.utils import database
 from tests.test_auth import DRIVER_PHONE, RIDER_PHONE, csrf_headers, login
 from tests.test_rides import CAYENNE_TOWN_HALL, OPERATOR_PHONE, OTHER_RIDER_PHONE, book, booking, pay
 
 SECOND_DRIVER_PHONE = "0694 00 00 09"
+INES_ID = 9
 # Near the town hall of Cayenne, and 15 km away (outside the 10 km of the offers).
 NEAR_CAYENNE = {"lat": 4.9400, "lng": -52.3300}
 FAR_AWAY = {"lat": 4.8000, "lng": -52.4200}
@@ -22,18 +23,9 @@ FAR_AWAY = {"lat": 4.8000, "lng": -52.4200}
 
 @pytest.fixture
 def second_driver():
-    """A driver whose vehicle is not accessible."""
-    chloe = user_repository.find_by_id(None, 3)
-    driver = User(
-        role="driver",
-        status="active",
-        first_name="Ines",
-        last_name="Démo",
-        phone="+594694000009",
-        password_hash=chloe.password_hash,  # same development password
-        vehicle=Vehicle(plate="AA-009-AA", model="Véhicule fictif", seats=4, is_accessible=False),
-    )
-    return user_repository.insert_user(None, driver)
+    """Inès, of sql/demo-data.sql: her vehicle is not accessible."""
+    with database.session() as session:
+        return user_repository.find_by_id(session, INES_ID)
 
 
 def waiting_ride(client, phone=RIDER_PHONE, **changes) -> int:
@@ -85,7 +77,8 @@ def test_going_offline_erases_the_position(client):
 
     go_online(client, available=False)
 
-    assert user_repository.find_by_id(None, 3).location is None
+    with database.session() as session:
+        assert user_repository.find_by_id(session, 3).location is None
 
 
 def test_an_offline_driver_neither_sends_a_position_nor_sees_offers(client):

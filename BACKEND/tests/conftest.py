@@ -29,7 +29,7 @@ os.environ.setdefault("COOKIE_SECURE", "false")
 os.environ["ORS_API_KEY"] = ""
 # The tests run the expiry themselves, after moving the clock.
 os.environ["PERIODIC_TASKS_ENABLED"] = "false"
-# Forced: each test loads the development accounts itself (fresh_state).
+# Forced: the demo rides kept in memory are loaded by the tests that need them.
 os.environ["LOAD_DEMO_DATA"] = "false"
 os.environ.setdefault("API_DOCS_ENABLED", "true")
 
@@ -107,9 +107,8 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def fresh_state(test_database):
-    """Every test starts from the development accounts, no ride (not even the development ones), and no failed attempt counted."""
-    mysql_setup.empty(test_database)
-    user_repository.reset(demo_accounts=True)
+    """Every test starts from sql/demo-data.sql, no ride in memory, and no failed attempt counted."""
+    mysql_setup.reset_demo_data(TEST_DATABASE_URL)
     ride_repository.reset(dev_rides=False)
     auth_service.login_attempts.clear()
     auth_service.activation_attempts.clear()

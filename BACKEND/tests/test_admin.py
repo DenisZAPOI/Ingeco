@@ -76,7 +76,7 @@ def test_the_list_shows_the_newest_accounts_first_with_their_access(client):
 
     items = accounts(client)["items"]
 
-    assert [item["id"] for item in items] == [8, 7, 6, 5, 4, 3, 2, 1]
+    assert [item["id"] for item in items] == [9, 8, 7, 6, 5, 4, 3, 2, 1]
     to_activate = next(item for item in items if item["id"] == 7)
     assert (to_activate["isActivated"], to_activate["activationCodeExpiresAt"] is not None) == (False, True)
 
@@ -90,12 +90,16 @@ def test_the_list_is_filtered_by_role_and_status(client):
 
 @pytest.mark.parametrize(
     ("search", "expected"),
-    [("0694 00 00 03", [3]), ("694 00 00", [8, 7, 6, 5, 4, 3, 2, 1]), ("0694000001", [1]), ("chloe", [3]), ("DÉMO", [8, 7, 6, 5, 4, 3, 2, 1])],
+    [("0694 00 00 03", [3]), ("694 00 00", [9, 8, 7, 6, 5, 4, 3, 2, 1]), ("0694000001", [1]), ("chloe", [3]), ("DÉMO", [9, 8, 7, 6, 5, 4, 3, 2, 1])],
 )
 def test_the_search_reads_a_phone_start_or_a_name(client, search, expected):
     as_admin(client)
 
     assert [item["id"] for item in accounts(client, search=search)["items"]] == expected
+
+
+# The accounts of sql/demo-data.sql, Alice (1) to Inès (9).
+DEMO_ACCOUNTS = 9
 
 
 def test_the_list_comes_by_pages_without_repeating_an_account(client):
@@ -109,7 +113,7 @@ def test_the_list_comes_by_pages_without_repeating_an_account(client):
     assert len(first["items"]) == PAGE_SIZE
     assert second["nextCursor"] is None
     ids = [item["id"] for item in first["items"] + second["items"]]
-    assert len(ids) == len(set(ids)) == PAGE_SIZE + 8
+    assert len(ids) == len(set(ids)) == PAGE_SIZE + DEMO_ACCOUNTS
 
 
 def test_a_made_up_cursor_is_refused(client):

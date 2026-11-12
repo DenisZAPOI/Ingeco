@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.repository.user_repository import DEV_PASSWORD
+from tests.test_auth import DEV_PASSWORD
 from app.services import auth_service
 from app.services.auth_service import (
     DEMO_PASSWORD_RESET_CODE,

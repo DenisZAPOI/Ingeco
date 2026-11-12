@@ -6,10 +6,11 @@ and a new password or a suspension ends the sessions opened before.
 from flask_jwt_extended import create_access_token
 
 from app.repository import user_repository
-from app.repository.user_repository import DEV_PASSWORD, User
+from app.repository.user_repository import User
 from app.services.admin_service import NOT_YOURSELF
+from app.utils import database
 from app.utils.passwords import hash_secret
-from tests.test_auth import ADMIN_PHONE, NEW_PASSWORD, RIDER_PHONE, csrf_headers, login
+from tests.test_auth import ADMIN_PHONE, DEV_PASSWORD, NEW_PASSWORD, RIDER_PHONE, csrf_headers, login
 
 RIDER_ID = 1
 ADMIN_ID = 6
@@ -37,11 +38,12 @@ def set_status(admin, user_id, status):
 
 
 def other_admin(app):
-    user_repository.insert_user(
-        None,
-        User(role="admin", status="active", first_name="Second", last_name="Démo", phone="+594694111111",
-             password_hash=hash_secret(DEV_PASSWORD)),
-    )
+    with database.session() as session:
+        user_repository.insert_user(
+            session,
+            User(role="admin", status="active", first_name="Second", last_name="Démo", phone="+594694111111",
+                 password_hash=hash_secret(DEV_PASSWORD)),
+        )
     return logged_in(app, OTHER_ADMIN_PHONE)
 
 

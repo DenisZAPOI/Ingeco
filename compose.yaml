@@ -5,6 +5,8 @@
 #                                  l'interface à la main, README partie 4)
 #   docker compose down            tout arrêter
 #   docker compose down -v         tout arrêter et EFFACER la base (pour recharger sql/)
+#   Remettre la démo à zéro sans effacer la base : README, partie 4,
+#   « Base de données ».
 #
 # Image officielle plutôt qu'une image Alpine : il n'existe pas de MySQL
 # officiel sur Alpine, et les images tierces (souvent MariaDB) ne sont ni
@@ -47,9 +49,10 @@ services:
       timeout: 3s
       retries: 20
 
-  # L'API en mode démo : comptes de test (mot de passe public) et cookies sur
-  # http. Les données restent en mémoire tant que les repository/ ne sont pas
-  # branchés sur la base : elles reviennent à zéro à chaque redémarrage.
+  # L'API en mode démo : codes SMS fixes et cookies sur http. Les comptes sont
+  # lus dans la base ; les trajets, offres, services et fiches restent en
+  # mémoire tant que leurs repository/ ne sont pas branchés sur la base : ils
+  # reviennent à zéro à chaque redémarrage.
   api:
     build: ./BACKEND
     container_name: enroute-api
