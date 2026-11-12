@@ -670,6 +670,40 @@ a:hover {
   list-style: none;
 }
 
+/* --- Steps of a practical guide: large numbers, one short sentence each --- */
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  margin: 0 0 var(--space-l);
+  padding: 0;
+  list-style: none;
+  counter-reset: guide-step;
+}
+
+.guide-steps li {
+  display: flex;
+  gap: var(--space-m);
+  align-items: flex-start;
+  counter-increment: guide-step;
+}
+
+/* The number in a green disc: read by screen readers from the list itself. */
+.guide-steps li::before {
+  content: counter(guide-step);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-chip-size);
+  height: var(--icon-chip-size);
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-title);
+}
+
 /* --- Needs of the help directory: two tiles per line, the icon above its name --- */
 
 .category-grid {

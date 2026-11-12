@@ -3,11 +3,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { HelpCategory } from '../api/helpServices';
 import { SelectField } from '../components/form/SelectField';
 import { CategoryIcon } from '../components/help/CategoryIcon';
+import { GuideList } from '../components/help/GuideList';
 import { HelpServiceList } from '../components/help/HelpServiceCard';
 import { RightsSimulators } from '../components/help/RightsSimulators';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { RequestState } from '../components/ui/RequestState';
 import { useHelpServices } from '../hooks/useHelpServices';
+import { usePracticalGuides } from '../hooks/usePracticalGuides';
 import { t, tn } from '../i18n';
 import {
   HELP_CATEGORIES,
@@ -19,6 +21,7 @@ import {
   type HelpFilters,
 } from '../lib/helpServices';
 import { HELP_PATH, HELP_SERVICES_PATH } from '../lib/paths';
+import { guidesOfCategory } from '../lib/practicalGuides';
 
 const ALL = 'all';
 
@@ -80,6 +83,9 @@ type ServicesOfNeedProps = {
 
 function ServicesOfNeed({ category, filters, onChange }: ServicesOfNeedProps) {
   const services = useHelpServices();
+  // The guides of this need, under its services. Not shown while they load:
+  // the services matter more, and the guides have their own page.
+  const guides = guidesOfCategory(usePracticalGuides().data ?? [], category);
   const ofNeed = filterHelpServices(services.data ?? [], { category, communeId: null });
   const shown = filterHelpServices(ofNeed, filters);
   const communeChoices = [
@@ -119,6 +125,12 @@ function ServicesOfNeed({ category, filters, onChange }: ServicesOfNeedProps) {
         </RequestState>
         {/* Outside the loading state: useful even when the services cannot load. */}
         {category === 'rights' && <RightsSimulators />}
+        {guides.length > 0 && (
+          <>
+            <h2>{t('guides.title')}</h2>
+            <GuideList guides={guides} />
+          </>
+        )}
         <Link to={HELP_SERVICES_PATH} className="link-action">
           {t('helpServices.otherNeed')}
         </Link>

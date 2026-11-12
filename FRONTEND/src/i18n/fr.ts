@@ -117,6 +117,8 @@ export const fr = {
     lead: 'Un service près de chez vous, ou une réponse à votre question.',
     services: "Trouver un service d'aide",
     servicesHint: "Garde d'enfants, logement, santé, démarches…",
+    guides: 'Comment faire ?',
+    guidesHint: "Les étapes d'une démarche, expliquées simplement",
     faq: 'Questions fréquentes',
     faqHint: 'Réserver, annuler, prix, mot de passe…',
     callTitle: "Le centre d'appel",
@@ -185,6 +187,24 @@ export const fr = {
       outside:
         "Ces sites ne font pas partie de l'application. Pour revenir ici, utilisez le bouton Retour de votre téléphone.",
     },
+  },
+  // Fiches pratiques « Comment faire ? » (cahier des charges §7.5). Les fiches sont des données
+  // envoyées par l'API ; ici, seulement l'interface autour.
+  guides: {
+    title: 'Comment faire ?',
+    lead: 'Les étapes de démarches utiles, expliquées simplement. Vous pouvez aussi les écouter.',
+    guideTitle: 'Comment faire ?',
+    listen: 'Écouter la fiche',
+    stop: 'Arrêter la lecture',
+    stepsTitle: 'Les étapes',
+    toBring: 'À apporter',
+    sourceTitle: 'Pour être sûr',
+    sourceText: 'Les règles peuvent changer. Vérifiez sur le site officiel :',
+    updatedOn: 'Fiche mise à jour le {date}.',
+    demonstrator: 'Démonstrateur : fiche à faire vérifier.',
+    back: 'Retour aux fiches',
+    stepSpoken: 'Étape {number} : {step}',
+    bringSpoken: 'À apporter : {list}.',
   },
   home: {
     greeting: 'Bonjour {name}',

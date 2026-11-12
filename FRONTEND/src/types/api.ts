@@ -472,6 +472,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/practical-guides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every guide, in the order of the needs, in the language of
+         * @description Accept-Language where translated (French otherwise: `language` says which).
+         *
+         *     All of them at once (a handful): the phone keeps them and filters by need.
+         */
+        get: operations["listPracticalGuides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practical-guides/{guide_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One guide. 404 if it does not exist. */
+        get: operations["getPracticalGuide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rides": {
         parameters: {
             query?: never;
@@ -977,6 +1016,16 @@ export interface components {
             /** Voucheramountcents */
             voucherAmountCents: number;
         };
+        /**
+         * GuideSourceDto
+         * @description The official page that keeps the rules up to date.
+         */
+        GuideSourceDto: {
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+        };
         /** HealthDto */
         HealthDto: {
             database: components["schemas"]["DatabaseStateDto"];
@@ -1145,6 +1194,37 @@ export interface components {
             communeId: number;
             /** Search */
             search: string;
+        };
+        /** PracticalGuideDto */
+        PracticalGuideDto: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
+            /** Id */
+            id: number;
+            /** Intro */
+            intro: string;
+            /** Language */
+            language: string;
+            source: components["schemas"]["GuideSourceDto"] | null;
+            /** Steps */
+            steps: string[];
+            /** Title */
+            title: string;
+            /** Tobring */
+            toBring: string[];
+            /**
+             * Updatedon
+             * Format: date
+             */
+            updatedOn: string;
+        };
+        /** PracticalGuideListDto */
+        PracticalGuideListDto: {
+            /** Items */
+            items: components["schemas"]["PracticalGuideDto"][];
         };
         /** RateRideBody */
         RateRideBody: {
@@ -2744,6 +2824,71 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    listPracticalGuides: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticalGuideListDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPracticalGuide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guide_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticalGuideDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
