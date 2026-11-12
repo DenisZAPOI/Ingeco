@@ -72,7 +72,7 @@ def count_lookup(user_id: int) -> None:
 
 def list_communes() -> list[Commune]:
     with database.session() as session:
-        return commune_repository.list_communes(session)
+        return commune_repository.list_communes(session, served_only=True)
 
 
 def search_places(text: str, commune_id: int, *, user_id: int) -> list[Place]:
@@ -94,12 +94,12 @@ def check_served(session: Session, lat: float, lng: float, commune_id: int) -> N
 
 def _served_commune(session: Session, commune_id: int) -> Commune:
     commune = commune_repository.find_by_id(session, commune_id)
-    if commune is None:
+    if commune is None or not commune.served:
         raise UnprocessableEntity(_out_of_zone(session))
     return commune
 
 
 def _out_of_zone(session: Session) -> str:
-    names = [commune.name for commune in commune_repository.list_communes(session)]
+    names = [commune.name for commune in commune_repository.list_communes(session, served_only=True)]
     served = ", ".join(names[:-1]) + " et " + names[-1] if len(names) > 1 else "".join(names)
     return f"Nous ne desservons pas encore cette adresse. Le service couvre {served}."

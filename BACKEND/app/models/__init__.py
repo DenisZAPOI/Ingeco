@@ -17,12 +17,39 @@ tests/test_models.py checks every model against the real tables.
 """
 
 from .account import Commune, DeletionRequest, DriverRow, RiderRow, Role, UserRow, VehicleRow
+from .content import (
+    HelpServiceLanguageRow,
+    HelpServiceRow,
+    HelpServiceTranslationRow,
+    JobOfferRow,
+    JobOfferTranslationRow,
+    LanguageRow,
+    PracticalGuideItemRow,
+    PracticalGuideRow,
+    PracticalGuideStepRow,
+    PracticalGuideTranslationRow,
+)
+from .orientation import ActionPlanRow, AnswerRow, PlanStepRow, QuestionnaireRow
 from .ride import RatingRow, RideRow, TariffRow
 
 __all__ = [
+    "ActionPlanRow",
+    "AnswerRow",
     "Commune",
     "DeletionRequest",
     "DriverRow",
+    "HelpServiceLanguageRow",
+    "HelpServiceRow",
+    "HelpServiceTranslationRow",
+    "JobOfferRow",
+    "JobOfferTranslationRow",
+    "LanguageRow",
+    "PlanStepRow",
+    "PracticalGuideItemRow",
+    "PracticalGuideRow",
+    "PracticalGuideStepRow",
+    "PracticalGuideTranslationRow",
+    "QuestionnaireRow",
     "RatingRow",
     "RideRow",
     "RiderRow",
