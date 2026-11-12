@@ -37,6 +37,16 @@
 --    WHERE id_utilisateur = :id;
 --   UPDATE demande_suppression SET traitee_le = :maintenant, id_traitee_par = :admin
 --    WHERE id_utilisateur = :id AND traitee_le IS NULL;
+--   -- Textes libres écrits par la personne (§2) :
+--   UPDATE reponse_questionnaire r
+--     JOIN questionnaire q USING (id_questionnaire)
+--      SET r.texte = NULL WHERE q.id_usager = :id;
+--   UPDATE demande_aide SET message = NULL, telephone = NULL
+--    WHERE id_utilisateur = :id;
+--   -- un incident garde un commentaire (CHECK) :
+--   UPDATE etape_course
+--      SET commentaire = IF(type = 'incident', '(effacé)', NULL)
+--    WHERE id_auteur = :id AND commentaire IS NOT NULL;
 -- Le commentaire d'une évaluation peut contenir un nom : à effacer aussi
 -- (evaluation.commentaire = NULL) sur les courses de ce compte, si la
 -- cliente le demande.
