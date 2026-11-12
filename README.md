@@ -373,8 +373,9 @@ L'API répond sur http://localhost:5000 (Swagger sur `/apidoc/swagger`).
 - L'interface est la version compilée, comme sur un téléphone : une modification du code ne
   s'affiche qu'après `docker compose up -d --build`. Pour développer, lancer plutôt l'API et
   l'interface à la main (ci-dessous), avec la base seule : `docker compose up -d db`.
-- Les données de l'API restent en mémoire (les `repository/` ne sont pas encore branchés sur la
-  base) : elles reviennent à zéro à chaque redémarrage.
+- Les comptes sont lus dans la base. Les trajets, les offres, les services d'aide et les fiches
+  pratiques restent en mémoire de l'API (pas encore branchés sur la base) : ils reviennent à zéro
+  à chaque redémarrage.
 - Arrêter : `docker compose down`. Tout effacer, base comprise : `docker compose down -v`.
 
 ### Base de données (MySQL dans Docker)
@@ -452,14 +453,12 @@ La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API
 
 ### Comptes de test
 
-Pour l'instant, l'API lit encore les comptes dans des **données factices en mémoire**
-(`BACKEND/app/repository/user_repository.py`), chargées seulement avec `LOAD_DEMO_DATA=true` dans
-`BACKEND/.env` (c'est la valeur de `.env.example`) : elles reviennent à cet état à chaque
-redémarrage de l'API. Sans ce réglage, l'API démarre sans aucun compte. Elle refuse de démarrer
-avec ce réglage si `COOKIE_SECURE=true` (serveur en https, donc hébergé). Les mêmes comptes sont
-dans `sql/demo-data.sql`, sauf David (référent partenaire), qui est dans
-`sql/schema-hors-scope.sql` avec les bons solidaires. Personnes fictives, mot de passe commun
-**`Trajet-2026!`**.
+Les comptes de test sont dans la base, chargés par `sql/demo-data.sql` au premier démarrage de
+la base locale (`docker compose down -v` puis `up` pour revenir à leur état de départ). L'API n'en
+crée aucun elle-même. Personnes fictives, mot de passe commun **`Trajet-2026!`**.
+`LOAD_DEMO_DATA=true` dans `BACKEND/.env` (c'est la valeur de `.env.example`) ne sert plus
+qu'aux codes SMS fixes ci-dessous et aux trajets d'Alice ; l'API refuse de démarrer avec ce
+réglage si `COOKIE_SECURE=true` (serveur en https, donc hébergé).
 
 **Inscription d'un nouvel usager** : les SMS sont simulés. Avec `LOAD_DEMO_DATA=true`, le code
 reçu par SMS est toujours **`123456`** ; sans, il est tiré au hasard et n'est écrit nulle part.
@@ -478,10 +477,13 @@ ci-dessous sauf Farid (administrateur) et Hugo (suspendu).
 | 0694 00 00 06 | Farid | Administrateur : « Comptes » sur l'accueil pour créer un chauffeur, suspendre, générer un code |
 | 0694 00 00 07 | Gaëlle | Usager créé par le centre d'appel, **à activer** avec le code `12345678` (« J'ai reçu un code ») |
 | 0694 00 00 08 | Hugo | Usager suspendu |
+| 0694 00 00 09 | Inès | Chauffeur, véhicule non adapté |
 
-Alice a aussi quatre trajets passés, factices eux aussi (`BACKEND/app/repository/ride_repository.py`) :
-trois terminés, dont un déjà noté, et un annulé. Ils servent à essayer « Mes trajets » et la
-notation sans passer par le côté chauffeur. Les tests partent sans aucun trajet.
+Alice a aussi quatre trajets passés, encore en mémoire de l'API
+(`BACKEND/app/repository/ride_repository.py`, avec `LOAD_DEMO_DATA=true`) : trois terminés, dont
+un déjà noté, et un annulé. Ils servent à essayer « Mes trajets » et la notation sans passer par
+le côté chauffeur. `sql/demo-data.sql` contient déjà les courses qui les remplaceront quand les
+trajets seront lus en base (une par statut, datées par rapport au chargement).
 
 Pour essayer une course de bout en bout : réserver et payer un trajet en Alice, se déconnecter,
 puis se connecter en Chloé, appuyer sur « Je suis disponible » et ouvrir « Courses ». Sans
@@ -522,7 +524,7 @@ les données que l'API devra lire et écrire, route par route.
 | Schéma (`sql/schema-mvp.sql`, `sql/schema-hors-scope.sql`) | Écrit, relu, validé | Lisent ; demandent un changement par écrit |
 | Migrations (`sql/migrations/`) | Écrites et appliquées | Jamais |
 | Données de référence (communes, tarif, types de trajets…) | Écrites | Demandent une valeur si besoin |
-| Données de test (`sql/demo-data.sql`) | Écrites et tenues à jour, personnes fictives | Demandent les comptes dont ils ont besoin pour tester |
+| Données de test (`sql/demo-data.sql`) | Relisent si elles le souhaitent | Écrites et tenues à jour depuis le 12/11/2026, personnes fictives (aussi chargées par les tests) |
 | Index et contraintes | Écrits (à partir de [contrat-api.md](docs/contrat-api.md), partie 6.6) | Signalent une requête lente |
 | Requêtes lourdes (statistiques, chauffeurs proches, consommation des bons) | Écrites, en **vues SQL** (voir plus bas) | Lisent la vue depuis `repository/` |
 | Requêtes courantes (lire un compte, créer une course…) | Relisent si elles le souhaitent | Écrites en Python (SQLAlchemy) dans `repository/` |
@@ -594,8 +596,8 @@ En local, l'API est branchée sur un conteneur **MySQL 8.4** (`compose.yaml`, vo
 (bons solidaires, documents, formation).
 
 Les tests automatiques (`pytest`, CI) tournent sur une **base MySQL à part**, recréée à chaque
-lancement depuis `sql/schema-mvp.sql` et `sql/migrations/` (sans `demo-data.sql`) : une migration
-qui ne passe pas fait échouer les tests, et `tests/test_models.py` signale toute colonne qui ne
+lancement depuis `sql/schema-mvp.sql` et `sql/migrations/`, puis remise à l'état de
+`sql/demo-data.sql` avant chaque test : une migration qui ne passe pas fait échouer les tests, et `tests/test_models.py` signale toute colonne qui ne
 correspond plus aux classes de `BACKEND/app/models/`. En local : `docker compose --profile test
 up -d db-test` (conteneur jetable, port 3308, jamais votre base de développement). La démo de la soutenance tourne en local (décidé le 03/11/2026) : pas d'hébergement de
 la base à préparer, seulement un export par `mysqldump` (#26).
@@ -710,7 +712,7 @@ livrés.
 1. **Une colonne `version_session`** (entier, `NOT NULL DEFAULT 0`) sur `utilisateur`. L'API
    l'augmente à chaque nouveau mot de passe et à chaque suspension, et la relit à chaque requête
    (par la clé primaire) : les sessions ouvertes avant prennent fin. Livrée par la migration 001
-   (#21) ; l'API s'en sert dans ses données factices jusqu'au branchement sur MySQL.
+   (#21) ; l'API la lit et l'écrit dans la base.
 2. **Les données de test sont séparées du schéma** : `sql/demo-data.sql`, chargé en local par
    `compose.yaml` après `sql/schema-mvp.sql`. Merci de garder cette séparation dans vos versions :
    un environnement hébergé ne charge que le schéma et les données de référence.

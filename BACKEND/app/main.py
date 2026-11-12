@@ -23,7 +23,7 @@ from .controllers.place_controller import place_bp
 from .controllers.ride_controller import ride_bp
 from .controllers.user_controller import user_bp
 from .extensions import jwt, socketio, spec
-from .repository import place_repository, ride_repository, user_repository
+from .repository import place_repository, ride_repository
 from .services import auth_service, expiry_service, place_service
 from .utils import access, database, errors, logs, periodic, request_logs, security_headers
 
@@ -73,9 +73,10 @@ def create_app(config: type[Config] = Config) -> Flask:
     database.initialize(config.DATABASE_URL)
     place_repository.configure(config.ORS_API_KEY)
     place_service.configure(signing_key=config.SECRET_KEY)
+    # The demo accounts come from sql/demo-data.sql; the demo rides are still
+    # in memory until the rides switch to the database.
     if config.LOAD_DEMO_DATA:
-        logger.warning("LOAD_DEMO_DATA: development accounts with a public password are loaded")
-        user_repository.reset(demo_accounts=True)
+        logger.warning("LOAD_DEMO_DATA: demo rides and the fixed registration code are loaded")
         ride_repository.reset(dev_rides=True)
 
     # supports_credentials: the browser sends the session cookie with front-end calls.

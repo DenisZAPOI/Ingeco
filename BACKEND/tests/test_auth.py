@@ -2,12 +2,15 @@
 Authentication routes, through HTTP: registration, login, activation, session
 renewal, logout, and the role check.
 
-The development accounts of repository/user_repository.py are reset before
-each test (see conftest.py).
+The demo accounts of sql/demo-data.sql are loaded again before each test (see
+conftest.py).
 """
 
-from app.repository.user_repository import DEV_ACTIVATION_CODE, DEV_PASSWORD
 from app.services.auth_service import DEMO_REGISTRATION_CODE, MAX_FAILED_ATTEMPTS
+
+# The secrets of the demo accounts (sql/demo-data.sql, README "Comptes de test").
+DEV_PASSWORD = "Trajet-2026!"
+DEV_ACTIVATION_CODE = "12345678"
 
 RIDER_PHONE = "0694 00 00 01"
 DRIVER_PHONE = "0694 00 00 03"
@@ -187,11 +190,13 @@ def test_renewal_without_the_csrf_header_is_refused(client):
 
 def test_a_suspended_account_loses_its_session_at_renewal(client):
     from app.repository import user_repository
+    from app.utils import database
 
     login(client)
-    user = user_repository.find_by_phone(None, "+594694000001")
-    user.status = "suspended"
-    user_repository.update_user(None, user)
+    with database.session() as session:
+        user = user_repository.find_by_phone(session, "+594694000001")
+        user.status = "suspended"
+        user_repository.update_user(session, user)
 
     response = client.post("/auth/refresh", headers=csrf_headers(client, "csrf_refresh_token"))
 

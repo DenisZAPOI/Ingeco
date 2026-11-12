@@ -9,6 +9,7 @@ import pytest
 
 from app.repository import user_repository
 from app.services import auth_service
+from app.utils import database
 from app.services.auth_service import (
     DEMO_REGISTRATION_CODE,
     EMAIL_TAKEN_AT_REGISTRATION,
@@ -41,7 +42,8 @@ def test_asking_a_code_creates_no_account(client):
 
     assert response.status_code == 202
     assert "expiresAt" in response.get_json()
-    assert user_repository.find_by_phone(None, "+594694999999") is None
+    with database.session() as session:
+        assert user_repository.find_by_phone(session, "+594694999999") is None
     assert login(client, phone=NEW_PHONE, password=new_rider()["password"]).status_code == 401
 
 
@@ -70,7 +72,8 @@ def test_a_wrong_code_creates_nothing(client):
 
     assert response.status_code == 422
     assert response.get_json()["detail"] == WRONG_REGISTRATION_CODE
-    assert user_repository.find_by_phone(None, "+594694999999") is None
+    with database.session() as session:
+        assert user_repository.find_by_phone(session, "+594694999999") is None
 
 
 def test_an_expired_code_fails(client, monkeypatch):
@@ -133,10 +136,11 @@ def test_outside_the_demo_the_code_is_random(client):
 
 def test_an_email_already_used_is_told_once_the_phone_is_proven(client):
     ask_code(client, email="alice@example.org")
-    user_repository.insert_user(
-        None, user_repository.User(role="rider", status="active", first_name="A", last_name="B",
-                                   phone="+594694888888", email="alice@example.org")
-    )
+    with database.session() as session:
+        user_repository.insert_user(
+            session, user_repository.User(role="rider", status="active", first_name="A", last_name="B",
+                                          phone="+594694888888", email="alice@example.org")
+        )
 
     response = confirm(client)
 
