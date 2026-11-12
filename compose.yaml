@@ -5,6 +5,8 @@
 #                                  l'interface à la main, README partie 4)
 #   docker compose down            tout arrêter
 #   docker compose down -v         tout arrêter et EFFACER la base (pour recharger sql/)
+#   Remettre la démo à zéro sans effacer la base : README, partie 4,
+#   « Base de données ».
 #
 # Image officielle plutôt qu'une image Alpine : il n'existe pas de MySQL
 # officiel sur Alpine, et les images tierces (souvent MariaDB) ne sont ni

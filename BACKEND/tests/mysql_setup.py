@@ -3,8 +3,8 @@ The test database: a MySQL 8.4 built from the DB team's own scripts.
 
 Built once per test run, the same way the local container does it
 (sql/charger-base.sh): sql/schema-mvp.sql, then every file of sql/migrations/
-in order. Before each test, the rows of the previous one are removed and
-sql/demo-data.sql is loaded again: every test starts from the demo accounts
+in order. Before each test, sql/demo-data.sql is loaded again: it erases the
+rows of the previous test itself, so every test starts from the demo accounts
 and rides, the same ones as the local database.
 
 Locally: `docker compose --profile test up -d db-test` (port 3308). In the CI:
@@ -19,10 +19,6 @@ from pymysql.constants import CLIENT
 from sqlalchemy.engine import make_url
 
 SQL_DIR = Path(__file__).resolve().parents[2] / "sql"
-
-# Rows written by the API, children first (foreign keys). The reference data
-# (role, commune, tarif) comes from the schema and is never touched.
-DATA_TABLES = ("evaluation", "course", "demande_suppression", "vehicule", "chauffeur", "usager", "utilisateur")
 
 UNREACHABLE = (
     "The test database does not answer at {where}.\n"
@@ -52,15 +48,13 @@ def create(database_url: str) -> None:
 
 
 def reset_demo_data(database_url: str) -> None:
-    """Removes the rows written by a test, then loads sql/demo-data.sql again.
+    """Loads sql/demo-data.sql again: it erases the rows of the previous test first.
 
-    The reference data (role, commune, tarif) comes from the schema and is
-    never touched.
+    The same script as the local "reset the demo" command (README), so the
+    list of tables to erase lives in one place.
     """
     with _connect(database_url, database=make_url(database_url).database) as connection:
         with connection.cursor() as cursor:
-            for table in DATA_TABLES:
-                cursor.execute(f"DELETE FROM {table}")
             _run_script(cursor, DEMO_DATA)
 
 

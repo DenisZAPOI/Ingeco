@@ -234,6 +234,13 @@ Si le problème continue : copier le texte de la fenêtre noire (sélection à l
   OpenRouteService (voir [Comptes des services externes](#comptes-des-services-externes--ouverture-et-passation)),
   à copier dans le fichier `.env` du dossier `Ingeco-main`, sur la ligne `ORS_API_KEY=`, comme à
   l'étape 3. Relancer ensuite `docker compose up -d`.
+- **Remettre la démo à zéro** (les comptes de test, les courses et leurs dates reviennent à leur
+  état de départ, la base n'est pas effacée), l'application étant lancée :
+
+  ```bash
+  docker compose exec db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --default-character-set=utf8mb4 "$MYSQL_DATABASE" < /sql/demo-data.sql'
+  ```
+
 - **Effacer toutes les données** (repartir d'une base neuve) : `docker compose down -v`, puis
   `docker compose up -d`.
 - **Modifier le code** : voir la [partie 4](#4-lancer-le-projet), pour les développeurs.
@@ -392,12 +399,23 @@ docker compose up -d db            # démarre la base seule sur 127.0.0.1:3307
 docker compose ps                  # « healthy » quand elle est prête
 ```
 
-Les scripts ne sont relus que si la base est vide. Après une modification de `sql/` :
+Les scripts ne sont relus que si la base est vide. Deux cas :
 
-```bash
-docker compose down -v             # EFFACE la base
-docker compose up -d db            # la recrée avec le script
-```
+- **Remettre la démo à zéro**, quand `sql/demo-data.sql` a changé ou que la démo a vieilli
+  (ses dates sont calculées au chargement) : le rejouer suffit. Il efface lui-même les comptes et les courses avant de les
+  recréer ; le schéma et les données de référence ne bougent pas.
+
+  ```bash
+  docker compose exec db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --default-character-set=utf8mb4 "$MYSQL_DATABASE" < /sql/demo-data.sql'
+  ```
+
+- **Le schéma ou une migration a changé** : il faut, pour l'instant, recréer la base (une
+  application des migrations sans tout effacer est demandée à l'équipe BD, issue #82).
+
+  ```bash
+  docker compose down -v             # EFFACE la base
+  docker compose up -d db            # la recrée avec les scripts
+  ```
 
 Pour ouvrir une console SQL : `docker compose exec db mysql -u enroute -p enroute`.
 
@@ -454,7 +472,8 @@ La page http://localhost:5173/diagnostic indique si l'interface joint bien l'API
 ### Comptes de test
 
 Les comptes de test sont dans la base, chargés par `sql/demo-data.sql` au premier démarrage de
-la base locale (`docker compose down -v` puis `up` pour revenir à leur état de départ). L'API n'en
+la base locale. Pour les remettre dans leur état de départ, sans effacer la base : voir
+« Remettre la démo à zéro » dans [Base de données](#base-de-données-mysql-dans-docker). L'API n'en
 crée aucun elle-même. Personnes fictives, mot de passe commun **`Trajet-2026!`**.
 `LOAD_DEMO_DATA=true` dans `BACKEND/.env` (c'est la valeur de `.env.example`) ne sert plus
 qu'aux codes SMS fixes ci-dessous et aux trajets d'Alice ; l'API refuse de démarrer avec ce
@@ -568,6 +587,8 @@ une base en production se **modifie**, elle ne se recrée pas. Les migrations se
   conteneur : une nouvelle migration est prise en compte sans toucher à `compose.yaml`, et une
   erreur SQL arrête la création (`docker compose logs db` pour la voir). Prévenez les
   développeurs à chaque migration : ils devront refaire `docker compose down -v` puis `up -d db`.
+  Pour l'éviter, l'issue #82 propose de noter les migrations appliquées et de n'appliquer que
+  celles qui manquent, à chaque démarrage.
 - Les développeurs suivent chaque migration dans leurs classes Python (`models/`). Annoncez-la
   avant de la merger.
 

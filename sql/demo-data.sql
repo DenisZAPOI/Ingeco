@@ -9,9 +9,28 @@
 -- Écrit par les développeurs depuis le 12/11/2026 (le schéma et les
 -- migrations restent à l'équipe BD). C'est la seule source des comptes et
 -- des courses de test : l'API n'en crée plus elle-même.
+--
+-- REJOUABLE : il commence par effacer toutes les lignes écrites par l'API,
+-- puis remet la démo dans son état de départ, dates comprises. Sert au
+-- premier démarrage de la base, à la remise à zéro (README, « Remettre la
+-- démo à zéro ») et avant chaque test. Les données de référence (rôles,
+-- communes, tarif) ne sont pas touchées.
 -- ============================================================
 
 SET NAMES utf8mb4;
+
+-- ============================================================
+-- EFFACER LA DÉMO PRÉCÉDENTE
+-- ============================================================
+-- Les tables filles d'abord (clés étrangères). Une nouvelle table où l'API
+-- écrit s'ajoute ici, à sa place dans cet ordre.
+DELETE FROM evaluation;
+DELETE FROM course;
+DELETE FROM demande_suppression;
+DELETE FROM vehicule;
+DELETE FROM chauffeur;
+DELETE FROM usager;
+DELETE FROM utilisateur;
 
 -- ============================================================
 -- DONNÉES DE TEST (fictives, RGPD)
