@@ -1,0 +1,924 @@
+<title>Maquette du questionnaire d'orientation</title>
+<meta name="description" content="Maquette cliquable du questionnaire d'orientation et de « Mon plan d'action » (module M1), à valider par la cliente.">
+<style>
+/* Mockup of the M1 questionnaire. Same tokens as FRONTEND/src/styles/global.css
+   (docs/charte-graphique.md): light theme only, by choice of the charter. The
+   mockup's own furniture (toolbar, notes) uses the dashed "mock" style so it is
+   never mistaken for a screen of the app. */
+:root {
+  color-scheme: light;
+  --color-primary: #0b5d3b;
+  --color-primary-hover: #08452c;
+  --color-primary-soft: #e3efe9;
+  --color-on-primary: #ffffff;
+  --color-on-primary-muted: #cfe3da;
+  --color-accent: #f2b705;
+  --color-accent-soft: #fdf1c7;
+  --color-on-accent-soft: #6b4f00;
+  --color-help: #1d5f99;
+  --color-help-soft: #e1edf8;
+  --color-on-help-soft: #124a7a;
+  --color-text: #1a1a1a;
+  --color-muted: #555555;
+  --color-background: #ffffff;
+  --color-page: #eef3f0;
+  --color-surface: #f3f5f4;
+  --color-border: #7d8581;
+  --color-success: #0b5d3b;
+  --color-success-soft: #e3efe9;
+  --color-focus: #1a1a1a;
+  --color-mock: #4a4f4c;
+  --color-mock-bg: #fbfbf7;
+
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-small: 0.889rem;
+  --font-size-lead: 1.125rem;
+  --font-size-h2: 1.375rem;
+  --font-size-h1: 1.75rem;
+  --font-weight-strong: 600;
+  --font-weight-title: 700;
+
+  --space-xs: 0.25rem;
+  --space-s: 0.5rem;
+  --space-m: 0.75rem;
+  --space: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --radius: 0.75rem;
+  --radius-large: 1.5rem;
+  --border-width: 2px;
+  --focus-width: 3px;
+  --touch-target: 3.25rem;
+  --checkbox-size: 1.5rem;
+  --icon-size: 1.5rem;
+  --icon-chip-size: 2.75rem;
+  --progress-height: 0.375rem;
+  --device-width: 26rem;
+  --shadow-sheet: 0 10px 28px rgb(11 93 59 / 0.12), 0 2px 6px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 0.06);
+  --shadow-button: 0 4px 12px rgb(11 93 59 / 0.25);
+  --shadow-device: 0 20px 50px rgb(11 93 59 / 0.18);
+
+  font-family: var(--font-family);
+  font-size: 112.5%;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-page);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--color-page); color: var(--color-text); }
+h1, h2, h3 { text-wrap: balance; }
+p { margin: 0 0 var(--space); }
+a { color: var(--color-primary); font-weight: var(--font-weight-strong); text-underline-offset: 0.15em; }
+:focus-visible { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* --- Mockup furniture --------------------------------------------------------- */
+.mock-bar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-s) var(--space);
+  padding-block: var(--space-s);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 2px dashed var(--color-mock);
+  background: var(--color-mock-bg);
+  color: var(--color-mock);
+  font-size: var(--font-size-small);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--color-mock-bg); }
+.mock-bar strong { color: var(--color-text); }
+.mock-bar label { display: flex; align-items: center; gap: var(--space-s); }
+.mock-bar select, .mock-bar button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  max-width: 100%;
+}
+.mock-bar button { cursor: pointer; }
+.mock-bar-title { flex: 1 1 14rem; min-width: 0; }
+.mock-tag {
+  display: inline-block;
+  padding: 0 var(--space-s);
+  border: 1px dashed var(--color-mock);
+  border-radius: var(--radius);
+  font-weight: var(--font-weight-strong);
+}
+
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-l);
+  padding: var(--space-l) 0 var(--space-xl);
+}
+.device {
+  width: min(var(--device-width), 100%);
+  overflow: hidden;
+  border-radius: 2rem;
+  background: var(--color-page);
+  box-shadow: var(--shadow-device);
+}
+.mock-notes {
+  width: min(var(--device-width), calc(100% - 2rem));
+  padding: var(--space) var(--space-l);
+  border: 2px dashed var(--color-mock);
+  border-radius: var(--radius-large);
+  background: var(--color-mock-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+.mock-notes h2 { margin: 0 0 var(--space-s); font-size: var(--font-size-lead); }
+.mock-notes ul { margin: 0 0 var(--space); padding-left: var(--space-l); }
+.mock-notes li + li { margin-top: var(--space-xs); }
+.mock-notes .ask { padding: var(--space-s) var(--space-m); border-radius: var(--radius); background: var(--color-accent-soft); color: var(--color-on-accent-soft); }
+.mock-notes .ask strong { display: block; }
+.mock-notes table { width: 100%; border-collapse: collapse; }
+.mock-notes th, .mock-notes td { padding: var(--space-xs) var(--space-s); border-bottom: 1px solid var(--color-primary-soft); text-align: left; vertical-align: top; }
+.mock-table-wrap { overflow-x: auto; margin-bottom: var(--space); }
+.mock-bar label { flex: 1 1 14rem; min-width: 0; }
+.mock-bar select { flex: 1; min-width: 0; }
+@media (max-width: 30rem) {
+  .mock-bar { position: static; }
+  .stage { padding-top: 0; }
+  .device { border-radius: 0; box-shadow: none; }
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(24rem, calc(100% - 2rem));
+  padding: var(--space-m) var(--space);
+  border: 2px dashed var(--color-mock);
+  border-radius: var(--radius);
+  background: var(--color-mock-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  box-shadow: var(--shadow-card);
+}
+
+/* --- App: header, band, sheet (copied from global.css) ------------------------ */
+.header, .hero {
+  --color-focus: var(--color-accent);
+  padding-inline: var(--space);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.header { display: flex; align-items: center; justify-content: space-between; gap: var(--space); padding-block: var(--space); }
+.brand { display: flex; align-items: center; gap: var(--space-s); color: var(--color-on-primary); font-weight: var(--font-weight-title); text-decoration: none; line-height: 1.2; }
+.brand svg { width: var(--icon-size); height: var(--icon-size); flex-shrink: 0; }
+.logo-ground { fill: rgb(255 255 255 / 0.14); }
+.logo-road { fill: none; stroke: var(--color-on-primary); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.logo-sun { fill: var(--color-accent); }
+.header-action {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-m);
+  border: var(--border-width) solid rgb(255 255 255 / 0.7);
+  border-radius: var(--radius);
+  background: rgb(255 255 255 / 0.08);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.hero { position: relative; overflow: hidden; margin-top: -1px; padding-top: calc(var(--space-s) + 1px); padding-bottom: var(--space-l); }
+.hero-motif { position: absolute; top: var(--space-s); right: calc(-1 * var(--space-s)); opacity: 0.14; pointer-events: none; color: var(--color-on-primary); }
+.hero-motif path { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.hero-motif circle { fill: var(--color-accent); }
+.hero > :not(.hero-motif) { position: relative; }
+.hero-eyebrow { margin: 0; color: var(--color-on-primary-muted); font-weight: var(--font-weight-strong); }
+.hero-title { margin: var(--space-xs) 0 0; font-size: var(--font-size-h1); line-height: 1.2; color: var(--color-on-primary); }
+.hero-lead { margin: var(--space-s) 0 0; color: var(--color-on-primary-muted); font-size: var(--font-size-lead); }
+.progress { display: flex; gap: var(--space-xs); margin-top: var(--space); }
+.progress-step { flex: 1; height: var(--progress-height); border-radius: var(--progress-height); background: rgb(255 255 255 / 0.25); }
+.progress-step-done { background: var(--color-accent); }
+.sheet {
+  width: calc(100% - 2 * var(--space));
+  margin: var(--space) auto 0;
+  padding: var(--space-l) var(--space);
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: var(--shadow-sheet);
+}
+.sheet > :first-child { margin-top: 0; }
+.sheet > :last-child { margin-bottom: 0; }
+.sheet h2 { margin: var(--space-xl) 0 var(--space-m); font-size: var(--font-size-h2); line-height: 1.3; }
+.footer { padding: var(--space-l) var(--space); color: var(--color-muted); font-size: var(--font-size-small); text-align: center; }
+.footer p { margin: 0; }
+.footer select { min-height: var(--touch-target); margin-bottom: var(--space-s); padding: 0 var(--space); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font: inherit; }
+.lead { font-size: var(--font-size-lead); }
+.note { color: var(--color-muted); }
+.stack { display: flex; flex-direction: column; gap: var(--space-m); margin: var(--space-l) 0 0; }
+
+/* --- Buttons, cards, messages -------------------------------------------------- */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-l);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-weight: var(--font-weight-strong);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { border-color: var(--color-primary-hover); background: var(--color-primary-hover); }
+.button-secondary { background: var(--color-background); box-shadow: none; color: var(--color-primary); }
+.button-secondary:hover { background: var(--color-primary-soft); color: var(--color-primary); }
+.button svg { width: var(--icon-size); height: var(--icon-size); margin-right: var(--space-s); flex-shrink: 0; }
+.link-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  width: fit-content;
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: var(--font-weight-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.link-action svg { width: var(--icon-size); height: var(--icon-size); }
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space);
+  border: var(--border-width) solid var(--color-primary-soft);
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.action-card:hover { border-color: var(--color-primary); }
+.action-card-sun { border-color: var(--color-accent-soft); background: var(--color-accent-soft); }
+.action-card-sun:hover { border-color: var(--color-on-accent-soft); }
+.action-card-sun .icon-chip { background: var(--color-background); color: var(--color-on-accent-soft); }
+.action-card-text { display: flex; flex-direction: column; min-width: 0; }
+.action-card-title { font-weight: var(--font-weight-title); }
+.action-card-hint { color: var(--color-muted); }
+.action-card-sun .action-card-hint { color: var(--color-on-accent-soft); }
+.action-card-arrow { width: var(--icon-size); height: var(--icon-size); margin-left: auto; flex-shrink: 0; }
+.need-work { border-color: var(--color-primary-soft); background: var(--color-primary-soft); }
+.need-ride { border-color: var(--color-accent-soft); background: var(--color-accent-soft); }
+.need-help { border-color: var(--color-help-soft); background: var(--color-help-soft); }
+.need-work .icon-chip, .need-ride .icon-chip, .need-help .icon-chip { background: var(--color-background); }
+.need-ride .icon-chip { color: var(--color-on-accent-soft); }
+.need-help .icon-chip { color: var(--color-on-help-soft); }
+.icon-chip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-chip-size);
+  height: var(--icon-chip-size);
+  border-radius: var(--radius);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.icon-chip svg { width: var(--icon-size); height: var(--icon-size); }
+.panel { margin: 0 0 var(--space); padding: var(--space) var(--space-l); border-radius: var(--radius); background: var(--color-surface); }
+.panel-title { margin: 0 0 var(--space-s); font-size: var(--font-size-lead); }
+.panel > :last-child { margin-bottom: 0; }
+.alert { margin: 0 0 var(--space); padding: var(--space-m) var(--space); border-left: var(--space-xs) solid currentColor; border-radius: var(--radius); font-weight: var(--font-weight-strong); }
+.alert-success { background: var(--color-success-soft); color: var(--color-success); }
+.alert-info { background: var(--color-surface); color: var(--color-text); font-weight: normal; }
+.badge { display: inline-block; padding: 0 var(--space-s); border-radius: var(--radius); background: var(--color-accent-soft); color: var(--color-on-accent-soft); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.benefits { display: flex; flex-direction: column; gap: var(--space-m); margin: 0 0 var(--space-l); padding: 0; list-style: none; }
+.benefit { display: flex; align-items: center; gap: var(--space); }
+.offer-card { padding: var(--space); border: var(--border-width) solid var(--color-primary-soft); border-radius: var(--radius-large); box-shadow: var(--shadow-card); }
+.offer-card p { margin: 0; }
+.offer-card .note { font-size: var(--font-size-small); }
+.ghost { opacity: 0.55; }
+
+/* --- Questionnaire: answers as large tiles with an icon ----------------------- */
+.choices { display: flex; flex-direction: column; gap: var(--space-s); margin: 0 0 var(--space-l); padding: 0; border: 0; min-width: 0; }
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: var(--touch-target);
+  padding: var(--space-s) var(--space-m);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  cursor: pointer;
+}
+.choice:hover { border-color: var(--color-primary); }
+.choice input { width: var(--checkbox-size); height: var(--checkbox-size); flex-shrink: 0; margin: 0; accent-color: var(--color-primary); }
+.choice input:focus-visible { outline: none; }
+.choice:has(input:focus-visible) { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; }
+.choice:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-soft); font-weight: var(--font-weight-strong); }
+.choice:has(input:checked) .icon-chip { background: var(--color-background); }
+.choice .icon-chip { width: 2.25rem; height: 2.25rem; }
+.choice-text { display: flex; flex-direction: column; min-width: 0; }
+.choice-hint { color: var(--color-muted); font-size: var(--font-size-small); font-weight: normal; }
+.choices-hint { margin: 0 0 var(--space-m); color: var(--color-muted); }
+.field { display: flex; flex-direction: column; gap: var(--space-xs); margin: 0 0 var(--space-l); }
+.field-label { font-weight: var(--font-weight-strong); }
+.field-hint { margin: 0; color: var(--color-muted); }
+.field-input { width: 100%; min-height: var(--touch-target); padding: var(--space-s) var(--space-m); border: var(--border-width) solid var(--color-border); border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font: inherit; }
+.field-input:focus-visible { border-color: var(--color-primary); }
+.step-nav { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+/* --- Plan of action: numbered steps, each with its reason --------------------- */
+.plan-count { margin: 0 0 var(--space); font-weight: var(--font-weight-strong); }
+.plan-steps { display: flex; flex-direction: column; gap: var(--space); margin: 0 0 var(--space-l); padding: 0; list-style: none; counter-reset: plan-step; }
+.plan-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  padding: var(--space);
+  border: var(--border-width) solid var(--color-primary-soft);
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: var(--shadow-card);
+  counter-increment: plan-step;
+}
+.plan-step-head { display: flex; align-items: center; gap: var(--space-m); }
+.plan-step-head::before {
+  content: counter(plan-step);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-chip-size);
+  height: var(--icon-chip-size);
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-title);
+}
+.plan-step.is-done { background: var(--color-surface); box-shadow: none; }
+.plan-step.is-done .plan-step-head::before { content: "✓"; }
+.plan-step-body { display: flex; flex-direction: column; gap: var(--space-s); flex: 1; min-width: 0; }
+.plan-step-title { margin: 0; font-size: var(--font-size-lead); line-height: 1.3; }
+.plan-step-body p { margin: 0; }
+.why summary { display: flex; align-items: center; min-height: 2.75rem; color: var(--color-primary); font-weight: var(--font-weight-strong); cursor: pointer; }
+.why p { padding: var(--space-s) var(--space-m); border-radius: var(--radius); background: var(--color-surface); }
+.plan-step.is-done .why p { background: var(--color-background); }
+.checkbox { display: flex; align-items: center; gap: var(--space-m); min-height: var(--touch-target); font-weight: var(--font-weight-strong); cursor: pointer; }
+.checkbox input { width: var(--checkbox-size); height: var(--checkbox-size); flex-shrink: 0; margin: 0; accent-color: var(--color-primary); }
+.checkbox input:focus-visible { outline: none; }
+.checkbox:has(input:focus-visible) { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .screen-enter { animation: enter 160ms ease-out; }
+  @keyframes enter { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<div class="mock-bar" role="region" aria-label="Commandes de la maquette">
+  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Questionnaire d'orientation et plan d'action (M1)</strong>, à valider avec la cliente</div>
+  <label for="screen-select">Écran
+    <select id="screen-select"></select>
+  </label>
+  <button type="button" id="fill-jordan">Remplir comme Jordan</button>
+  <button type="button" id="reset">Tout effacer</button>
+</div>
+
+<div class="stage">
+  <div class="device" id="device" aria-live="polite"></div>
+  <aside class="mock-notes" id="notes" aria-label="Notes de la maquette"></aside>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  // --- Icons: same 24 px stroke style as components/ui/icons.tsx ------------------
+  const ICONS = {
+    briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7"/>',
+    restart: '<path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5"/>',
+    shop: '<path d="M4 10v10h16V10M3 10l2-6h14l2 6zM9 20v-5h6v5"/>',
+    question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+    leaf: '<path d="M5 19C5 11 11 5 20 5c0 9-6 15-14 15z"/><path d="M5 19l8-8"/>',
+    fish: '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3z"/><path d="M14 11h.01"/>',
+    hammer: '<path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-8 8 3 3 8-8"/>',
+    pram: '<path d="M4 10h14a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6z"/><path d="M11 10V4a6 6 0 0 1 6 6M18 10l2-4"/><circle cx="7" cy="20" r="1.5"/><circle cx="16" cy="20" r="1.5"/>',
+    broom: '<path d="M15 3l-4 9"/><path d="M7 12h8l2 9H5z"/>',
+    bricks: '<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 12h18M9 6v6M15 12v6"/>',
+    pot: '<path d="M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M2 10h20M9 7c0-1 1-1 1-2M14 7c0-1 1-1 1-2"/>',
+    basket: '<path d="M3 10h18l-2 10H5z"/><path d="M8 10l3-6M16 10l-3-6M9 14v3M15 14v3"/>',
+    heart: '<path d="M12 20s-8-4.5-8-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.5-8 10-8 10z"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>',
+    none: '<path d="M6 6l12 12M18 6L6 18"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
+    sunset: '<path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 6v4M5 11l1.5 1.5M19 11l-1.5 1.5"/>',
+    moon: '<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',
+    stars: '<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/><path d="M17 3v3M15.5 4.5h3"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    car: '<path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><rect x="3" y="11" width="18" height="6" rx="2"/><path d="M6 17v2M18 17v2M7 14h.01M17 14h.01"/>',
+    house: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+    wheelchair: '<circle cx="11" cy="4" r="1.5"/><path d="M11 7v6h5l2.5 5M11 10h4"/><path d="M8 10.5a5 5 0 1 0 6.5 6.5"/>',
+    form: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/>',
+    laptop: '<rect x="5" y="5" width="14" height="10" rx="1"/><path d="M3 19h18l-2-4H5z"/>',
+    shirt: '<path d="M8 3l4 3 4-3 5 4-3 3-2-1v12H8V9L6 10 3 7z"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>',
+    mobile: '<rect x="7" y="3" width="10" height="18" rx="1.5"/><path d="M11 18h2"/>',
+    wifi: '<path d="M4 10a12 12 0 0 1 16 0M7.5 13.5a7 7 0 0 1 9 0M12 18h.01"/>',
+    mail: '<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 7l9 6 9-6"/>',
+    phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    lifebuoy: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/>',
+    check: '<path d="M5 12l5 5 9-10"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>'
+  };
+  const icon = (name, cls) => '<svg' + (cls ? ' class="' + cls + '"' : '') + ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[name] + '</svg>';
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // --- The seven questions (cahier des charges §7.1) --------------------------------
+  // Codes match the proposal of issue #50 (code_question / code_reponse).
+  const QUESTIONS = [
+    { code: 'situation', multi: false, title: "Aujourd'hui, quelle est votre situation ?",
+      options: [
+        ['sans_emploi', 'Je n\'ai pas de travail', 'search'],
+        ['petits_boulots', 'Je fais des petits boulots', 'clock'],
+        ['en_emploi', 'J\'ai un travail, je cherche autre chose', 'briefcase'],
+        ['en_formation', 'Je suis en formation ou à l\'école', 'book'],
+        ['reprise', 'Je reprends après une longue pause', 'restart', 'Pour la famille ou une autre raison']
+      ] },
+    { code: 'projet', multi: false, title: "Qu'aimeriez-vous faire ?",
+      options: [
+        ['travail_vite', 'Trouver un travail rapidement', 'briefcase'],
+        ['formation', 'Apprendre un métier', 'book'],
+        ['creer', 'Créer mon activité', 'shop'],
+        ['ne_sait_pas', 'Je ne sais pas encore', 'question']
+      ] },
+    { code: 'experiences', multi: true, title: "Qu'avez-vous déjà fait, même sans être payé ?",
+      hint: 'Tout compte : aider la famille, le bénévolat, les petits travaux. Plusieurs réponses possibles.',
+      free: { label: 'Autre chose ? (facultatif)', placeholder: 'Exemple : je répare les scooters du quartier' },
+      options: [
+        ['agriculture', 'Agriculture, abattis', 'leaf'],
+        ['peche', 'Pêche', 'fish'],
+        ['artisanat', 'Artisanat', 'hammer'],
+        ['garde_enfants', 'Garde d\'enfants', 'pram'],
+        ['aide_personne', 'Aide à une personne âgée', 'user'],
+        ['menage', 'Ménage, entretien', 'broom'],
+        ['batiment', 'Bâtiment, travaux', 'bricks'],
+        ['cuisine', 'Cuisine', 'pot'],
+        ['vente', 'Vente, marché', 'basket'],
+        ['benevolat', 'Bénévolat, association', 'heart'],
+        ['aucune', 'Rien pour l\'instant', 'none', null, true]
+      ] },
+    { code: 'disponibilites', multi: true, title: 'Quand pouvez-vous travailler ?',
+      hint: 'Plusieurs réponses possibles.',
+      options: [
+        ['matin', 'Le matin', 'sun'],
+        ['apres_midi', 'L\'après-midi', 'sunset'],
+        ['soir', 'Le soir', 'moon'],
+        ['nuit', 'La nuit', 'stars'],
+        ['week_end', 'Le week-end', 'calendar']
+      ] },
+    { code: 'besoins', multi: true, title: "De quoi auriez-vous besoin pour avancer ?",
+      hint: 'Plusieurs réponses possibles. Nous vous proposerons de l\'aide pour chacune.',
+      options: [
+        ['trajet', 'Un trajet', 'car', 'Pas de permis ou pas de voiture'],
+        ['vehicule_adapte', 'Un véhicule adapté', 'wheelchair', 'Pour un fauteuil roulant'],
+        ['garde', 'Une garde pour mes enfants', 'pram'],
+        ['logement', 'Un logement', 'house'],
+        ['demarches', 'De l\'aide pour mes démarches', 'form'],
+        ['numerique', 'Apprendre à utiliser le téléphone ou internet', 'laptop'],
+        ['francais', 'Mieux lire et écrire le français', 'book'],
+        ['equipement', 'Des vêtements ou du matériel de travail', 'shirt'],
+        ['aucun', 'Rien de tout ça', 'none', null, true]
+      ] },
+    { code: 'langues', multi: true, title: 'Quelles langues parlez-vous ?',
+      hint: 'Plusieurs réponses possibles.',
+      options: [
+        ['fr', 'Français', 'chat'],
+        ['gcr', 'Créole guyanais', 'chat'],
+        ['ht', 'Créole haïtien', 'chat'],
+        ['pt', 'Portugais', 'chat'],
+        ['es', 'Espagnol', 'chat'],
+        ['en', 'Anglais', 'chat'],
+        ['nenge', 'Nenge (bushinenge)', 'chat'],
+        ['autre', 'Une autre langue', 'chat']
+      ] },
+    { code: 'equipement_numerique', multi: true, title: "Qu'avez-vous pour aller sur internet ?",
+      hint: 'Plusieurs réponses possibles.',
+      options: [
+        ['smartphone', 'Un téléphone avec internet', 'mobile'],
+        ['ordinateur', 'Un ordinateur', 'laptop'],
+        ['internet_maison', 'Internet à la maison', 'wifi'],
+        ['email', 'Une adresse e-mail', 'mail'],
+        ['rien', 'Rien de tout ça', 'none', null, true]
+      ] }
+  ];
+  const label = (qCode, aCode) => {
+    const q = QUESTIONS.find((x) => x.code === qCode);
+    const o = q && q.options.find((x) => x[0] === aCode);
+    return o ? o[1] : aCode;
+  };
+
+  // --- State --------------------------------------------------------------------------
+  const empty = () => ({ answers: {}, free: '', done: {}, phone: '', when: 'peu_importe', loggedIn: false });
+  let state = empty();
+  const JORDAN = {
+    answers: {
+      situation: ['sans_emploi'], projet: ['travail_vite'], experiences: ['agriculture', 'benevolat'],
+      disponibilites: ['matin', 'apres_midi'], besoins: ['trajet'], langues: ['fr', 'gcr'],
+      equipement_numerique: ['smartphone']
+    },
+    free: 'J\'aide mon oncle à l\'abattis le week-end', done: {}, phone: '0694 12 34 56', when: 'matin', loggedIn: false
+  };
+  const has = (q, a) => (state.answers[q] || []).includes(a);
+  const list = (q) => (state.answers[q] || []).map((a) => label(q, a).toLowerCase());
+  const joinFr = (arr) => arr.length <= 1 ? (arr[0] || '') : arr.slice(0, -1).join(', ') + ' et ' + arr[arr.length - 1];
+
+  // --- Rules of the plan: written in advance, each one explains itself ---------------
+  // Order: the project first, then one step per need, then filler steps up to 3.
+  // At most 5 steps (cahier des charges §7.1).
+  function buildPlan() {
+    const steps = [];
+    const why = (q) => 'Vous avez répondu « ' + list(q).map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(' », « ') + ' ».';
+    const projet = (state.answers.projet || [])[0];
+    const exp = (state.answers.experiences || []).filter((x) => x !== 'aucune');
+    const dispo = list('disponibilites');
+
+    if (projet === 'travail_vite' || (!projet && has('situation', 'sans_emploi'))) {
+      steps.push({ id: 'offres', title: 'Regarder les offres près de chez vous',
+        text: 'Des offres où les débutants sont acceptés' + (dispo.length ? ', ' + joinFr(dispo) : '') + '.' + (exp.length || state.free ? ' Vos expériences comptent : parlez-en à l\'employeur.' : ''),
+        action: ['Voir les offres', 'briefcase', 'Offres d\'emploi, filtrées « débutant accepté »'],
+        why: (projet ? why('projet') : why('situation')) + (exp.length ? ' Vos expériences : ' + joinFr(list('experiences')) + '.' : '') });
+    } else if (projet === 'formation') {
+      steps.push({ id: 'formation', title: 'Choisir une formation',
+        text: 'Les catalogues de France Travail et de Mon Compte Formation présentent les formations près de chez vous.',
+        action: ['Voir les formations', 'book', 'Formations (liens vers France Travail et Mon Compte Formation)'], why: why('projet') });
+    } else if (projet === 'creer') {
+      steps.push({ id: 'creer', title: 'Être accompagné pour créer votre activité',
+        text: 'Une structure peut vous aider à monter votre projet, pas à pas.',
+        action: ['Voir les services', 'lifebuoy', 'Annuaire des services d\'aide, besoin « Démarches »'], why: why('projet') });
+    } else if (projet === 'ne_sait_pas') {
+      steps.push({ id: 'conseiller', title: 'Faire le point avec un conseiller',
+        text: 'Un conseiller vous aide à trouver ce qui vous plaît, à partir de ce que vous savez déjà faire.',
+        action: ['Être rappelé', 'phone', null, 'rappel'], why: why('projet') });
+    }
+
+    if (has('besoins', 'trajet') || has('besoins', 'vehicule_adapte')) {
+      steps.push({ id: 'trajet', title: 'Prévoir vos trajets',
+        text: 'Le trajet solidaire vous emmène à un entretien, une formation ou un rendez-vous. Il est gratuit pour vous.' + (has('besoins', 'vehicule_adapte') ? ' Vous pouvez demander un véhicule adapté.' : ''),
+        action: ['Réserver un trajet', 'car', 'Réservation d\'un trajet, motif « Entretien d\'embauche »'], why: 'Vous avez dit avoir besoin de : « ' + ['trajet', 'vehicule_adapte'].filter((c) => has('besoins', c)).map((c) => label('besoins', c)).join(' », « ') + ' ».' });
+    }
+    const NEEDS = [
+      ['garde', 'Trouver une solution de garde', 'Des services de garde d\'enfants, avec leurs horaires et les langues parlées.', 'Garde d\'enfants'],
+      ['logement', 'Trouver de l\'aide pour le logement', 'Des services qui aident à trouver ou à garder un logement.', 'Logement'],
+      ['demarches', 'Être aidé pour vos démarches', 'Des services et des fiches « Comment faire ? » en langage simple, à écouter.', 'Démarches'],
+      ['numerique', 'Apprendre à utiliser le téléphone et internet', 'Des ateliers gratuits près de chez vous.', 'Numérique'],
+      ['francais', 'Mieux lire et écrire le français', 'Des cours de savoirs de base, gratuits.', 'Formation, savoirs de base'],
+      ['equipement', 'Trouver des vêtements ou du matériel de travail', 'Des services qui prêtent ou donnent l\'équipement.', 'Équipement']
+    ];
+    for (const [code, title, text, cat] of NEEDS) {
+      if (has('besoins', code)) steps.push({ id: code, title, text, action: ['Voir les services', 'lifebuoy', 'Annuaire des services d\'aide, besoin « ' + cat + ' »'], why: 'Vous avez dit avoir besoin de : « ' + label('besoins', code) + ' ».' });
+    }
+    // French not among the languages spoken: French lessons, even if not asked.
+    const langs = state.answers.langues || [];
+    if (!has('besoins', 'francais') && langs.length && !langs.includes('fr')) {
+      steps.push({ id: 'francais_auto', title: 'Apprendre le français',
+        text: 'Des cours gratuits près de chez vous. En attendant, l\'application existe dans votre langue.',
+        action: ['Voir les services', 'lifebuoy', 'Annuaire des services d\'aide, besoin « Formation, savoirs de base »'], why: 'Vous avez dit parler : ' + joinFr(langs.map((l) => label('langues', l))) + '.' });
+    }
+    // No phone with internet and no computer: a digital step, even if not asked.
+    const eq = state.answers.equipement_numerique || [];
+    if (!has('besoins', 'numerique') && eq.length && !eq.includes('smartphone') && !eq.includes('ordinateur')) {
+      steps.push({ id: 'numerique_auto', title: 'Avoir accès à internet',
+        text: 'Des lieux près de chez vous prêtent un ordinateur et aident à l\'utiliser.',
+        action: ['Voir les services', 'lifebuoy', 'Annuaire des services d\'aide, besoin « Numérique »'], why: why('equipement_numerique') });
+    }
+    // Fillers: always useful, never a decision about the person.
+    const fillers = [
+      { id: 'entretien', title: 'Préparer votre entretien', text: 'Une fiche simple : quoi dire, quoi apporter, comment y aller.',
+        action: ['Lire la fiche', 'book', 'Fiche pratique « Comment faire ? » : préparer un entretien'], why: 'Proposée à tout le monde qui cherche un travail.' },
+      { id: 'conseiller', title: 'Parler de votre projet avec un conseiller', text: 'Il peut compléter ce plan avec vous.',
+        action: ['Être rappelé', 'phone', null, 'rappel'], why: 'Proposée à tout le monde : ce plan n\'est qu\'un point de départ.' }
+    ];
+    for (const f of fillers) {
+      if (steps.length >= 3) break;
+      if (!steps.some((s) => s.id === f.id)) steps.push(f);
+    }
+    return steps.slice(0, 5);
+  }
+
+  // --- Screens --------------------------------------------------------------------------
+  const SCREENS = [
+    ['offres', 'Offres d\'emploi : l\'entrée'],
+    ['intro', 'Faire le point'],
+    ...QUESTIONS.map((q, i) => ['q' + (i + 1), 'Question ' + (i + 1) + ' : ' + q.code.replace('_', ' ')]),
+    ['plan', 'Mon plan d\'action'],
+    ['rappel', 'Être rappelé'],
+    ['rappel-ok', 'Être rappelé : demande enregistrée'],
+    ['garder', 'Garder mon plan'],
+    ['accueil', 'Accueil, une fois connecté']
+  ];
+  let current = 'offres';
+
+  const header = (action) => '<header class="header"><a class="brand" href="#offres" data-go="offres"><svg viewBox="0 0 64 64" aria-hidden="true"><rect class="logo-ground" width="64" height="64" rx="14"/><path class="logo-road" d="M14 44h36M20 44l6-20h12l6 20"/><circle class="logo-sun" cx="32" cy="16" r="5"/></svg>En route pour l\'emploi</a>' + (action ? '<button type="button" class="header-action" data-toast="' + esc(action[1]) + '">' + action[0] + '</button>' : '') + '</header>';
+  const motif = '<svg class="hero-motif" width="150" height="150" viewBox="0 0 64 64" aria-hidden="true"><path d="M14 44h36M20 44l6-20h12l6 20"/><circle cx="32" cy="16" r="5"/></svg>';
+  const hero = (title, opts = {}) => '<section class="hero">' + motif +
+    (opts.eyebrow ? '<p class="hero-eyebrow">' + opts.eyebrow + '</p>' : '') +
+    '<h1 class="hero-title" id="screen-title" tabindex="-1">' + title + '</h1>' +
+    (opts.lead ? '<p class="hero-lead">' + opts.lead + '</p>' : '') +
+    (opts.progress ? '<div class="progress" aria-hidden="true">' + Array.from({ length: opts.progress[1] }, (_, i) => '<span class="progress-step' + (i < opts.progress[0] ? ' progress-step-done' : '') + '"></span>').join('') + '</div>' : '') +
+    '</section>';
+  const footer = '<footer class="footer"><label class="visually-hidden" for="lang">Langue</label><select id="lang"><option>Français</option><option>Kréyòl gwiyanè</option><option>Kreyòl ayisyen</option><option>Português (Brasil)</option><option>English</option></select><p>Projet étudiant — démonstrateur · <a href="#offres" data-toast="Page « À propos » (existante)">À propos</a></p></footer>';
+  const card = (cls, ic, title, hint, attrs) => '<button type="button" class="action-card ' + cls + '" ' + attrs + '><span class="icon-chip">' + icon(ic) + '</span><span class="action-card-text"><span class="action-card-title">' + title + '</span>' + (hint ? '<span class="action-card-hint">' + hint + '</span>' : '') + '</span>' + icon('arrow', 'action-card-arrow') + '</button>';
+
+  function screenOffres() {
+    return header(['Se connecter', 'Page de connexion (existante)']) + hero('Offres d\'emploi', { lead: 'Des offres fictives près de chez vous.' }) +
+      '<main class="sheet">' +
+      card('action-card-sun', 'compass', 'Je ne sais pas par où commencer', 'Faites le point en 7 questions. Environ 5 minutes.', 'data-go="intro"') +
+      '<div class="stack ghost" aria-hidden="true">' +
+      '<p class="note" style="margin:0">Filtres et offres : écran existant, montré en grisé.</p>' +
+      '<div class="offer-card"><p><strong>Agent d\'entretien (H/F)</strong></p><p>Nettoyage Plus · Cayenne</p><p class="note">Le matin · Débutant accepté · Sans diplôme</p></div>' +
+      '<div class="offer-card"><p><strong>Aide de cuisine (H/F)</strong></p><p>Le Carbet du Port · Rémire-Montjoly</p><p class="note">Le soir · Débutant accepté</p></div>' +
+      '</div></main>' + footer;
+  }
+
+  function screenIntro() {
+    return header() + hero('Faire le point', { lead: 'Quelques questions pour vous proposer un plan d\'action.' }) +
+      '<main class="sheet">' +
+      '<ul class="benefits">' +
+      '<li class="benefit"><span class="icon-chip">' + icon('list') + '</span>7 questions, environ 5 minutes.</li>' +
+      '<li class="benefit"><span class="icon-chip">' + icon('check') + '</span>Il n\'y a pas de bonne ou de mauvaise réponse.</li>' +
+      '<li class="benefit"><span class="icon-chip">' + icon('restart') + '</span>Vous pouvez passer une question.</li>' +
+      '</ul>' +
+      '<p class="note">Nous ne demandons rien sur vos papiers ni sur votre santé. Vos réponses sont gardées seulement si vous avez un compte.</p>' +
+      '<button type="button" class="button" data-go="q1">Commencer</button>' +
+      '</main>' + footer;
+  }
+
+  function screenQuestion(i) {
+    const q = QUESTIONS[i];
+    const chosen = state.answers[q.code] || [];
+    const type = q.multi ? 'checkbox' : 'radio';
+    const opts = q.options.map(([code, text, ic, hint]) =>
+      '<label class="choice"><input type="' + type + '" name="' + q.code + '" value="' + code + '"' + (chosen.includes(code) ? ' checked' : '') + ' data-q="' + q.code + '">' +
+      '<span class="icon-chip">' + icon(ic) + '</span><span class="choice-text">' + text + (hint ? '<span class="choice-hint">' + hint + '</span>' : '') + '</span></label>').join('');
+    const last = i === QUESTIONS.length - 1;
+    const next = last ? 'plan' : 'q' + (i + 2);
+    const prev = i === 0 ? 'intro' : 'q' + i;
+    return header() + hero(q.title, { eyebrow: 'Question ' + (i + 1) + ' sur ' + QUESTIONS.length, progress: [i + 1, QUESTIONS.length] }) +
+      '<main class="sheet">' +
+      (q.hint ? '<p class="choices-hint" id="hint-' + q.code + '">' + q.hint + '</p>' : '') +
+      '<fieldset class="choices"' + (q.hint ? ' aria-describedby="hint-' + q.code + '"' : '') + '><legend class="visually-hidden">' + q.title + '</legend>' + opts + '</fieldset>' +
+      (q.free ? '<div class="field"><label class="field-label" for="free">' + q.free.label + '</label><input class="field-input" id="free" type="text" autocomplete="off" placeholder="' + esc(q.free.placeholder) + '" value="' + esc(state.free) + '"></div>' : '') +
+      '<div class="step-nav"><button type="button" class="button" data-go="' + next + '">' + (last ? 'Voir mon plan d\'action' : 'Suivant') + '</button>' +
+      (chosen.length ? '' : '<button type="button" class="link-action" data-go="' + next + '">Passer cette question</button>') +
+      '<button type="button" class="link-action" data-go="' + prev + '">' + icon('back') + 'Retour</button></div>' +
+      '</main>' + footer;
+  }
+
+  function screenPlan() {
+    const steps = buildPlan();
+    const doneCount = steps.filter((s) => state.done[s.id]).length;
+    const items = steps.map((s) => {
+      const done = !!state.done[s.id];
+      const [actLabel, actIcon, actTarget, actGo] = s.action;
+      const actAttrs = actGo ? 'data-go="' + actGo + '"' : 'data-toast="Ouvre l\'écran existant : ' + esc(actTarget) + '"';
+      return '<li class="plan-step' + (done ? ' is-done' : '') + '">' +
+        '<div class="plan-step-head"><h2 class="plan-step-title">' + s.title + (done ? ' <span class="badge">Fait</span>' : '') + '</h2></div><div class="plan-step-body">' +
+        '<p>' + esc(s.text) + '</p>' +
+        '<details class="why"><summary>Pourquoi cette proposition ?</summary><p>' + esc(s.why) + '</p></details>' +
+        '<button type="button" class="button button-secondary" ' + actAttrs + '>' + icon(actIcon) + actLabel + '</button>' +
+        '<label class="checkbox"><input type="checkbox" data-done="' + s.id + '"' + (done ? ' checked' : '') + '>C\'est fait</label>' +
+        '</div></li>';
+    }).join('');
+    return header(state.loggedIn ? ['Se déconnecter', 'Déconnexion'] : ['Se connecter', 'Page de connexion (existante)']) +
+      hero('Mon plan d\'action', { lead: steps.length + ' étapes proposées d\'après vos réponses.' }) +
+      '<main class="sheet">' +
+      '<p class="alert alert-info">Ce plan est une proposition. Vous pouvez le changer avec un conseiller.</p>' +
+      '<p class="plan-count" aria-live="polite">' + doneCount + ' étape' + (doneCount > 1 ? 's' : '') + ' faite' + (doneCount > 1 ? 's' : '') + ' sur ' + steps.length + '</p>' +
+      '<ol class="plan-steps">' + items + '</ol>' +
+      '<section class="panel"><h2 class="panel-title">Parler à quelqu\'un</h2><p>Un conseiller peut vous rappeler pour parler de ce plan.</p>' +
+      '<button type="button" class="button button-secondary" data-go="rappel">' + icon('phone') + 'Être rappelé</button></section>' +
+      (state.loggedIn ? '<p class="note">Votre plan est gardé dans votre compte.</p>' : '<button type="button" class="button" data-go="garder">Garder mon plan</button>') +
+      '<button type="button" class="link-action" data-go="q1">Modifier mes réponses</button>' +
+      '</main>' + footer;
+  }
+
+  function screenRappel() {
+    const when = [['matin', 'Le matin'], ['apres_midi', 'L\'après-midi'], ['peu_importe', 'Peu importe']];
+    return header() + hero('Être rappelé', { lead: 'Un conseiller vous appelle pour parler de votre plan.' }) +
+      '<main class="sheet">' +
+      '<div class="field"><label class="field-label" for="phone">Votre numéro de téléphone</label><input class="field-input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0694 12 34 56" value="' + esc(state.phone) + '"></div>' +
+      '<fieldset class="choices"><legend class="field-label">Quand préférez-vous être appelé ?</legend>' +
+      when.map(([c, t]) => '<label class="choice"><input type="radio" name="when" value="' + c + '"' + (state.when === c ? ' checked' : '') + ' data-when>' + t + '</label>').join('') +
+      '</fieldset>' +
+      '<p class="note">Le conseiller rappelle aux heures d\'ouverture de la structure. Ce service ne traite pas les urgences.</p>' +
+      '<button type="button" class="button" data-go="rappel-ok">Demander à être rappelé</button>' +
+      '<button type="button" class="link-action" data-go="plan">' + icon('back') + 'Revenir à mon plan</button>' +
+      '</main>' + footer;
+  }
+
+  function screenRappelOk() {
+    const when = { matin: 'le matin', apres_midi: 'l\'après-midi', peu_importe: 'dès que possible' }[state.when];
+    return header() + hero('Être rappelé') +
+      '<main class="sheet">' +
+      '<p class="alert alert-success" role="status">Demande enregistrée.</p>' +
+      '<p class="lead">Un conseiller vous appellera ' + when + (state.phone ? ' au <strong>' + esc(state.phone) + '</strong>' : '') + '.</p>' +
+      '<p class="note">Vous ne serez pas appelé par un robot.</p>' +
+      '<button type="button" class="button" data-go="plan">Revenir à mon plan</button>' +
+      '</main>' + footer;
+  }
+
+  function screenGarder() {
+    return header() + hero('Garder mon plan', { lead: 'Pour le retrouver plus tard, il faut un compte.' }) +
+      '<main class="sheet">' +
+      '<p>Sans compte, votre plan et vos réponses sont effacés quand vous fermez l\'application.</p>' +
+      '<p class="note">Avec un compte, nous gardons seulement vos réponses et votre plan. Vous pouvez demander à les effacer.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-login>Créer un compte</button>' +
+      '<button type="button" class="button button-secondary" data-login>J\'ai déjà un compte</button>' +
+      '<button type="button" class="link-action" data-go="plan">' + icon('back') + 'Revenir à mon plan</button></div>' +
+      '</main>' + footer;
+  }
+
+  function screenAccueil() {
+    const steps = buildPlan();
+    const doneCount = steps.filter((s) => state.done[s.id]).length;
+    return header(['Se déconnecter', 'Déconnexion']) + hero('Bonjour Jordan', { lead: 'De quoi avez-vous besoin aujourd\'hui ?' }) +
+      '<main class="sheet"><div class="stack" style="margin-top:0">' +
+      card('need-work', 'briefcase', 'Je cherche un travail', null, 'data-go="offres"') +
+      card('need-ride', 'car', 'J\'ai besoin d\'un trajet', null, 'data-toast="Réservation d\'un trajet (existante)"') +
+      card('need-help', 'lifebuoy', 'J\'ai besoin d\'aide', null, 'data-toast="Page « J\'ai besoin d\'aide » (existante)"') +
+      '</div><div class="stack">' +
+      '<button type="button" class="link-action" data-go="plan">' + icon('list') + 'Mon plan d\'action <span class="badge">' + doneCount + ' sur ' + steps.length + '</span></button>' +
+      '<button type="button" class="link-action" data-toast="Mes trajets (existant)">' + icon('calendar') + 'Mes trajets</button>' +
+      '<button type="button" class="link-action" data-toast="Mon profil (existant)">' + icon('user') + 'Mon profil</button>' +
+      '</div></main>' + footer;
+  }
+
+  // --- Notes for the review with the client -------------------------------------------
+  const ask = (t) => '<p class="ask"><strong>À valider avec vous</strong>' + t + '</p>';
+  function notes(id) {
+    const qNotes = {
+      q1: ['Pas de case « autre » : la personne peut passer la question.', ask('Manque-t-il une situation fréquente chez les personnes que vous accompagnez ?')],
+      q2: ['Cette réponse choisit la première étape du plan.', ask('Ces quatre projets suffisent-ils ?')],
+      q3: ['Les expériences sans salaire comptent (cahier des charges §7.1) : l\'abattis, la pêche, la garde d\'enfants…', 'Un champ libre, facultatif, pour le reste.', ask('Quelles expériences sont les plus courantes en Guyane ? Faut-il en ajouter ?')],
+      q4: ['Sert à filtrer les offres proposées dans le plan.', ask('Faut-il demander aussi quand la personne peut commencer ?')],
+      q5: ['Les freins sont écrits comme des besoins, jamais comme un diagnostic ni une situation de séjour (§7.1, §12).', 'Chaque besoin mène à un service de l\'annuaire, déjà fait.', ask('La liste vous convient-elle ? Manque-t-il un besoin ?')],
+      q6: ['Sert à proposer des services qui parlent la langue de la personne, et des cours de français si besoin.', ask('Quelles langues ajouter ou retirer (hmong, langues amérindiennes, sranan tongo…) ?')],
+      q7: ['Sert à proposer un accompagnement au numérique. Aucune réponse ne bloque l\'accès à quoi que ce soit.', ask('La question est-elle claire ainsi ?')]
+    };
+    const N = {
+      offres: ['<h2>L\'entrée du questionnaire</h2><ul><li>L\'accueil garde ses trois besoins : au plus 3 actions principales par écran (§10).</li><li>Le questionnaire s\'ouvre depuis « Je cherche un travail », là où commence le parcours de Jordan (scénario A).</li></ul>' + ask('Ce point d\'entrée vous semble-t-il naturel ? Faut-il aussi le proposer dans « J\'ai besoin d\'aide » ?')],
+      intro: ['<h2>Avant de commencer</h2><ul><li>Le cahier des charges demande 10 minutes au plus : 7 questions à choix, environ 5 minutes.</li><li>On ne demande rien sur les papiers, l\'origine ou la santé (§12).</li><li>Pas besoin de compte pour répondre. Sans compte, rien n\'est gardé.</li></ul>'],
+      plan: ['<h2>Le plan d\'action</h2><ul><li>3 à 5 étapes, calculées par des règles simples écrites à l\'avance (tableau ci-dessous).</li><li>Chaque étape dit pourquoi elle est proposée.</li><li>C\'est une proposition : un conseiller peut toujours la changer. Aucune décision automatique (RGPD art. 22).</li><li>Les boutons ouvrent les écrans déjà faits : offres, trajet, annuaire, fiches.</li><li>La personne coche les étapes faites.</li></ul>' +
+        '<div class="mock-table-wrap"><table><thead><tr><th>Si la personne répond</th><th>Étape proposée</th></tr></thead><tbody>' +
+        '<tr><td>Trouver un travail rapidement</td><td>Regarder les offres (débutant accepté, ses horaires)</td></tr>' +
+        '<tr><td>Apprendre un métier</td><td>Choisir une formation</td></tr>' +
+        '<tr><td>Créer mon activité</td><td>Être accompagné (annuaire)</td></tr>' +
+        '<tr><td>Je ne sais pas encore</td><td>Faire le point avec un conseiller</td></tr>' +
+        '<tr><td>Besoin d\'un trajet ou d\'un véhicule adapté</td><td>Prévoir vos trajets</td></tr>' +
+        '<tr><td>Chaque autre besoin</td><td>Le service de l\'annuaire qui y répond</td></tr>' +
+        '<tr><td>Ne parle pas français</td><td>Apprendre le français</td></tr>' +
+        '<tr><td>Ni téléphone avec internet, ni ordinateur</td><td>Avoir accès à internet</td></tr>' +
+        '<tr><td>Moins de 3 étapes</td><td>Préparer votre entretien, puis parler avec un conseiller</td></tr>' +
+        '</tbody></table></div>' + ask('Ces règles vous conviennent-elles ? Qui est le conseiller : quelqu\'un de votre structure ?')],
+      rappel: ['<h2>Être rappelé</h2><ul><li>Le contact humain demandé par le cahier des charges (§7.1).</li><li>La demande est enregistrée ; quelqu\'un de la structure rappelle.</li><li>On ne promet aucun service d\'urgence (§6).</li></ul>' + ask('Qui rappelle, et dans quel délai ? Quels sont vos horaires ?')],
+      'rappel-ok': ['<h2>Demande enregistrée</h2><ul><li>Ce message ne s\'affiche qu\'une fois la demande reçue par le serveur : jamais de fausse confirmation.</li></ul>'],
+      garder: ['<h2>Garder son plan</h2><ul><li>Sans compte, rien n\'est gardé : on ne demande que ce qui sert (§2).</li><li>Avec un compte, on garde les réponses et le plan. La personne peut demander qu\'on les efface.</li></ul>'],
+      accueil: ['<h2>Retrouver son plan</h2><ul><li>Une fois connecté, le plan se retrouve depuis l\'accueil, avec le nombre d\'étapes faites.</li><li>Les trois besoins restent les seules actions principales.</li></ul>']
+    };
+    if (qNotes[id]) {
+      const [first, ...rest] = qNotes[id];
+      const qi = Number(id.slice(1)) - 1;
+      const asks = rest.filter((x) => x.startsWith('<p'));
+      const lis = [first, ...rest.filter((x) => !x.startsWith('<p'))];
+      return '<h2>Question ' + (qi + 1) + ' sur 7</h2><ul>' + lis.map((l) => '<li>' + l + '</li>').join('') + '<li>Les réponses sont des tuiles avec une icône et un texte : jamais une icône seule (§6).</li></ul>' + asks.join('');
+    }
+    return (N[id] || []).join('');
+  }
+
+  // --- Rendering and events ---------------------------------------------------------
+  const device = document.getElementById('device');
+  const notesEl = document.getElementById('notes');
+  const select = document.getElementById('screen-select');
+  select.innerHTML = SCREENS.map(([id, name], i) => '<option value="' + id + '">' + (i + 1) + '. ' + name + '</option>').join('');
+
+  function render(focus) {
+    let html;
+    if (current === 'offres') html = screenOffres();
+    else if (current === 'intro') html = screenIntro();
+    else if (/^q\d$/.test(current)) html = screenQuestion(Number(current.slice(1)) - 1);
+    else if (current === 'plan') html = screenPlan();
+    else if (current === 'rappel') html = screenRappel();
+    else if (current === 'rappel-ok') html = screenRappelOk();
+    else if (current === 'garder') html = screenGarder();
+    else html = screenAccueil();
+    device.innerHTML = '<div class="screen-enter">' + html + '</div>';
+    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + notes(current);
+    select.value = current;
+    if (focus) {
+      const t = document.getElementById('screen-title');
+      if (t) t.focus({ preventScroll: true });
+      device.scrollIntoView({ block: 'start' });
+    }
+  }
+
+  function go(id) {
+    if (!SCREENS.some((s) => s[0] === id)) id = 'offres';
+    current = id;
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+    render(true);
+  }
+
+  let toastTimer;
+  function toast(text) {
+    const el = document.getElementById('toast');
+    el.textContent = text;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 2800);
+  }
+
+  device.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go], [data-toast], [data-login]');
+    if (!t) return;
+    e.preventDefault();
+    if (t.hasAttribute('data-login')) {
+      state.loggedIn = true;
+      toast('Connexion ou création de compte (écrans existants), puis retour au plan, désormais gardé.');
+      go('plan');
+    } else if (t.dataset.go) go(t.dataset.go);
+    else toast(t.dataset.toast);
+  });
+
+  device.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.dataset.q) {
+      const q = QUESTIONS.find((x) => x.code === t.dataset.q);
+      let chosen = state.answers[q.code] || [];
+      if (!q.multi) chosen = [t.value];
+      else if (t.checked) {
+        const exclusive = q.options.find((o) => o[0] === t.value)[4];
+        chosen = exclusive ? [t.value] : chosen.filter((c) => !q.options.find((o) => o[0] === c)[4]).concat(t.value);
+      } else chosen = chosen.filter((c) => c !== t.value);
+      state.answers[q.code] = chosen;
+      // Re-render to reflect exclusive choices and the "Passer" link, keeping focus.
+      render(false);
+      const again = device.querySelector('input[data-q="' + q.code + '"][value="' + t.value + '"]');
+      if (again) again.focus();
+    } else if (t.dataset.done) {
+      state.done[t.dataset.done] = t.checked;
+      render(false);
+      const again = device.querySelector('input[data-done="' + t.dataset.done + '"]');
+      if (again) again.focus();
+    } else if (t.hasAttribute('data-when')) {
+      state.when = t.value;
+    }
+  });
+  device.addEventListener('input', (e) => {
+    if (e.target.id === 'free') state.free = e.target.value;
+    if (e.target.id === 'phone') state.phone = e.target.value;
+  });
+
+  select.addEventListener('change', () => go(select.value));
+  document.getElementById('fill-jordan').addEventListener('click', () => {
+    state = JSON.parse(JSON.stringify(JORDAN));
+    toast('Réponses de Jordan, 22 ans, sans permis (scénario A).');
+    go('plan');
+  });
+  document.getElementById('reset').addEventListener('click', () => { state = empty(); go('offres'); });
+  window.addEventListener('hashchange', () => go(location.hash.slice(1)));
+
+  current = location.hash.slice(1) || 'offres';
+  if (!SCREENS.some((s) => s[0] === current)) current = 'offres';
+  // Opened straight on a later screen: show it filled, as Jordan.
+  if (!['offres', 'intro', 'q1'].includes(current)) state = JSON.parse(JSON.stringify(JORDAN));
+  render(false);
+})();
+</script>
