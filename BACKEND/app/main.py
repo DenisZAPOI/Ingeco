@@ -16,6 +16,7 @@ from .controllers.admin_controller import admin_bp
 from .controllers.auth_controller import auth_bp
 from .controllers.driver_controller import driver_bp
 from .controllers.health_controller import health_bp
+from .controllers.help_service_controller import help_service_bp
 from .controllers.job_controller import job_bp
 from .controllers.place_controller import place_bp
 from .controllers.ride_controller import ride_bp
@@ -106,6 +107,7 @@ def create_app(config: type[Config] = Config) -> Flask:
     app.register_blueprint(driver_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(job_bp)
+    app.register_blueprint(help_service_bp)
 
     # After the Blueprints: the documentation describes the registered routes.
     # Without API_DOCS_ENABLED the validation still works, /apidoc answers 404.

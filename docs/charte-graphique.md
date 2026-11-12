@@ -353,14 +353,31 @@ travail » (`/emplois`), « J'ai besoin d'un trajet » (`/reserver`), « J'ai be
 
 ### Page « J'ai besoin d'aide »
 
-`/aide` (aussi le lien « Aide » du pied de page) : une carte « Questions fréquentes »
-(`/aide/questions`), puis l'encadré du centre d'appel. L'annuaire des services d'aide et les
-fiches pratiques s'y ajouteront.
+`/aide` (aussi le lien « Aide » du pied de page) : la carte principale « Trouver un service
+d'aide » (`/aide/services`), la carte « Questions fréquentes » (`/aide/questions`), puis l'encadré
+du centre d'appel. Les fiches pratiques s'y ajouteront.
 
 - L'encadré du centre d'appel (`CallCenterHelp`) n'apparaît que si `VITE_CALL_CENTER_PHONE` est
-  renseigné (numéro fourni par le client) : jamais de numéro fictif. Le numéro est écrit en entier,
-  en gros, au-dessus du bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre
+  renseigné (numéro fourni par le client) : jamais de numéro inventé. Le numéro est écrit en
+  entier, en gros, au-dessus du bouton « Appeler » (lien `tel:`), pour qui appelle depuis un autre
   téléphone.
+
+### Annuaire des services d'aide
+
+- `/aide/services` : les huit besoins du cahier des charges (§7.5) en tuiles, deux par ligne
+  (`category-grid`, `category-tile`) : une icône sur une pastille blanche, le nom en dessous, sur
+  le vert pâle. Elles s'affichent sans attendre l'API.
+- `/aide/services?besoin=logement` : le besoin en titre, une phrase qui l'explique, la liste
+  déroulante « Commune » (s'il y a plus d'un service), puis les services en cartes (`ride-card`) :
+  nom, commune, horaires, et les étiquettes « Accessible en fauteuil roulant » et « Parle
+  [langue de l'appli] » (jamais « Parle français » : tous le parlent). Pour « Droits et aides »,
+  l'encadré « Connaître vos droits » renvoie vers deux simulateurs officiels.
+- `/aide/services/12` : la fiche. Description, puis adresse, horaires, langues parlées,
+  accessibilité (toujours écrite, oui ou non) et date de mise à jour ; « Comment y aller ? » en
+  action principale ; l'encadré « Appeler le service », avec le numéro en entier et la mention
+  « Numéro fictif ». Les simulateurs n'y sont pas : ils feraient plus de trois actions principales.
+- Les numéros des services fictifs sont dans la plage que l'ARCEP réserve à la fiction
+  (05 36 49 xx xx) : un appel ne sonne chez personne. Ne jamais en inventer un autre.
 
 ### À propos
 

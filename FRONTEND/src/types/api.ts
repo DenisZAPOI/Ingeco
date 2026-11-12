@@ -372,6 +372,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/help-services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The help services, by need (same order in every language), in the language of
+         * @description Accept-Language where translated (French otherwise: `language` says which).
+         *
+         *     All of them at once (a few dozen at most): the phone filters them by need
+         *     and commune itself, without a round trip at each choice.
+         */
+        get: operations["listHelpServices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/help-services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One help service. 404 if it does not exist. */
+        get: operations["getHelpService"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs": {
         parameters: {
             query?: never;
@@ -945,6 +985,43 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "degraded";
+        };
+        /** HelpServiceDto */
+        HelpServiceDto: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
+            /** Communename */
+            communeName: string;
+            /** Description */
+            description: string;
+            /** Hours */
+            hours: string;
+            /** Id */
+            id: number;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string;
+            place: components["schemas"]["StopDto"];
+            /** Spokenlanguages */
+            spokenLanguages: ("fr" | "gcr" | "ht" | "pt-BR" | "en")[];
+            /**
+             * Updatedon
+             * Format: date
+             */
+            updatedOn: string;
+            /** Wheelchairaccessible */
+            wheelchairAccessible: boolean;
+        };
+        /** HelpServiceListDto */
+        HelpServiceListDto: {
+            /** Items */
+            items: components["schemas"]["HelpServiceDto"][];
         };
         /** JobOfferDto */
         JobOfferDto: {
@@ -2474,6 +2551,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthDto"];
+                };
+            };
+        };
+    };
+    listHelpServices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelpServiceListDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getHelpService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelpServiceDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
                 };
             };
         };

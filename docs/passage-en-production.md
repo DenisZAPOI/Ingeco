@@ -33,6 +33,7 @@ Territoires) avant la remise.
 | Comptes, connexion, rôles | **Réel** : mots de passe hachés, sessions sécurisées, droits vérifiés côté serveur | À garder |
 | Réservation, suivi, annulation, évaluation, côté chauffeur | **Réel** dans la logique, testé (~240 tests) | À garder |
 | Données (comptes, trajets) | **En mémoire** : tout revient à zéro quand l'API redémarre. La base MySQL existe (schéma de l'équipe BD) mais l'API ne s'en sert pas encore pour les données métier | **À brancher** (chantier 4.1) |
+| Offres d'emploi, services d'aide | **Fictifs**, écrits par nous, en mémoire. Les numéros des services sont dans la plage réservée à la fiction par l'ARCEP (05 36 49 xx xx) : ils ne sonnent chez personne | Contenus réels fournis ou validés par la structure, en base (issues #48 et #49), avec de vrais numéros |
 | Comptes de test | Mot de passe public (`Trajet-2026!`), dont un administrateur | **À supprimer** (4.3) |
 | SMS (codes, alertes) | **Simulés** : une ligne dans les journaux, rien n'est envoyé. Codes fixes en démo (`123456`, `12345678`) | **À brancher** sur un vrai prestataire (4.4) |
 | Paiement | **Simulé** : un bouton « payer » sans carte | Selon le modèle choisi (2 et 4.5) |

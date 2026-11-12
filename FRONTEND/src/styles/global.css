@@ -69,6 +69,8 @@
   /* Large touch targets: public not always at ease with digital tools. */
   --touch-target: 3.25rem;
   --checkbox-size: 1.5rem;
+  /* A need tile of the help directory: two per line on a phone. */
+  --category-tile-min: 7.5rem;
   /* An open drop-down list: about six options, then it scrolls. */
   --dropdown-max-height: 22rem;
   /* Above the cards and fields that follow a drop-down list. */
@@ -668,6 +670,48 @@ a:hover {
   list-style: none;
 }
 
+/* --- Needs of the help directory: two tiles per line, the icon above its name --- */
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--category-tile-min)), 1fr));
+  gap: var(--space-m);
+  margin: 0 0 var(--space-l);
+  padding: 0;
+  list-style: none;
+}
+
+.category-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+  height: 100%;
+  min-height: calc(2 * var(--touch-target));
+  padding: var(--space);
+  border: var(--border-width) solid var(--color-primary-soft);
+  border-radius: var(--radius-large);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+  text-align: center;
+  text-decoration: none;
+}
+
+.category-tile:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.category-tile .icon-chip {
+  background: var(--color-background);
+}
+
+.category-tile-title {
+  font-weight: var(--font-weight-title);
+  overflow-wrap: anywhere;
+}
+
 /* --- Buttons ------------------------------------------------------------------- */
 
 .button {
@@ -1196,7 +1240,8 @@ a:hover {
   gap: var(--space-s);
 }
 
-.badges + .summary {
+.badges + .summary,
+.badges + p {
   margin-top: var(--space);
 }
 

@@ -160,3 +160,94 @@ export function CheckIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// --- The needs of the help directory (module M5) ---------------------------------
+
+/** A pram: childcare. */
+export function PramIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M4 10h14a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6z" />
+      <path d="M11 10V4a6 6 0 0 1 6 6M18 10l2-4" />
+      <circle cx="7" cy="20" r="1.5" />
+      <circle cx="16" cy="20" r="1.5" />
+    </svg>
+  );
+}
+
+export function HouseIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M3 11l9-7 9 7" />
+      <path d="M5 10v10h14V10M10 20v-6h4v6" />
+    </svg>
+  );
+}
+
+/** Scales: rights. */
+export function ScalesIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M12 3v18M7 21h10M5 7h14" />
+      <path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z" />
+    </svg>
+  );
+}
+
+/** A heart with a cross: health. */
+export function HealthIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M12 20s-8-4.5-8-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.5-8 10-8 10z" />
+      <path d="M12 9v5M9.5 11.5h5" />
+    </svg>
+  );
+}
+
+/** A shopping basket: food. */
+export function BasketIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M3 10h18l-2 10H5z" />
+      <path d="M8 10l3-6M16 10l-3-6M9 14v3M15 14v3" />
+    </svg>
+  );
+}
+
+/** A laptop: digital. */
+export function LaptopIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <rect x="5" y="5" width="14" height="10" rx="1" />
+      <path d="M3 19h18l-2-4H5z" />
+    </svg>
+  );
+}
+
+/** A form: paperwork. */
+export function FormIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v4h4M9 11h7M9 15h7M9 19h4" />
+    </svg>
+  );
+}
+
+/** A shirt: equipment (clothes, furniture). */
+export function ShirtIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M8 3l4 3 4-3 5 4-3 3-2-1v12H8V9L6 10 3 7z" />
+    </svg>
+  );
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
