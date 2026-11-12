@@ -687,6 +687,13 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
 | Services d'aide, langues parlées et traductions ; 16 services fictifs | `sql/migrations/012` et `015` | #49 |
 | Fiches pratiques : étapes, choses à apporter, source officielle, traductions ; 8 fiches | `sql/migrations/013` et `016` | #49 |
 | Questionnaire rempli (codes de réponse), plan d'action, étapes (3 à 5), reprise par une personne | `sql/migrations/017_creer_questionnaire_plan_action.sql` | #50 |
+| Horaires autorisés, en heure de Cayenne (provisoire : 0 h – 23 h 59, tous les jours) | `sql/migrations/018_creer_horaire_service.sql` | #51 |
+| Repère de départ et d'arrivée, nombre de passagers, bagages | `sql/migrations/019_ajouter_repere_passagers_course.sql` | #53 |
+| États `chauffeur_arrive` et `passager_absent`, paiement `echoue`, dates `arrivee_le` et `absent_le` ; vues 007 et 003 mises à jour | `sql/migrations/020` à `022` | #54 |
+| Journal des étapes d'une course avec leur auteur, incidents | `sql/migrations/023_creer_etape_course.sql` | #55 |
+| Pièces du chauffeur (sans fichier), zones du chauffeur, vue `v_piece_chauffeur_a_renouveler` | `sql/migrations/024` et `026` | #56 |
+| Compte supprimé : statut `supprime`, anonymisation imposée par la base (requête de l'API en tête du fichier) | `sql/migrations/025_ajouter_statut_supprime.sql` | #32 |
+| « Être rappelé » et « Signaler un problème » | `sql/migrations/027_creer_demande_aide.sql` | #57 |
 
 Chaque fichier explique en tête comment s'en servir depuis l'API, et ce qui est propre à MySQL.
 
@@ -698,12 +705,12 @@ Dans l'ordre, avec la date à laquelle on en a besoin (calendrier dans
 Le SGBD, la validation du schéma, la colonne `version_session`, la photo du chauffeur, la table
 des demandes de suppression et les vues sont livrés (tableau ci-dessus, PR #36). Il reste :
 
-1. **Le compte supprimé** (#32). Décidé par les développeurs le 03/11 : un statut `supprime` sur
+1. ~~**Le compte supprimé** (#32)~~ : fait, migration 025. Décidé par les développeurs le 03/11 : un statut `supprime` sur
    `utilisateur` (le compte ne se connecte plus et sort des listes) ; nom et courriel effacés ;
    téléphone remplacé par `+000` suivi de l'identifiant sur 9 chiffres (`+000000000042` pour le
    compte 42 : l'indicatif 000 n'existe pas, et la valeur respecte la contrainte du téléphone) ;
    les courses restent, sans identité. Pour le sprint 2.
-2. **Les tables des nouveaux modules**, pour le sprint 2 (18/11 → 01/12) : offres d'emploi,
+2. ~~**Les tables des nouveaux modules**~~ : faites, migrations 009 à 027 (tableau ci-dessus). Pour le sprint 2 (18/11 → 01/12) : offres d'emploi,
    services d'aide, fiches pratiques, questionnaire et plan d'action, horaires, zones, nouveaux
    états des courses… Une issue `bd` chacune, ouverte par les développeurs.
 3. **L'export de la base** par `mysqldump`, documenté (#26). La démo de la soutenance tourne en
