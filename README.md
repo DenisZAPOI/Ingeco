@@ -681,6 +681,12 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
 | Table `demande_suppression` : une demande en cours au plus par compte, traitée par un administrateur | `sql/migrations/002_creer_demande_suppression.sql` | #32 |
 | Vues des statistiques, une ligne par jour en heure de Guyane : `v_stats_courses_par_jour`, `v_stats_courses_par_commune`, `v_stats_courses_par_motif`, `v_stats_evaluations_par_jour` | `sql/migrations/003` à `006` | #23 |
 | Vue des chauffeurs en ligne, `v_chauffeur_en_ligne`, et la requête de tri par distance (en tête du fichier) | `sql/migrations/007_creer_vue_chauffeurs_en_ligne.sql` | #24 |
+| Langues de l'application, table `langue` (`fr`, `gcr`, `ht`, `pt-BR`, `en`), référencée par toutes les traductions | `sql/migrations/009_creer_langue.sql` | #48, #49 |
+| Les 22 communes de Guyane et la colonne `desservie` (zone du pilote : 1 à 3, provisoire) | `sql/migrations/010_ajouter_communes_guyane.sql` | #52 |
+| Offres d'emploi et leurs traductions ; 15 offres fictives | `sql/migrations/011` et `014` | #48 |
+| Services d'aide, langues parlées et traductions ; 16 services fictifs | `sql/migrations/012` et `015` | #49 |
+| Fiches pratiques : étapes, choses à apporter, source officielle, traductions ; 8 fiches | `sql/migrations/013` et `016` | #49 |
+| Questionnaire rempli (codes de réponse), plan d'action, étapes (3 à 5), reprise par une personne | `sql/migrations/017_creer_questionnaire_plan_action.sql` | #50 |
 
 Chaque fichier explique en tête comment s'en servir depuis l'API, et ce qui est propre à MySQL.
 
