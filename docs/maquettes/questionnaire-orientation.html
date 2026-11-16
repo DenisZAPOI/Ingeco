@@ -1,5 +1,5 @@
 <title>Maquette du questionnaire d'orientation</title>
-<meta name="description" content="Maquette cliquable du questionnaire d'orientation et de « Mon plan d'action » (module M1), à valider par la cliente.">
+<meta name="description" content="Maquette cliquable du questionnaire d'orientation et de « Mon plan d'action » (module M1), à valider avec vous.">
 <style>
 /* Mockup of the M1 questionnaire. Same tokens as FRONTEND/src/styles/global.css
    (docs/charte-graphique.md): light theme only, by choice of the charter. The
@@ -396,10 +396,26 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .screen-enter { animation: enter 160ms ease-out; }
   @keyframes enter { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 }
+
+/* Status of each screen in the app: new, or already there (with or without additions).
+   Said with a symbol and a text, never with the color alone. */
+.mock-status { display: flex; gap: var(--space-s); align-items: flex-start; margin: 0 0 var(--space); padding: var(--space-s) var(--space-m); border: 2px solid currentColor; border-radius: var(--radius); font-weight: var(--font-weight-title); }
+.mock-status-mark { flex-shrink: 0; font-size: var(--font-size-lead); line-height: 1.2; }
+.mock-status small { display: block; margin-top: var(--space-xs); font-size: var(--font-size-small); font-weight: normal; }
+.mock-status-new { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
+.mock-status-changed { background: var(--color-help-soft); color: var(--color-on-help-soft); }
+.mock-status-existing { background: var(--color-primary-soft); color: var(--color-primary); }
+.mock-legend { margin: 0 0 var(--space); padding: 0; list-style: none; font-size: var(--font-size-small); }
+
+/* Tier of the cahier des charges (§5): P1, P1 by our reading, or P2. */
+.mock-tier { margin: 0 0 var(--space); padding: var(--space-s) var(--space-m); border: 2px dashed currentColor; border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font-weight: var(--font-weight-title); }
+.mock-tier small { display: block; margin-top: var(--space-xs); font-size: var(--font-size-small); font-weight: normal; }
+.mock-tier-p2 { background: var(--color-surface); }
+.tier-chip { display: inline-block; margin-left: var(--space-s); padding: 0 var(--space-s); border: 1px dashed var(--color-mock); border-radius: var(--radius); background: var(--color-mock-bg); color: var(--color-mock); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); vertical-align: middle; }
 </style>
 
 <div class="mock-bar" role="region" aria-label="Commandes de la maquette">
-  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Questionnaire d'orientation et plan d'action (M1)</strong>, à valider avec la cliente</div>
+  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Questionnaire d'orientation et plan d'action (M1)</strong>, à valider avec vous</div>
   <label for="screen-select">Écran
     <select id="screen-select"></select>
   </label>
@@ -712,7 +728,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       return '<li class="plan-step' + (done ? ' is-done' : '') + '">' +
         '<div class="plan-step-head"><h2 class="plan-step-title">' + s.title + (done ? ' <span class="badge">Fait</span>' : '') + '</h2></div><div class="plan-step-body">' +
         '<p>' + esc(s.text) + '</p>' +
-        '<details class="why"><summary>Pourquoi cette proposition ?</summary><p>' + esc(s.why) + '</p></details>' +
+        '<details class="why"><summary>Pourquoi cette proposition ?' + tierChip('P2') + '</summary><p>' + esc(s.why) + '</p></details>' +
         '<button type="button" class="button button-secondary" ' + actAttrs + '>' + icon(actIcon) + actLabel + '</button>' +
         '<label class="checkbox"><input type="checkbox" data-done="' + s.id + '"' + (done ? ' checked' : '') + '>C\'est fait</label>' +
         '</div></li>';
@@ -823,11 +839,60 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     return (N[id] || []).join('');
   }
 
+
+  const STATUS = {
+    offres: ['changed', 'Ajout : la carte « Je ne sais pas par où commencer ». Les offres et leurs filtres existent déjà (montrés en grisé).'],
+    accueil: ['changed', 'Ajout : le lien « Mon plan d\'action ». L\'accueil et ses trois besoins existent déjà.']
+  };
+
+  // --- Is the screen already in the app? Shown on top of each note. -------------------
+  const STATUS_LABEL = {
+    new: ['★', 'Nouvel écran', 'Pas encore dans l\'application.', 'nouveau'],
+    changed: ['✎', 'Écran existant, avec des ajouts', '', 'existant + ajouts'],
+    existing: ['✓', 'Écran existant', 'Déjà dans l\'application, inchangé.', 'existant']
+  };
+  const statusOf = (id) => STATUS[id] || ['new'];
+  const statusBanner = (id) => {
+    const [kind, detail] = statusOf(id);
+    const [mark, title, text] = STATUS_LABEL[kind];
+    return '<p class="mock-status mock-status-' + kind + '"><span class="mock-status-mark" aria-hidden="true">' + mark + '</span><span>' + title + '<small>' + (detail || text) + '</small></span></p>';
+  };
+  const statusSuffix = (id) => ' · ' + STATUS_LABEL[statusOf(id)[0]][3];
+
+
+  const TIER = {
+    offres: ['p1', 'Offres avec « Comment y aller ? » (US04) et questionnaire (US03).'],
+    intro: ['p1', 'Questionnaire court (M1, US03).'],
+    q1: ['p1', 'Questionnaire court (M1, US03).'], q2: ['p1', 'Questionnaire court (M1, US03).'],
+    q3: ['p1', 'Questionnaire court (M1, US03).'], q4: ['p1', 'Questionnaire court (M1, US03).'],
+    q5: ['p1', 'Questionnaire court (M1, US03).'], q6: ['p1', 'Questionnaire court (M1, US03).'],
+    q7: ['p1', 'Questionnaire court (M1, US03).'],
+    plan: ['p1', 'Plan d\'action par des règles simples, avec un contact humain (M1).', 'Sauf « Pourquoi cette proposition ? » : palier P2 (règles explicables).'],
+    rappel: ['p1', '« Être rappelé » : aide du socle commun (§6).'],
+    'rappel-ok': ['p1', '« Être rappelé » : aide du socle commun (§6).'],
+    garder: ['p1', 'Compte par téléphone (M0).'],
+    accueil: ['p1', 'Accueil par besoins (§10) et plan d\'action (M1).']
+  };
+
+  // --- Tier of the cahier des charges (§5) for each screen ---------------------------
+  const TIER_LABEL = {
+    p1: ['Palier P1, le socle', 'Exigé de toutes les équipes.'],
+    p1team: ['Palier P1, selon notre lecture', 'Le cahier des charges le décrit comme cible du module (§7.4) sans le classer ; nous le rangeons dans le P1.'],
+    p2: ['Palier P2', 'Au-delà du socle : prévu si le temps le permet.']
+  };
+  const tierBanner = (id) => {
+    const [kind, why, extra] = TIER[id] || ['p1'];
+    const [title, text] = TIER_LABEL[kind];
+    return '<p class="mock-tier mock-tier-' + kind + '">' + title + '<small>' + (why || text) + '</small>' + (extra ? '<small>' + extra + '</small>' : '') + '</p>';
+  };
+  const tierSuffix = (id) => ' · ' + ((TIER[id] || ['p1'])[0] === 'p2' ? 'P2' : 'P1');
+  const tierChip = (t) => '<span class="tier-chip" title="Palier du cahier des charges">' + t + '</span>';
+
   // --- Rendering and events ---------------------------------------------------------
   const device = document.getElementById('device');
   const notesEl = document.getElementById('notes');
   const select = document.getElementById('screen-select');
-  select.innerHTML = SCREENS.map(([id, name], i) => '<option value="' + id + '">' + (i + 1) + '. ' + name + '</option>').join('');
+  select.innerHTML = SCREENS.map(([id, name], i) => '<option value="' + id + '">' + (i + 1) + '. ' + name + statusSuffix(id) + tierSuffix(id) + '</option>').join('');
 
   function render(focus) {
     let html;
@@ -840,7 +905,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     else if (current === 'garder') html = screenGarder();
     else html = screenAccueil();
     device.innerHTML = '<div class="screen-enter">' + html + '</div>';
-    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + notes(current);
+    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + statusBanner(current) + tierBanner(current) + notes(current);
     select.value = current;
     if (focus) {
       const t = document.getElementById('screen-title');
