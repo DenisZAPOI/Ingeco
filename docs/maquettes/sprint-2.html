@@ -1,0 +1,1141 @@
+<title>Maquettes du sprint 2</title>
+<meta name="description" content="Maquettes cliquables des écrans du sprint 2 : demande de trajet (repère, carte, passagers), nouveaux états, pièces du chauffeur, réglages et demandes de l'administrateur.">
+<style>
+/* Mockups of the sprint 2 screens. Same tokens as FRONTEND/src/styles/global.css
+   (docs/charte-graphique.md): light theme only, by choice of the charter. The
+   mockup's own furniture (toolbar, notes) uses the dashed "mock" style so it is
+   never mistaken for a screen of the app. */
+:root {
+  color-scheme: light;
+  --color-primary: #0b5d3b;
+  --color-primary-hover: #08452c;
+  --color-primary-soft: #e3efe9;
+  --color-on-primary: #ffffff;
+  --color-on-primary-muted: #cfe3da;
+  --color-accent: #f2b705;
+  --color-accent-soft: #fdf1c7;
+  --color-on-accent-soft: #6b4f00;
+  --color-help: #1d5f99;
+  --color-help-soft: #e1edf8;
+  --color-on-help-soft: #124a7a;
+  --color-text: #1a1a1a;
+  --color-muted: #555555;
+  --color-background: #ffffff;
+  --color-page: #eef3f0;
+  --color-surface: #f3f5f4;
+  --color-border: #7d8581;
+  --color-success: #0b5d3b;
+  --color-success-soft: #e3efe9;
+  --color-focus: #1a1a1a;
+  --color-mock: #4a4f4c;
+  --color-mock-bg: #fbfbf7;
+
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-small: 0.889rem;
+  --font-size-lead: 1.125rem;
+  --font-size-h2: 1.375rem;
+  --font-size-h1: 1.75rem;
+  --font-weight-strong: 600;
+  --font-weight-title: 700;
+
+  --space-xs: 0.25rem;
+  --space-s: 0.5rem;
+  --space-m: 0.75rem;
+  --space: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --radius: 0.75rem;
+  --radius-large: 1.5rem;
+  --border-width: 2px;
+  --focus-width: 3px;
+  --touch-target: 3.25rem;
+  --checkbox-size: 1.5rem;
+  --icon-size: 1.5rem;
+  --icon-chip-size: 2.75rem;
+  --progress-height: 0.375rem;
+  --device-width: 26rem;
+  --shadow-sheet: 0 10px 28px rgb(11 93 59 / 0.12), 0 2px 6px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 0.06);
+  --shadow-button: 0 4px 12px rgb(11 93 59 / 0.25);
+  --shadow-device: 0 20px 50px rgb(11 93 59 / 0.18);
+
+  font-family: var(--font-family);
+  font-size: 112.5%;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-page);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--color-page); color: var(--color-text); }
+h1, h2, h3 { text-wrap: balance; }
+p { margin: 0 0 var(--space); }
+a { color: var(--color-primary); font-weight: var(--font-weight-strong); text-underline-offset: 0.15em; }
+:focus-visible { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* --- Mockup furniture --------------------------------------------------------- */
+.mock-bar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-s) var(--space);
+  padding-block: var(--space-s);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 2px dashed var(--color-mock);
+  background: var(--color-mock-bg);
+  color: var(--color-mock);
+  font-size: var(--font-size-small);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--color-mock-bg); }
+.mock-bar strong { color: var(--color-text); }
+.mock-bar label { display: flex; align-items: center; gap: var(--space-s); }
+.mock-bar select, .mock-bar button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  max-width: 100%;
+}
+.mock-bar button { cursor: pointer; }
+.mock-bar-title { flex: 1 1 14rem; min-width: 0; }
+.mock-tag {
+  display: inline-block;
+  padding: 0 var(--space-s);
+  border: 1px dashed var(--color-mock);
+  border-radius: var(--radius);
+  font-weight: var(--font-weight-strong);
+}
+
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-l);
+  padding: var(--space-l) 0 var(--space-xl);
+}
+.device {
+  width: min(var(--device-width), 100%);
+  overflow: hidden;
+  border-radius: 2rem;
+  background: var(--color-page);
+  box-shadow: var(--shadow-device);
+}
+.mock-notes {
+  width: min(var(--device-width), calc(100% - 2rem));
+  padding: var(--space) var(--space-l);
+  border: 2px dashed var(--color-mock);
+  border-radius: var(--radius-large);
+  background: var(--color-mock-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+}
+.mock-notes h2 { margin: 0 0 var(--space-s); font-size: var(--font-size-lead); }
+.mock-notes ul { margin: 0 0 var(--space); padding-left: var(--space-l); }
+.mock-notes li + li { margin-top: var(--space-xs); }
+.mock-notes .ask { padding: var(--space-s) var(--space-m); border-radius: var(--radius); background: var(--color-accent-soft); color: var(--color-on-accent-soft); }
+.mock-notes .ask strong { display: block; }
+.mock-notes table { width: 100%; border-collapse: collapse; }
+.mock-notes th, .mock-notes td { padding: var(--space-xs) var(--space-s); border-bottom: 1px solid var(--color-primary-soft); text-align: left; vertical-align: top; }
+.mock-table-wrap { overflow-x: auto; margin-bottom: var(--space); }
+.mock-bar label { flex: 1 1 14rem; min-width: 0; }
+.mock-bar select { flex: 1; min-width: 0; }
+@media (max-width: 30rem) {
+  .mock-bar { position: static; }
+  .stage { padding-top: 0; }
+  .device { border-radius: 0; box-shadow: none; }
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(24rem, calc(100% - 2rem));
+  padding: var(--space-m) var(--space);
+  border: 2px dashed var(--color-mock);
+  border-radius: var(--radius);
+  background: var(--color-mock-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  box-shadow: var(--shadow-card);
+}
+
+/* --- App: header, band, sheet (copied from global.css) ------------------------ */
+.header, .hero {
+  --color-focus: var(--color-accent);
+  padding-inline: var(--space);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.header { display: flex; align-items: center; justify-content: space-between; gap: var(--space); padding-block: var(--space); }
+.brand { display: flex; align-items: center; gap: var(--space-s); color: var(--color-on-primary); font-weight: var(--font-weight-title); text-decoration: none; line-height: 1.2; }
+.brand svg { width: var(--icon-size); height: var(--icon-size); flex-shrink: 0; }
+.logo-ground { fill: rgb(255 255 255 / 0.14); }
+.logo-road { fill: none; stroke: var(--color-on-primary); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.logo-sun { fill: var(--color-accent); }
+.header-action {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-m);
+  border: var(--border-width) solid rgb(255 255 255 / 0.7);
+  border-radius: var(--radius);
+  background: rgb(255 255 255 / 0.08);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.hero { position: relative; overflow: hidden; margin-top: -1px; padding-top: calc(var(--space-s) + 1px); padding-bottom: var(--space-l); }
+.hero-motif { position: absolute; top: var(--space-s); right: calc(-1 * var(--space-s)); opacity: 0.14; pointer-events: none; color: var(--color-on-primary); }
+.hero-motif path { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.hero-motif circle { fill: var(--color-accent); }
+.hero > :not(.hero-motif) { position: relative; }
+.hero-eyebrow { margin: 0; color: var(--color-on-primary-muted); font-weight: var(--font-weight-strong); }
+.hero-title { margin: var(--space-xs) 0 0; font-size: var(--font-size-h1); line-height: 1.2; color: var(--color-on-primary); }
+.hero-lead { margin: var(--space-s) 0 0; color: var(--color-on-primary-muted); font-size: var(--font-size-lead); }
+.progress { display: flex; gap: var(--space-xs); margin-top: var(--space); }
+.progress-step { flex: 1; height: var(--progress-height); border-radius: var(--progress-height); background: rgb(255 255 255 / 0.25); }
+.progress-step-done { background: var(--color-accent); }
+.sheet {
+  width: calc(100% - 2 * var(--space));
+  margin: var(--space) auto 0;
+  padding: var(--space-l) var(--space);
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: var(--shadow-sheet);
+}
+.sheet > :first-child { margin-top: 0; }
+.sheet > :last-child { margin-bottom: 0; }
+.sheet h2 { margin: var(--space-xl) 0 var(--space-m); font-size: var(--font-size-h2); line-height: 1.3; }
+.footer { padding: var(--space-l) var(--space); color: var(--color-muted); font-size: var(--font-size-small); text-align: center; }
+.footer p { margin: 0; }
+.footer select { min-height: var(--touch-target); margin-bottom: var(--space-s); padding: 0 var(--space); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font: inherit; }
+.lead { font-size: var(--font-size-lead); }
+.note { color: var(--color-muted); }
+.stack { display: flex; flex-direction: column; gap: var(--space-m); margin: var(--space-l) 0 0; }
+
+/* --- Buttons, cards, messages -------------------------------------------------- */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-l);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-weight: var(--font-weight-strong);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { border-color: var(--color-primary-hover); background: var(--color-primary-hover); }
+.button-secondary { background: var(--color-background); box-shadow: none; color: var(--color-primary); }
+.button-secondary:hover { background: var(--color-primary-soft); color: var(--color-primary); }
+.button svg { width: var(--icon-size); height: var(--icon-size); margin-right: var(--space-s); flex-shrink: 0; }
+.link-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  width: fit-content;
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: var(--font-weight-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.link-action svg { width: var(--icon-size); height: var(--icon-size); }
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space);
+  border: var(--border-width) solid var(--color-primary-soft);
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.action-card:hover { border-color: var(--color-primary); }
+.action-card-sun { border-color: var(--color-accent-soft); background: var(--color-accent-soft); }
+.action-card-sun:hover { border-color: var(--color-on-accent-soft); }
+.action-card-sun .icon-chip { background: var(--color-background); color: var(--color-on-accent-soft); }
+.action-card-text { display: flex; flex-direction: column; min-width: 0; }
+.action-card-title { font-weight: var(--font-weight-title); }
+.action-card-hint { color: var(--color-muted); }
+.action-card-sun .action-card-hint { color: var(--color-on-accent-soft); }
+.action-card-arrow { width: var(--icon-size); height: var(--icon-size); margin-left: auto; flex-shrink: 0; }
+.need-work { border-color: var(--color-primary-soft); background: var(--color-primary-soft); }
+.need-ride { border-color: var(--color-accent-soft); background: var(--color-accent-soft); }
+.need-help { border-color: var(--color-help-soft); background: var(--color-help-soft); }
+.need-work .icon-chip, .need-ride .icon-chip, .need-help .icon-chip { background: var(--color-background); }
+.need-ride .icon-chip { color: var(--color-on-accent-soft); }
+.need-help .icon-chip { color: var(--color-on-help-soft); }
+.icon-chip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-chip-size);
+  height: var(--icon-chip-size);
+  border-radius: var(--radius);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.icon-chip svg { width: var(--icon-size); height: var(--icon-size); }
+.panel { margin: 0 0 var(--space); padding: var(--space) var(--space-l); border-radius: var(--radius); background: var(--color-surface); }
+.panel-title { margin: 0 0 var(--space-s); font-size: var(--font-size-lead); }
+.panel > :last-child { margin-bottom: 0; }
+.alert { margin: 0 0 var(--space); padding: var(--space-m) var(--space); border-left: var(--space-xs) solid currentColor; border-radius: var(--radius); font-weight: var(--font-weight-strong); }
+.alert-success { background: var(--color-success-soft); color: var(--color-success); }
+.alert-info { background: var(--color-surface); color: var(--color-text); font-weight: normal; }
+.badge { display: inline-block; padding: 0 var(--space-s); border-radius: var(--radius); background: var(--color-accent-soft); color: var(--color-on-accent-soft); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.benefits { display: flex; flex-direction: column; gap: var(--space-m); margin: 0 0 var(--space-l); padding: 0; list-style: none; }
+.benefit { display: flex; align-items: center; gap: var(--space); }
+.offer-card { padding: var(--space); border: var(--border-width) solid var(--color-primary-soft); border-radius: var(--radius-large); box-shadow: var(--shadow-card); }
+.offer-card p { margin: 0; }
+.offer-card .note { font-size: var(--font-size-small); }
+.ghost { opacity: 0.55; }
+
+/* --- Questionnaire: answers as large tiles with an icon ----------------------- */
+.choices { display: flex; flex-direction: column; gap: var(--space-s); margin: 0 0 var(--space-l); padding: 0; border: 0; min-width: 0; }
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: var(--touch-target);
+  padding: var(--space-s) var(--space-m);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-background);
+  cursor: pointer;
+}
+.choice:hover { border-color: var(--color-primary); }
+.choice input { width: var(--checkbox-size); height: var(--checkbox-size); flex-shrink: 0; margin: 0; accent-color: var(--color-primary); }
+.choice input:focus-visible { outline: none; }
+.choice:has(input:focus-visible) { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; }
+.choice:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-soft); font-weight: var(--font-weight-strong); }
+.choice:has(input:checked) .icon-chip { background: var(--color-background); }
+.choice .icon-chip { width: 2.25rem; height: 2.25rem; }
+.choice-text { display: flex; flex-direction: column; min-width: 0; }
+.choice-hint { color: var(--color-muted); font-size: var(--font-size-small); font-weight: normal; }
+.choices-hint { margin: 0 0 var(--space-m); color: var(--color-muted); }
+.field { display: flex; flex-direction: column; gap: var(--space-xs); margin: 0 0 var(--space-l); }
+.field-label { font-weight: var(--font-weight-strong); }
+.field-hint { margin: 0; color: var(--color-muted); }
+.field-input { width: 100%; min-height: var(--touch-target); padding: var(--space-s) var(--space-m); border: var(--border-width) solid var(--color-border); border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font: inherit; }
+.field-input:focus-visible { border-color: var(--color-primary); }
+.step-nav { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+.checkbox { display: flex; align-items: center; gap: var(--space-m); min-height: var(--touch-target); font-weight: var(--font-weight-strong); cursor: pointer; }
+.checkbox input { width: var(--checkbox-size); height: var(--checkbox-size); flex-shrink: 0; margin: 0; accent-color: var(--color-primary); }
+.checkbox input:focus-visible { outline: none; }
+.checkbox:has(input:focus-visible) { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .screen-enter { animation: enter 160ms ease-out; }
+  @keyframes enter { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+
+/* --- Sprint 2 additions (same tokens; error colors from global.css) ------------ */
+:root { --color-error: #b3261e; --color-error-soft: #fbeaea; }
+.mock-bar optgroup { font-weight: var(--font-weight-strong); }
+.button:disabled, .button[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+.alert-error { background: var(--color-error-soft); color: var(--color-error); }
+.alert-warning { background: var(--color-accent-soft); color: var(--color-on-accent-soft); }
+.alert p { margin: var(--space-xs) 0 0; font-weight: normal; }
+.alert p:first-child { margin-top: 0; font-weight: var(--font-weight-strong); }
+.summary { display: grid; grid-template-columns: auto 1fr; gap: var(--space-xs) var(--space); margin: 0 0 var(--space-l); }
+.summary dt { color: var(--color-muted); }
+.summary dd { margin: 0; font-weight: var(--font-weight-strong); }
+.row-actions { display: flex; flex-direction: column; gap: var(--space-s); }
+
+/* Status line of a ride: an icon and a text, never the color alone. */
+.status-line { display: flex; align-items: center; gap: var(--space-m); margin: 0 0 var(--space); padding: var(--space-m) var(--space); border-radius: var(--radius); background: var(--color-primary-soft); color: var(--color-primary); font-weight: var(--font-weight-title); }
+.status-line svg { width: var(--icon-size); height: var(--icon-size); flex-shrink: 0; }
+.status-line-sun { background: var(--color-accent-soft); color: var(--color-on-accent-soft); }
+
+/* Timeline of the ride: each step with its time and its author (§7.4). */
+.timeline { margin: 0 0 var(--space); padding: 0; list-style: none; }
+.timeline li { position: relative; padding: 0 0 var(--space-m) var(--space-l); border-left: var(--border-width) solid var(--color-primary-soft); margin-left: var(--space-s); }
+.timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.timeline li::before { content: ""; position: absolute; left: calc(-0.5rem - 1px); top: 0.3rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--color-primary); }
+.timeline time { font-weight: var(--font-weight-title); font-variant-numeric: tabular-nums; }
+.timeline .who { display: block; color: var(--color-muted); font-size: var(--font-size-small); }
+.history summary { display: flex; align-items: center; min-height: 2.75rem; color: var(--color-primary); font-weight: var(--font-weight-strong); cursor: pointer; }
+
+/* Simulated map: a drawn plan, a tap places the pin. */
+.map { position: relative; margin: 0 0 var(--space); border: var(--border-width) solid var(--color-border); border-radius: var(--radius); overflow: hidden; cursor: crosshair; touch-action: manipulation; }
+.map svg.plan { display: block; width: 100%; height: auto; }
+.map .street { stroke: #ffffff; stroke-linecap: round; }
+.map .street-edge { stroke: #c9d3cd; stroke-linecap: round; }
+.map .block { fill: #dfe7e2; }
+.map .green { fill: #cfe5d5; }
+.map .water { fill: #cfe0ef; }
+.map text { font: 600 9px var(--font-family); fill: #4d5551; }
+.pin { position: absolute; width: 2.25rem; height: 2.25rem; transform: translate(-50%, -100%); color: var(--color-primary); pointer-events: none; filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3)); }
+.pin svg { width: 100%; height: 100%; }
+.pin svg path { fill: var(--color-accent); stroke: var(--color-primary); stroke-width: 1.5; }
+.map-caption { margin: 0 0 var(--space); color: var(--color-muted); font-size: var(--font-size-small); }
+
+/* Stepper for the number of passengers. */
+.stepper { display: flex; align-items: center; gap: var(--space); margin: 0 0 var(--space-l); }
+.stepper button { width: var(--touch-target); height: var(--touch-target); border: var(--border-width) solid var(--color-primary); border-radius: var(--radius); background: var(--color-background); color: var(--color-primary); font: inherit; font-size: var(--font-size-h2); font-weight: var(--font-weight-title); cursor: pointer; }
+.stepper button:disabled { opacity: 0.4; cursor: not-allowed; }
+.stepper output { min-width: 2ch; font-size: var(--font-size-h2); font-weight: var(--font-weight-title); text-align: center; }
+fieldset.plain { margin: 0 0 var(--space-l); padding: 0; border: 0; min-width: 0; }
+fieldset.plain legend { padding: 0; margin-bottom: var(--space-xs); font-weight: var(--font-weight-strong); }
+
+/* Admin: opening hours, one row per day. */
+.days { display: flex; flex-direction: column; gap: var(--space-s); margin: 0 0 var(--space); }
+.day { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-xs) var(--space-s); padding: var(--space-s) var(--space-m); border: var(--border-width) solid var(--color-primary-soft); border-radius: var(--radius); }
+.day.is-closed { background: var(--color-surface); }
+.day .checkbox { min-height: 2.75rem; }
+.day-times { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-s); }
+.day-times input { flex: 1; min-width: 0; min-height: 2.75rem; padding: 0 var(--space-s); border: var(--border-width) solid var(--color-border); border-radius: var(--radius); font: inherit; }
+.day-closed-text { color: var(--color-muted); font-size: var(--font-size-small); }
+
+/* Admin: request cards and filters (same look as the tabs of "Mes trajets"). */
+.tabs { display: flex; gap: var(--space-xs); margin-bottom: var(--space-l); }
+.tab { flex: 1; min-width: 0; min-height: var(--touch-target); padding: var(--space-xs) 0; font-size: var(--font-size-small); line-height: 1.2; border: var(--border-width) solid var(--color-border); border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font-family: inherit; cursor: pointer; }
+.tab[aria-selected="true"] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); font-weight: var(--font-weight-title); }
+.cards { display: flex; flex-direction: column; gap: var(--space-m); margin: 0 0 var(--space-l); padding: 0; list-style: none; }
+.req { display: flex; flex-direction: column; gap: var(--space-s); padding: var(--space); border: var(--border-width) solid var(--color-primary-soft); border-radius: var(--radius-large); box-shadow: var(--shadow-card); }
+.req.is-done { background: var(--color-surface); box-shadow: none; }
+.req p { margin: 0; }
+.req-head { display: flex; align-items: center; gap: var(--space-m); }
+.req-head strong { display: block; }
+.req .note { font-size: var(--font-size-small); }
+.badge-done { background: var(--color-primary-soft); color: var(--color-primary); }
+.badge-error { background: var(--color-error-soft); color: var(--color-error); }
+.piece { display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--space-m) var(--space); border: var(--border-width) solid var(--color-primary-soft); border-radius: var(--radius); }
+.piece p { margin: 0; }
+.piece-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-s); font-weight: var(--font-weight-title); }
+.kv { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space); }
+.money { display: flex; align-items: center; gap: var(--space-s); }
+.money .field-input { max-width: 8rem; }
+.preview { padding: var(--space-m) var(--space); border: 2px dashed var(--color-border); border-radius: var(--radius); }
+.preview > p:first-child { margin: 0 0 var(--space-xs); color: var(--color-muted); font-size: var(--font-size-small); }
+textarea.field-input { min-height: 6rem; resize: vertical; }
+</style>
+
+<div class="mock-bar" role="region" aria-label="Commandes de la maquette">
+  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Écrans du sprint 2</strong> (trajets, chauffeur, administration), à valider avec la cliente</div>
+  <label for="screen-select">Écran
+    <select id="screen-select"></select>
+  </label>
+  <button type="button" id="prev">Écran précédent</button>
+  <button type="button" id="next">Écran suivant</button>
+  <button type="button" id="reset">Tout remettre à zéro</button>
+</div>
+
+<div class="stage">
+  <div class="device" id="device" aria-live="polite"></div>
+  <aside class="mock-notes" id="notes" aria-label="Notes de la maquette"></aside>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  // --- Icons: same 24 px stroke style as components/ui/icons.tsx ------------------
+  const ICONS = {
+    car: '<path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/><rect x="3" y="11" width="18" height="6" rx="2"/><path d="M6 17v2M18 17v2M7 14h.01M17 14h.01"/>',
+    pin: '<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+    map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2A5 5 0 0 1 21.5 19"/>',
+    bag: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V5h6v3"/>',
+    wheelchair: '<circle cx="11" cy="4" r="1.5"/><path d="M11 7v6h5l2.5 5M11 10h4"/><path d="M8 10.5a5 5 0 1 0 6.5 6.5"/>',
+    check: '<path d="M5 12l5 5 9-10"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    alert: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
+    phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>',
+    trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    lifebuoy: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/>',
+    question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+    doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7"/>',
+    id: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 16.5a3.5 3.5 0 0 1 7 0M14 10h4M14 14h4"/>',
+    shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+    wrench: '<path d="M14.5 6.5a4 4 0 0 0 5 5L13 18a2 2 0 0 1-3-3z"/><path d="M14.5 6.5L17 4l3 3-2.5 2.5"/><path d="M4 20l5-5"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    inbox: '<path d="M3 13l3-8h12l3 8v6H3z"/><path d="M3 13h5l1 3h6l1-3h5"/>',
+    euro: '<path d="M17 6a7 7 0 1 0 0 12M4 10h9M4 14h9"/>',
+    pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+    play: '<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>',
+    house: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+    none: '<path d="M6 6l12 12M18 6L6 18"/>',
+    route: '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'
+  };
+  const icon = (name, cls) => '<svg' + (cls ? ' class="' + cls + '"' : '') + ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[name] + '</svg>';
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // --- Values shown in the mockup ---------------------------------------------------
+  // Opening hours are EXAMPLE values to show the refusal: the provisional rule of
+  // docs/decisions.md (A) is 0 h - 24 h every day, until the client gives hers.
+  const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const COMMUNES = ['Cayenne', 'Rémire-Montjoly', 'Matoury', 'Macouria', 'Montsinéry-Tonnegrande', 'Roura', 'Kourou'];
+  const PILOT = ['Cayenne', 'Rémire-Montjoly', 'Matoury'];
+  const MAX_PASSENGERS = 4; // CHANGER_SELON_DECISION: places of the vehicle, to confirm
+  const ABSENCE_WAIT_MIN = 10; // docs/decisions.md, "Passager absent"
+
+  const empty = () => ({
+    landmark: '',
+    pin: { x: 46, y: 54 },
+    passengers: 1,
+    luggage: false,
+    accessible: false,
+    waited: false,
+    hours: DAYS.map((_, i) => (i < 6 ? { open: true, from: '06:00', to: '20:00' } : { open: false, from: '06:00', to: '20:00' })),
+    zones: Object.fromEntries(COMMUNES.map((c) => [c, PILOT.includes(c)])),
+    tariff: { base: '8,00', km: '0,80' },
+    tariffSaved: false,
+    filter: 'all',
+    done: {},
+    report: null,
+    incident: null,
+    callWhen: 'any',
+    deleteAsked: false,
+    pieceUpdated: false
+  });
+  let state = empty();
+
+  const REQUESTS = [
+    { id: 'r1', type: 'rappel', icon: 'phone', who: 'Jordan B.', phone: '0694 00 00 01', when: 'Aujourd\'hui, 9 h 12', what: 'Rappel souhaité le matin.', from: 'Depuis « Mon plan d\'action »' },
+    { id: 'r2', type: 'rappel', icon: 'phone', who: 'Gaëlle D.', phone: '0694 00 00 07', when: 'Hier, 17 h 40', what: 'Rappel souhaité : peu importe l\'heure.', from: 'Depuis « J\'ai besoin d\'aide »' },
+    { id: 's1', type: 'signalement', icon: 'flag', who: 'Jordan B.', phone: '0694 00 00 01', when: 'Aujourd\'hui, 8 h 40', what: '« Le chauffeur n\'était pas là » · Trajet n° 142', from: 'Depuis la page du trajet', go: 'a-signalement' },
+    { id: 'd1', type: 'suppression', icon: 'trash', who: 'Hugo M.', phone: '0694 00 00 08', when: 'Le 05/11, 10 h 02', what: 'Demande de suppression du compte. À traiter avant le 05/12.', from: 'Depuis « Mon profil »', go: 'a-suppression' }
+  ];
+
+  // --- Screens --------------------------------------------------------------------------
+  const GROUPS = [
+    ['Usager (Jordan)', [
+      ['u-depart', 'Départ : adresse et repère'],
+      ['u-carte', 'Départ : placer le point sur la carte'],
+      ['u-quand', 'Pourquoi, quand, avec qui'],
+      ['u-hors-horaire', 'Demande hors des horaires'],
+      ['u-recap', 'Votre trajet, avant l\'envoi'],
+      ['u-arrive', 'Mon trajet : le chauffeur est arrivé'],
+      ['u-absent', 'Mon trajet : passager absent'],
+      ['u-signaler', 'Signaler un problème'],
+      ['u-signaler-ok', 'Signalement envoyé'],
+      ['u-aide', 'J\'ai besoin d\'aide'],
+      ['u-rappel', 'Être rappelé'],
+      ['u-rappel-ok', 'Être rappelé : demande enregistrée'],
+      ['u-profil', 'Mon profil'],
+      ['u-suppr', 'Supprimer mon compte'],
+      ['u-suppr-ok', 'Suppression demandée']
+    ]],
+    ['Chauffeur (Chloé)', [
+      ['c-route', 'Course : aller chercher le passager'],
+      ['c-arrive', 'Course : arrivée au départ'],
+      ['c-absent', 'Course : passager absent'],
+      ['c-incident', 'Course : signaler un incident'],
+      ['c-accueil', 'Accueil : une pièce expire bientôt'],
+      ['c-pieces', 'Mes pièces'],
+      ['c-suspendu', 'Accueil : compte suspendu']
+    ]],
+    ['Administrateur (Farid)', [
+      ['a-accueil', 'Accueil de l\'administrateur'],
+      ['a-reglages', 'Réglages des trajets'],
+      ['a-horaires', 'Horaires autorisés'],
+      ['a-zones', 'Zones desservies'],
+      ['a-tarif', 'Tarif'],
+      ['a-demandes', 'Demandes'],
+      ['a-signalement', 'Un signalement et l\'historique du trajet'],
+      ['a-suppression', 'Traiter une suppression de compte'],
+      ['a-pieces', 'Pièces d\'un chauffeur']
+    ]]
+  ];
+  const SCREENS = GROUPS.flatMap((g) => g[1]);
+  const homeOf = (id) => (id[0] === 'c' ? 'c-accueil' : id[0] === 'a' ? 'a-accueil' : 'u-aide');
+  let current = 'u-depart';
+
+  const header = (action) => '<header class="header"><a class="brand" href="#' + homeOf(current) + '" data-go="' + homeOf(current) + '"><svg viewBox="0 0 64 64" aria-hidden="true"><rect class="logo-ground" width="64" height="64" rx="14"/><path class="logo-road" d="M14 44h36M20 44l6-20h12l6 20"/><circle class="logo-sun" cx="32" cy="16" r="5"/></svg>En route pour l\'emploi</a>' +
+    '<button type="button" class="header-action" data-toast="' + esc(action || 'Mon compte (écran existant)') + '">Mon compte</button></header>';
+  const motif = '<svg class="hero-motif" width="150" height="150" viewBox="0 0 64 64" aria-hidden="true"><path d="M14 44h36M20 44l6-20h12l6 20"/><circle cx="32" cy="16" r="5"/></svg>';
+  const hero = (title, opts = {}) => '<section class="hero">' + motif +
+    (opts.eyebrow ? '<p class="hero-eyebrow">' + opts.eyebrow + '</p>' : '') +
+    '<h1 class="hero-title" id="screen-title" tabindex="-1">' + title + '</h1>' +
+    (opts.lead ? '<p class="hero-lead">' + opts.lead + '</p>' : '') +
+    (opts.progress ? '<div class="progress" aria-hidden="true">' + Array.from({ length: opts.progress[1] }, (_, i) => '<span class="progress-step' + (i < opts.progress[0] ? ' progress-step-done' : '') + '"></span>').join('') + '</div>' : '') +
+    '</section>';
+  const footer = '<footer class="footer"><label class="visually-hidden" for="lang">Langue</label><select id="lang"><option>Français</option><option>Kréyòl gwiyanè</option><option>Kreyòl ayisyen</option><option>Português (Brasil)</option><option>English</option></select><p>Projet étudiant — démonstrateur · <a href="#" data-toast="Page « À propos » (existante)">À propos</a></p></footer>';
+  const card = (cls, ic, title, hint, attrs) => '<button type="button" class="action-card ' + cls + '" ' + attrs + '><span class="icon-chip">' + icon(ic) + '</span><span class="action-card-text"><span class="action-card-title">' + title + '</span>' + (hint ? '<span class="action-card-hint">' + hint + '</span>' : '') + '</span>' + icon('arrow', 'action-card-arrow') + '</button>';
+  const back = (to, text) => '<button type="button" class="link-action" data-go="' + to + '">' + icon('back') + text + '</button>';
+  const page = (title, opts, body, action) => header(action) + hero(title, opts) + '<main class="sheet">' + body + '</main>' + footer;
+  const choice = (type, name, value, text, ic, checked, hint, attrs) => '<label class="choice"><input type="' + type + '" name="' + name + '" value="' + value + '"' + (checked ? ' checked' : '') + (attrs || '') + '>' +
+    (ic ? '<span class="icon-chip">' + icon(ic) + '</span>' : '') + '<span class="choice-text">' + text + (hint ? '<span class="choice-hint">' + hint + '</span>' : '') + '</span></label>';
+  const timeline = (steps) => '<ol class="timeline">' + steps.map(([t, what, who]) => '<li><time>' + t + '</time> ' + what + '<span class="who">' + who + '</span></li>').join('') + '</ol>';
+  const BASE_STEPS = [
+    ['7 h 40', 'Demande envoyée', 'Par Jordan, usager'],
+    ['7 h 52', 'Course acceptée', 'Par Chloé, chauffeur'],
+    ['8 h 21', 'Chauffeur arrivé au départ', 'Par Chloé, chauffeur']
+  ];
+  const ABSENT_STEP = ['8 h 31', 'Passager absent', 'Par Chloé, chauffeur, après 10 minutes d\'attente'];
+  const landmarkText = () => state.landmark.trim() || 'Devant la pharmacie, côté parking';
+  const tripSummary = () => '<dl class="summary">' +
+    '<dt>Départ</dt><dd>12 rue des Palétuviers, Matoury<br><span class="note">Repère : ' + esc(landmarkText()) + '</span></dd>' +
+    '<dt>Arrivée</dt><dd>Nettoyage Plus, 4 avenue Pasteur, Cayenne</dd>' +
+    '<dt>Motif</dt><dd>Emploi : entretien d\'embauche</dd>' +
+    '<dt>Départ</dt><dd>Lundi 23/11, 8 h 15</dd>' +
+    '<dt>Passagers</dt><dd>' + state.passengers + (state.luggage ? ', avec des bagages encombrants' : '') + (state.accessible ? ', véhicule adapté' : '') + '</dd>' +
+    '</dl>';
+
+  // --- Usager ---------------------------------------------------------------------------
+  function uDepart() {
+    return page('D\'où partez-vous ?', { eyebrow: 'Étape 1 sur 3', progress: [1, 3] },
+      '<div class="field"><span class="field-label">Adresse</span><div class="panel" style="margin:0"><strong>12 rue des Palétuviers</strong><br>Matoury</div><p class="field-hint">Choisie dans la liste des adresses (écran existant).</p></div>' +
+      '<div class="field"><label class="field-label" for="landmark">Repère (facultatif)</label><p class="field-hint" id="landmark-hint">Pour que le chauffeur vous trouve. Exemple : devant la pharmacie, maison bleue.</p><input class="field-input" id="landmark" type="text" maxlength="120" aria-describedby="landmark-hint" value="' + esc(state.landmark) + '"></div>' +
+      '<button type="button" class="link-action" data-go="u-carte">' + icon('map') + 'Placer le point exact sur la carte</button>' +
+      '<div class="step-nav" style="margin-top:var(--space)"><button type="button" class="button" data-toast="Écran existant « Où allez-vous ? » (étape 2), même repère et même carte possibles." data-go="u-quand">Continuer</button></div>');
+  }
+
+  function mapSvg() {
+    return '<svg class="plan" viewBox="0 0 320 220" aria-hidden="true">' +
+      '<rect width="320" height="220" fill="#eef2ef"/>' +
+      '<rect class="block" x="10" y="10" width="110" height="70" rx="6"/><rect class="block" x="150" y="10" width="160" height="70" rx="6"/>' +
+      '<rect class="green" x="10" y="110" width="110" height="100" rx="6"/><rect class="block" x="150" y="110" width="70" height="100" rx="6"/>' +
+      '<rect class="water" x="250" y="110" width="60" height="100" rx="6"/>' +
+      '<path class="street-edge" d="M0 95h320M135 0v220M235 95v125" stroke-width="16"/>' +
+      '<path class="street" d="M0 95h320M135 0v220M235 95v125" stroke-width="12"/>' +
+      '<text x="20" y="91">Rue des Palétuviers</text><text x="139" y="200" transform="rotate(-90 139 200)">Route de Cogneau</text>' +
+      '<text x="160" y="40">Pharmacie</text><text x="22" y="160">Terrain de foot</text><text x="157" y="150">École</text><text x="258" y="165">Crique</text>' +
+      '</svg>';
+  }
+
+  function uCarte() {
+    return page('Placer le point de départ', { eyebrow: 'Étape 1 sur 3', progress: [1, 3] },
+      '<p>Touchez la carte à l\'endroit exact où le chauffeur doit vous prendre.</p>' +
+      '<div class="map" id="map" role="img" aria-label="Carte autour du 12 rue des Palétuviers, Matoury. Le point est placé.">' + mapSvg() +
+      '<span class="pin" style="left:' + state.pin.x + '%;top:' + state.pin.y + '%">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/></svg></span></div>' +
+      '<p class="map-caption">Carte simulée. Dans l\'application : fond OpenStreetMap, autour de l\'adresse choisie.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-depart" data-toast="Point enregistré avec l\'adresse.">Garder ce point</button>' +
+      '<button type="button" class="link-action" data-go="u-depart">Ne pas placer de point</button></div>');
+  }
+
+  function uQuand() {
+    return page('Pourquoi et quand ?', { eyebrow: 'Étape 3 sur 3', progress: [3, 3] },
+      '<div class="panel"><p style="margin:0"><strong>Motif</strong> : emploi · <strong>Départ</strong> : lundi 23/11, 8 h 15</p><p class="note" style="margin:0">Motif et heure : écran existant, montré en résumé.</p></div>' +
+      '<fieldset class="plain"><legend id="pass-label">Combien de personnes voyagent, vous compris ?</legend>' +
+      '<div class="stepper"><button type="button" data-step="-1" aria-label="Une personne de moins"' + (state.passengers <= 1 ? ' disabled' : '') + '>−</button><output aria-labelledby="pass-label" aria-live="polite">' + state.passengers + '</output><button type="button" data-step="1" aria-label="Une personne de plus"' + (state.passengers >= MAX_PASSENGERS ? ' disabled' : '') + '>+</button></div>' +
+      (state.passengers >= MAX_PASSENGERS ? '<p class="field-hint" style="margin-top:calc(-1 * var(--space))">' + MAX_PASSENGERS + ' personnes au plus dans une voiture.</p>' : '') + '</fieldset>' +
+      '<fieldset class="choices"><legend class="field-label" style="margin-bottom:var(--space-xs)">Besoin particulier (facultatif)</legend>' +
+      choice('checkbox', 'luggage', '1', 'Des bagages encombrants', 'bag', state.luggage, 'Valise, sac de travail, poussette', ' data-flag="luggage"') +
+      choice('checkbox', 'accessible', '1', 'Un véhicule adapté', 'wheelchair', state.accessible, 'Pour un fauteuil roulant', ' data-flag="accessible"') +
+      '</fieldset>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-recap">Voir le résumé</button>' +
+      '<button type="button" class="link-action" data-go="u-hors-horaire">Voir le cas « hors des horaires »</button></div>');
+  }
+
+  function hoursText() {
+    // "Du lundi au samedi, de 6 h à 20 h" when all open days share the same hours.
+    const open = state.hours.map((h, i) => [DAYS[i], h]).filter(([, h]) => h.open);
+    if (!open.length) return 'Aucun trajet n\'est possible pour le moment.';
+    const same = open.every(([, h]) => h.from === open[0][1].from && h.to === open[0][1].to);
+    const fmt = (t) => t.replace(/^0/, '').replace(':00', ' h').replace(':', ' h ');
+    if (same) {
+      const names = open.map(([d]) => d.toLowerCase());
+      const contiguous = open.length > 2 && state.hours.slice(0, open.length).every((h) => h.open);
+      const days = contiguous ? 'du ' + names[0] + ' au ' + names[names.length - 1] : 'le ' + names.join(', le ');
+      return 'Les trajets sont possibles ' + days + ', de ' + fmt(open[0][1].from) + ' à ' + fmt(open[0][1].to) + '.';
+    }
+    return 'Les trajets sont possibles : ' + open.map(([d, h]) => d.toLowerCase() + ' de ' + fmt(h.from) + ' à ' + fmt(h.to)).join(', ') + '.';
+  }
+
+  function uHorsHoraire() {
+    return page('Pourquoi et quand ?', { eyebrow: 'Étape 3 sur 3', progress: [3, 3] },
+      '<div class="alert alert-error" role="alert"><p>' + (state.hours[6].open ? 'Pas de trajet à 5 h.' : 'Pas de trajet le dimanche.') + '</p><p>' + esc(hoursText()) + ' Choisissez un autre jour ou une autre heure.</p></div>' +
+      '<div class="field"><span class="field-label">Départ</span><div class="panel" style="margin:0">Dimanche 22/11, 5 h 00</div></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-quand">Changer le jour ou l\'heure</button>' +
+      '<button type="button" class="link-action" data-go="u-rappel">' + icon('phone') + 'Être rappelé pour en parler</button></div>');
+  }
+
+  function uRecap() {
+    return page('Votre trajet', { eyebrow: 'Avant l\'envoi' },
+      tripSummary() +
+      '<div class="alert alert-success"><p>Reste à payer : 0 €</p><p>Votre trajet est pris en charge. Après l\'envoi, nous cherchons un chauffeur.</p></div>' +
+      '<div class="panel"><p class="panel-title">Si vous annulez</p><p class="note">Conditions d\'annulation : écran existant.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-arrive" data-toast="Envoi, puis un chauffeur accepte (écrans existants).">Réserver ce trajet</button>' +
+      '<button type="button" class="link-action" data-go="u-depart">Modifier le trajet</button></div>');
+  }
+
+  const driverCard = '<div class="panel"><p class="panel-title">Votre chauffeur</p><p style="margin:0"><strong>Chloé</strong> · Note des passagers 4,8 sur 5</p><p style="margin:0">Renault Kangoo blanche · AB-123-CD</p></div>';
+
+  function uArrive() {
+    return page('Votre chauffeur est arrivé', { eyebrow: 'Trajet n° 142', lead: 'Lundi 23/11, 8 h 15, vers Nettoyage Plus' },
+      '<p class="status-line status-line-sun">' + icon('pin') + 'Chloé vous attend au point de départ</p>' +
+      '<p>Repère donné : ' + esc(landmarkText()) + '. Elle attend ' + ABSENCE_WAIT_MIN + ' minutes, jusqu\'à 8 h 31.</p>' +
+      driverCard +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Appel téléphonique (existant : numéro partagé pendant la course).">' + icon('phone') + 'Appeler Chloé</button></div>' +
+      '<details class="history"><summary>Historique du trajet</summary>' + timeline(BASE_STEPS) + '</details>' +
+      '<button type="button" class="link-action" data-go="u-signaler">' + icon('flag') + 'Signaler un problème</button>');
+  }
+
+  function uAbsent() {
+    return page('Le chauffeur ne vous a pas trouvé', { eyebrow: 'Trajet n° 142', lead: 'Lundi 23/11, 8 h 15, vers Nettoyage Plus' },
+      '<p class="status-line status-line-sun">' + icon('alert') + 'Passager absent</p>' +
+      '<p>Chloé vous a attendu ' + ABSENCE_WAIT_MIN + ' minutes au point de départ, puis elle est repartie.</p>' +
+      '<div class="alert alert-success"><p>Vous n\'avez rien à payer.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-recap">Réserver à nouveau ce trajet</button></div>' +
+      '<details class="history" open><summary>Historique du trajet</summary>' + timeline(BASE_STEPS.concat([ABSENT_STEP])) + '</details>' +
+      '<button type="button" class="link-action" data-go="u-signaler">' + icon('flag') + 'J\'étais là : signaler un problème</button>');
+  }
+
+  const REPORTS = [
+    ['absent', 'Le chauffeur n\'était pas là', 'car'],
+    ['retard', 'Le chauffeur était très en retard', 'clock'],
+    ['comportement', 'Le comportement du chauffeur', 'user'],
+    ['vehicule', 'Le véhicule', 'wrench'],
+    ['application', 'L\'application ne marche pas bien', 'question'],
+    ['autre', 'Autre chose', 'chat']
+  ];
+  function uSignaler() {
+    return page('Signaler un problème', { eyebrow: 'Trajet n° 142 du lundi 23/11' },
+      '<fieldset class="choices"><legend class="field-label" style="margin-bottom:var(--space-xs)">De quoi s\'agit-il ?</legend>' +
+      REPORTS.map(([v, t, ic]) => choice('radio', 'report', v, t, ic, state.report === v, null, ' data-report="1"')).join('') + '</fieldset>' +
+      '<div class="field"><label class="field-label" for="report-text">Racontez en quelques mots (facultatif)</label><textarea class="field-input" id="report-text" maxlength="1000"></textarea><p class="field-hint">N\'écrivez rien sur votre santé ni sur vos papiers.</p></div>' +
+      '<p class="note">Ce service ne traite pas les urgences.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-signaler-ok"' + (state.report ? '' : ' data-need="report"') + '>Envoyer</button>' +
+      back('u-absent', 'Revenir au trajet') + '</div>');
+  }
+  function uSignalerOk() {
+    return page('Signalement envoyé', {},
+      '<div class="alert alert-success"><p>Nous avons bien reçu votre signalement.</p><p>Une personne de l\'association le lit et vous rappelle si besoin, sous 2 jours ouvrés.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-absent">Revenir au trajet</button></div>');
+  }
+
+  function uAide() {
+    return page('J\'ai besoin d\'aide', { lead: 'Une question, un souci : nous sommes là.' },
+      '<div class="stack" style="margin-top:0">' +
+      card('need-help', 'phone', 'Être rappelé', 'Une personne de l\'association vous appelle.', 'data-go="u-rappel"') +
+      card('', 'flag', 'Signaler un problème', 'Sur un trajet ou sur l\'application.', 'data-go="u-signaler"') +
+      card('', 'question', 'Questions fréquentes', 'Écran existant.', 'data-toast="FAQ (écran existant)"') +
+      '</div><p class="note" style="margin-top:var(--space)">Les services d\'aide et les fiches « Comment faire ? » restent plus bas (écran existant).</p>');
+  }
+
+  function uRappel() {
+    const w = (v, t, ic) => choice('radio', 'when', v, t, ic, state.callWhen === v, null, ' data-when="1"');
+    return page('Être rappelé', { lead: 'Une personne de l\'association vous appelle.' },
+      '<div class="field"><label class="field-label" for="phone">Votre numéro de téléphone</label><input class="field-input" id="phone" type="tel" autocomplete="tel" value="0694 00 00 01"><p class="field-hint">Celui de votre compte. Vous pouvez le changer.</p></div>' +
+      '<fieldset class="choices"><legend class="field-label" style="margin-bottom:var(--space-xs)">Quand préférez-vous être appelé ?</legend>' +
+      w('matin', 'Le matin', 'clock') + w('apres_midi', 'L\'après-midi', 'clock') + w('any', 'Peu importe', 'calendar') + '</fieldset>' +
+      '<p class="note">Ce service ne traite pas les urgences.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-rappel-ok">Demander à être rappelé</button>' + back('u-aide', 'Revenir') + '</div>');
+  }
+  function uRappelOk() {
+    return page('Demande enregistrée', {},
+      '<div class="alert alert-success"><p>C\'est noté.</p><p>Une personne de l\'association vous appelle au 0694 00 00 01, sous 2 jours ouvrés.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-aide">Revenir à l\'aide</button></div>');
+  }
+
+  function uProfil() {
+    return page('Mon profil', {},
+      '<dl class="summary"><dt>Prénom</dt><dd>Jordan</dd><dt>Téléphone</dt><dd>0694 00 00 01</dd></dl>' +
+      '<p class="note">Modifier le profil, changer de mot de passe : écran existant.</p>' +
+      (state.deleteAsked
+        ? '<div class="alert alert-warning"><p>Suppression demandée le 12/11.</p><p>Votre compte sera supprimé au plus tard le 12/12.</p></div><button type="button" class="button button-secondary" data-cancel-delete="1">Annuler ma demande</button>'
+        : '<h2>Mes données</h2><button type="button" class="link-action" data-go="u-suppr">' + icon('trash') + 'Supprimer mon compte</button>'));
+  }
+  function uSuppr() {
+    return page('Supprimer mon compte', {},
+      '<p class="lead">Avant de demander la suppression, voici ce qui va se passer.</p>' +
+      '<ul class="benefits">' +
+      '<li class="benefit"><span class="icon-chip">' + icon('trash') + '</span>Votre nom, votre téléphone et votre plan d\'action sont effacés.</li>' +
+      '<li class="benefit"><span class="icon-chip">' + icon('route') + '</span>Vos trajets passés restent, sans votre nom : ils servent aux statistiques.</li>' +
+      '<li class="benefit"><span class="icon-chip">' + icon('car') + '</span>Vos trajets à venir sont annulés.</li>' +
+      '<li class="benefit"><span class="icon-chip">' + icon('calendar') + '</span>C\'est fait sous un mois au plus. Jusque-là, vous pouvez changer d\'avis.</li>' +
+      '</ul>' +
+      '<div class="step-nav"><button type="button" class="button" data-delete="1">Demander la suppression</button>' + back('u-profil', 'Garder mon compte') + '</div>');
+  }
+  function uSupprOk() {
+    return page('Demande envoyée', {},
+      '<div class="alert alert-success"><p>Votre demande est bien reçue.</p><p>Votre compte sera supprimé au plus tard le 12/12. Vous pouvez encore annuler depuis « Mon profil ».</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-go="u-profil">Revenir à mon profil</button></div>');
+  }
+
+  // --- Chauffeur ------------------------------------------------------------------------
+  const rideSummary = '<dl class="summary"><dt>Départ</dt><dd>12 rue des Palétuviers, Matoury<br><span class="note">Repère : ' + 'REPERE' + '</span></dd><dt>Arrivée</dt><dd>4 avenue Pasteur, Cayenne</dd><dt>Passagers</dt><dd>PASS</dd></dl>';
+  const driverRide = () => rideSummary.replace('REPERE', esc(landmarkText())).replace('PASS', state.passengers + (state.luggage ? ', bagages encombrants' : ''));
+
+  function cRoute() {
+    return page('Allez chercher le passager', { eyebrow: 'Course n° 142', lead: 'Jordan · lundi 23/11, 8 h 15' },
+      driverRide() +
+      '<button type="button" class="link-action" data-toast="Itinéraire vers le départ (existant), avec le point placé par le passager.">' + icon('map') + 'Itinéraire vers le départ</button>' +
+      '<div class="step-nav" style="margin-top:var(--space)"><button type="button" class="button" data-go="c-arrive">' + icon('pin') + 'Je suis arrivé au départ</button></div>' +
+      '<button type="button" class="link-action" data-toast="Désistement (existant).">Je ne peux plus faire cette course</button>');
+  }
+
+  function cArrive() {
+    const can = state.waited;
+    return page('Vous êtes au départ', { eyebrow: 'Course n° 142', lead: 'Jordan · arrivée notée à 8 h 21' },
+      '<p class="status-line status-line-sun">' + icon('clock') + (can ? 'Vous attendez depuis ' + ABSENCE_WAIT_MIN + ' minutes' : 'Jordan est prévenu que vous êtes là') + '</p>' +
+      '<p>Repère : ' + esc(landmarkText()) + '</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Démarrer (existant) : la course passe « en cours ».">' + icon('play') + 'Le passager est à bord : démarrer</button>' +
+      '<button type="button" class="button button-secondary" data-toast="Appel (existant).">' + icon('phone') + 'Appeler Jordan</button>' +
+      (can
+        ? '<button type="button" class="button button-secondary" data-go="c-absent">' + icon('alert') + 'Le passager n\'est pas là</button>'
+        : '<button type="button" class="button button-secondary" aria-disabled="true" aria-describedby="wait-hint" data-toast="Bouton actif à partir de 8 h 31.">' + icon('alert') + 'Le passager n\'est pas là</button><p class="field-hint" id="wait-hint">Possible à partir de 8 h 31, après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente.</p>') +
+      '</div>' +
+      '<button type="button" class="link-action" data-go="c-incident">' + icon('flag') + 'Signaler un incident</button>');
+  }
+
+  function cAbsent() {
+    return page('Le passager n\'est pas là ?', { eyebrow: 'Course n° 142' },
+      '<p class="lead">Vous avez attendu ' + ABSENCE_WAIT_MIN + ' minutes. Avant de partir, avez-vous essayé d\'appeler Jordan ?</p>' +
+      '<div class="panel"><p style="margin:0">La course se termine avec l\'état « passager absent ». L\'heure et votre nom sont enregistrés. Jordan est prévenu et n\'a rien à payer.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Course close : « passager absent », à 8 h 31, par Chloé." data-go="c-accueil">Oui, le passager est absent</button>' +
+      back('c-arrive', 'Non, j\'attends encore') + '</div>');
+  }
+
+  const INCIDENTS = [
+    ['retard', 'Je vais être en retard', 'clock'],
+    ['panne', 'Panne ou accident', 'wrench'],
+    ['passager', 'Un problème avec le passager', 'user'],
+    ['autre', 'Autre chose', 'chat']
+  ];
+  function cIncident() {
+    return page('Signaler un incident', { eyebrow: 'Course n° 142' },
+      '<fieldset class="choices"><legend class="field-label" style="margin-bottom:var(--space-xs)">Que se passe-t-il ?</legend>' +
+      INCIDENTS.map(([v, t, ic]) => choice('radio', 'incident', v, t, ic, state.incident === v, null, ' data-incident="1"')).join('') + '</fieldset>' +
+      '<div class="field"><label class="field-label" for="inc-text">En quelques mots (facultatif)</label><textarea class="field-input" id="inc-text" maxlength="1000"></textarea></div>' +
+      '<p class="note">L\'heure et votre nom sont enregistrés avec l\'incident. En cas d\'urgence, appelez les secours : cette application ne les prévient pas.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Incident enregistré, visible par l\'administrateur." data-go="c-arrive">Envoyer</button>' + back('c-arrive', 'Revenir à la course') + '</div>');
+  }
+
+  function cAccueil() {
+    return header() + hero('Bonjour Chloé', { lead: 'Vous êtes hors ligne' }) +
+      '<main class="sheet">' +
+      (state.pieceUpdated ? '' : '<div class="alert alert-warning"><p>Votre assurance expire le 01/12, dans 19 jours.</p><p>Passez montrer la nouvelle attestation à l\'association avant cette date, sinon votre compte sera suspendu.</p></div>') +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Disponibilité (existant).">Je suis disponible</button></div>' +
+      '<div class="stack">' +
+      card('', 'list', 'Courses', 'Proposées, programmées et les vôtres', 'data-go="c-route"') +
+      card('', 'euro', 'Mes revenus', 'Écran existant', 'data-toast="Mes revenus (existant)."') +
+      card('', 'id', 'Mes pièces', 'Permis, carte VTC, assurance, contrôle technique', 'data-go="c-pieces"') +
+      '</div></main>' + footer;
+  }
+
+  const PIECES = [
+    ['id', 'Permis de conduire', '14/03/2034', 'ok'],
+    ['id', 'Carte professionnelle VTC', '30/06/2029', 'ok'],
+    ['shield', 'Attestation d\'assurance', '01/12/2026', 'soon'],
+    ['wrench', 'Contrôle technique', '18/09/2027', 'ok']
+  ];
+  const pieceCard = ([ic, name, until, st], admin) => {
+    const s = st === 'soon' && state.pieceUpdated ? ['ok', '01/12/2027'] : [st, until];
+    const badge = s[0] === 'ok' ? '<span class="badge badge-done">' + icon('check').replace('<svg', '<svg style="width:1em;height:1em;vertical-align:-0.15em"') + ' Valide</span>'
+      : s[0] === 'soon' ? '<span class="badge">' + 'Expire bientôt</span>' : '<span class="badge badge-error">Expirée</span>';
+    return '<li class="piece"><span class="piece-head"><span>' + name + '</span>' + badge + '</span><p>Valable jusqu\'au ' + s[1] + '</p>' +
+      (admin ? '<p class="note">Vu en personne par ' + (st === 'soon' && state.pieceUpdated ? 'Farid, le 12/11/2026' : 'Farid, le 02/11/2026') + '</p>' : '') + '</li>';
+  };
+
+  function cPieces() {
+    return page('Mes pièces', { lead: 'Vérifiées en personne par l\'association.' },
+      '<ul class="cards">' + PIECES.map((p) => pieceCard(p, false)).join('') + '</ul>' +
+      '<p class="note">Pour mettre à jour une pièce, montrez l\'original à l\'association. Nous ne gardons pas de copie : seulement la date de fin de validité.</p>' +
+      back('c-accueil', 'Revenir à l\'accueil'));
+  }
+
+  function cSuspendu() {
+    return header() + hero('Bonjour Chloé', { lead: 'Votre compte est suspendu' }) +
+      '<main class="sheet">' +
+      '<div class="alert alert-error"><p>Votre attestation d\'assurance a expiré le 01/12.</p><p>Vous ne recevez plus de course. Montrez la nouvelle attestation à l\'association : votre compte sera réactivé.</p></div>' +
+      '<p>Vos courses déjà acceptées ont été proposées aux autres chauffeurs. Les passagers n\'ont rien à refaire.</p>' +
+      '<div class="stack">' + card('', 'id', 'Mes pièces', 'Voir ce qui manque', 'data-go="c-pieces"') + card('', 'euro', 'Mes revenus', 'Toujours consultables', 'data-toast="Mes revenus (existant)."') + '</div>' +
+      '</main>' + footer;
+  }
+
+  // --- Administrateur -------------------------------------------------------------------
+  const openCount = () => REQUESTS.filter((r) => !state.done[r.id]).length;
+  function aAccueil() {
+    return header() + hero('Bonjour Farid', { lead: 'Administration' }) +
+      '<main class="sheet">' +
+      '<div class="alert alert-warning"><p>1 chauffeur a une pièce qui expire dans moins de 30 jours.</p><p><a href="#a-pieces" data-go="a-pieces">Chloé : attestation d\'assurance, le 01/12</a></p></div>' +
+      '<div class="stack" style="margin-top:0">' +
+      card('', 'inbox', 'Demandes <span class="badge">' + openCount() + ' à traiter</span>', 'Rappels, signalements, suppressions de compte', 'data-go="a-demandes"') +
+      card('', 'settings', 'Réglages des trajets', 'Horaires, zones, tarif', 'data-go="a-reglages"') +
+      card('', 'users', 'Comptes', 'Écran existant', 'data-toast="Comptes (existant)."') +
+      '</div></main>' + footer;
+  }
+
+  function aReglages() {
+    const zones = COMMUNES.filter((c) => state.zones[c]);
+    return page('Réglages des trajets', { lead: 'Ils s\'appliquent aux nouvelles demandes.' },
+      '<div class="stack" style="margin-top:0">' +
+      card('', 'clock', 'Horaires autorisés', esc(hoursText()), 'data-go="a-horaires"') +
+      card('', 'map', 'Zones desservies', zones.length + ' communes : ' + esc(zones.join(', ')), 'data-go="a-zones"') +
+      card('', 'euro', 'Tarif', state.tariff.base + ' € de prise en charge + ' + state.tariff.km + ' € par km', 'data-go="a-tarif"') +
+      '</div><p class="note" style="margin-top:var(--space)">Un trajet déjà réservé garde les réglages du moment où il a été demandé.</p>' +
+      back('a-accueil', 'Revenir à l\'accueil'));
+  }
+
+  function aHoraires() {
+    const rows = state.hours.map((h, i) => '<div class="day' + (h.open ? '' : ' is-closed') + '">' +
+      '<label class="checkbox"><input type="checkbox" data-day-open="' + i + '"' + (h.open ? ' checked' : '') + '>' + DAYS[i] + '</label>' +
+      (h.open
+        ? '<span></span><div class="day-times"><label class="visually-hidden" for="from' + i + '">' + DAYS[i] + ', début</label><input type="time" id="from' + i + '" data-day-from="' + i + '" value="' + h.from + '"><span>à</span><label class="visually-hidden" for="to' + i + '">' + DAYS[i] + ', fin</label><input type="time" id="to' + i + '" data-day-to="' + i + '" value="' + h.to + '"></div>'
+        : '<span class="day-closed-text">Pas de trajet</span>') +
+      '</div>').join('');
+    return page('Horaires autorisés', { lead: 'Heure de Guyane.' },
+      '<p>Cochez les jours où l\'on peut voyager, puis l\'heure du premier et du dernier départ.</p>' +
+      '<div class="days">' + rows + '</div>' +
+      '<button type="button" class="link-action" data-copy-hours="1">' + icon('list') + 'Copier les horaires du lundi sur les jours cochés</button>' +
+      '<div class="preview" style="margin:var(--space) 0"><p>Ce que lit un usager qui demande un trajet en dehors :</p><p style="margin:0"><strong>' + esc(hoursText()) + '</strong> Choisissez un autre jour ou une autre heure.</p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Horaires enregistrés. Les trajets déjà réservés ne changent pas." data-go="a-reglages">Enregistrer</button>' + back('a-reglages', 'Revenir sans enregistrer') + '</div>');
+  }
+
+  function aZones() {
+    const zones = COMMUNES.filter((c) => state.zones[c]);
+    return page('Zones desservies', { lead: 'Le départ et l\'arrivée doivent être dans l\'une d\'elles.' },
+      '<fieldset class="choices"><legend class="visually-hidden">Communes desservies</legend>' +
+      COMMUNES.map((c) => choice('checkbox', 'zone', c, c, 'pin', state.zones[c], PILOT.includes(c) ? 'Zone du pilote' : null, ' data-zone="' + esc(c) + '"')).join('') + '</fieldset>' +
+      '<div class="preview" style="margin:0 0 var(--space)"><p>Ce que lit un usager dont l\'adresse est hors zone :</p><p style="margin:0"><strong>' +
+      (zones.length ? 'Nous ne desservons pas encore cette commune. Les trajets sont possibles à ' + esc(zones.join(', ').replace(/, ([^,]*)$/, ' et $1')) + '.' : 'Aucune commune n\'est desservie : aucun trajet n\'est possible.') + '</strong></p></div>' +
+      '<p class="note">La liste des communes vient de la base. Une commune s\'ajoute à la demande de l\'équipe base de données.</p>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Zones enregistrées." data-go="a-reglages">Enregistrer</button>' + back('a-reglages', 'Revenir sans enregistrer') + '</div>');
+  }
+
+  function aTarif() {
+    return page('Tarif', { lead: 'Sert à estimer le prix de chaque trajet.' },
+      '<div class="alert alert-info">Dans le démonstrateur, l\'usager ne paie rien. Le prix estimé sert au revenu du chauffeur et aux statistiques.</div>' +
+      '<div class="field"><label class="field-label" for="base">Prise en charge</label><span class="money"><input class="field-input" id="base" inputmode="decimal" data-tariff="base" value="' + esc(state.tariff.base) + '"> €</span></div>' +
+      '<div class="field"><label class="field-label" for="km">Prix par kilomètre</label><span class="money"><input class="field-input" id="km" inputmode="decimal" data-tariff="km" value="' + esc(state.tariff.km) + '"> €</span></div>' +
+      '<div class="preview" style="margin:0 0 var(--space)"><p>Exemple : Matoury → Cayenne, 9 km</p><p style="margin:0"><strong>' + exampleFare() + '</strong></p></div>' +
+      '<div class="step-nav"><button type="button" class="button" data-save-tariff="1">Enregistrer une nouvelle version</button>' + back('a-reglages', 'Revenir sans enregistrer') + '</div>' +
+      '<h2>Versions</h2><ul class="cards">' +
+      (state.tariffSaved ? '<li class="req"><p><strong>Version 2</strong> · depuis le 12/11/2026, par Farid</p><p>' + esc(state.tariff.base) + ' € + ' + esc(state.tariff.km) + ' € par km</p></li>' : '') +
+      '<li class="req' + (state.tariffSaved ? ' is-done' : '') + '"><p><strong>Version 1</strong> · ' + (state.tariffSaved ? 'du 03/11 au 12/11/2026' : 'depuis le 03/11/2026') + '</p><p>8,00 € + 0,80 € par km</p></li></ul>' +
+      '<p class="note">Chaque trajet garde la version acceptée au moment de la demande.</p>');
+  }
+  function exampleFare() {
+    const n = (s) => Number(String(s).replace(',', '.'));
+    const v = n(state.tariff.base) + 9 * n(state.tariff.km);
+    return Number.isFinite(v) ? v.toFixed(2).replace('.', ',') + ' €' : 'Montant incomplet';
+  }
+
+  function aDemandes() {
+    const f = state.filter;
+    const list = REQUESTS.filter((r) => f === 'all' || r.type === f);
+    const count = (t) => REQUESTS.filter((r) => (t === 'all' || r.type === t) && !state.done[r.id]).length;
+    const tab = (v, t) => '<button type="button" class="tab" role="tab" aria-selected="' + (f === v) + '" data-filter="' + v + '">' + t + ' (' + count(v) + ')</button>';
+    return page('Demandes', { lead: openCount() + ' à traiter' },
+      '<div class="tabs" role="tablist" aria-label="Type de demande">' + tab('all', 'Toutes') + tab('rappel', 'Rappels') + tab('signalement', 'Signalements') + tab('suppression', 'Suppressions') + '</div>' +
+      '<ul class="cards">' + list.map((r) => {
+        const done = state.done[r.id];
+        return '<li class="req' + (done ? ' is-done' : '') + '"><span class="req-head"><span class="icon-chip">' + icon(r.icon) + '</span><span><strong>' + r.who + ' · ' + r.phone + '</strong><span class="note">' + r.when + ' · ' + r.from + '</span></span></span>' +
+          '<p>' + r.what + '</p>' +
+          (done ? '<p><span class="badge badge-done">Traité par Farid, le 12/11</span></p>'
+            : '<div class="row-actions">' + (r.go ? '<button type="button" class="button" data-go="' + r.go + '">Ouvrir</button>' : '<button type="button" class="button" data-toast="Appel au ' + r.phone + '.">' + icon('phone') + 'Appeler</button>') +
+              (r.type === 'suppression' ? '' : '<button type="button" class="button button-secondary" data-done="' + r.id + '">' + icon('check') + 'Marquer comme traité</button>') + '</div>') +
+          '</li>';
+      }).join('') + '</ul>' + back('a-accueil', 'Revenir à l\'accueil'));
+  }
+
+  function aSignalement() {
+    return page('Signalement de Jordan', { eyebrow: 'Trajet n° 142 · lundi 23/11' },
+      '<p class="lead">« Le chauffeur n\'était pas là »</p><p>« J\'étais devant la pharmacie à 8 h 15, je n\'ai vu personne. »</p>' +
+      '<h2>Historique du trajet</h2>' + timeline(BASE_STEPS.concat([ABSENT_STEP, ['8 h 40', 'Problème signalé', 'Par Jordan, usager']])) +
+      '<div class="alert alert-info">Chaque étape garde son heure et son auteur : on voit qui a dit quoi, sans décider à la place de personne.</div>' +
+      '<div class="step-nav"><button type="button" class="button" data-toast="Appel de Jordan au 0694 00 00 01.">' + icon('phone') + 'Appeler Jordan</button>' +
+      '<button type="button" class="button button-secondary" data-toast="Appel de Chloé.">' + icon('phone') + 'Appeler Chloé</button>' +
+      '<button type="button" class="button button-secondary" data-done="s1" data-go="a-demandes">' + icon('check') + 'Marquer comme traité</button></div>');
+  }
+
+  function aSuppression() {
+    const done = state.done.d1;
+    return page('Supprimer le compte de Hugo M.', { eyebrow: 'Demande du 05/11, à traiter avant le 05/12' },
+      done ? '<div class="alert alert-success"><p>Le compte est supprimé.</p><p>Il n\'apparaît plus dans les comptes. Ses 6 trajets passés restent, sans identité.</p></div>' + back('a-demandes', 'Revenir aux demandes')
+        : '<dl class="summary"><dt>Compte</dt><dd>Usager, créé le 12/10/2026</dd><dt>Trajets</dt><dd>6 passés, aucun à venir</dd></dl>' +
+          '<h2>Ce qui va se passer</h2><ul>' +
+          '<li>Le nom, le courriel et le plan d\'action sont effacés.</li><li>Le téléphone est remplacé par un numéro qui n\'existe pas.</li><li>Les trajets passés restent, sans identité, pour les statistiques.</li><li>La personne ne peut plus se connecter.</li></ul>' +
+          '<div class="alert alert-warning"><p>On ne peut pas revenir en arrière.</p></div>' +
+          '<div class="step-nav"><button type="button" class="button" data-done="d1">Supprimer le compte</button>' + back('a-demandes', 'Revenir aux demandes') + '</div>');
+  }
+
+  function aPieces() {
+    return page('Chloé', { eyebrow: 'Compte chauffeur', lead: 'Section « Pièces » de la fiche du compte' },
+      '<ul class="cards">' + PIECES.map((p) => pieceCard(p, true)).join('') + '</ul>' +
+      (state.pieceUpdated ? '<div class="alert alert-success"><p>Attestation d\'assurance mise à jour.</p></div>' :
+        '<h2>Mettre à jour une pièce</h2>' +
+        '<div class="field"><label class="field-label" for="piece">Pièce</label><select class="field-input" id="piece"><option>Attestation d\'assurance</option><option>Permis de conduire</option><option>Carte professionnelle VTC</option><option>Contrôle technique</option></select></div>' +
+        '<div class="field"><label class="field-label" for="until">Valable jusqu\'au</label><input class="field-input" id="until" type="date" value="2027-12-01"></div>' +
+        '<label class="checkbox" style="margin-bottom:var(--space)"><input type="checkbox" checked>J\'ai vu l\'original de la pièce</label>' +
+        '<div class="step-nav"><button type="button" class="button" data-piece="1">Enregistrer</button></div>') +
+      '<p class="note" style="margin-top:var(--space)">Aucune copie de la pièce n\'est gardée. Le jour où une pièce expire, le compte est suspendu ; vous pouvez le réactiver à tout moment depuis cette fiche.</p>' +
+      back('a-accueil', 'Revenir à l\'accueil'));
+  }
+
+  // --- Notes for the client ---------------------------------------------------------------
+  const ask = (q, why) => '<p class="ask"><strong>À demander à la cliente</strong>' + q + (why ? '<br><em>' + why + '</em>' : '') + '</p>';
+  const NOTES = {
+    'u-depart': ['<h2>Départ : adresse et repère</h2><ul><li>Le cahier des charges demande un départ « par adresse, repère ou point sur carte » (§3, §7.4).</li><li>L\'adresse reste obligatoire (elle sert à vérifier la zone et à calculer la distance). Le repère et le point sont facultatifs et aident le chauffeur.</li><li>Le repère est un texte court, 120 caractères au plus : le chauffeur le voit sur la course.</li></ul>' + ask('Un repère écrit vous paraît-il utile, en plus de l\'adresse ?', 'En Guyane, beaucoup d\'adresses sont imprécises : c\'est souvent le repère qui permet de se retrouver.')],
+    'u-carte': ['<h2>Point sur la carte</h2><ul><li>Carte dessinée pour la maquette : touchez-la pour déplacer l\'épingle.</li><li>Dans l\'application : fond OpenStreetMap (bibliothèque Leaflet, prévue au sprint 3 avec une fiche de décision), chargé seulement quand on ouvre cet écran, pour rester léger sur un réseau faible.</li><li>Facultatif : on peut toujours continuer sans placer de point, ce qui reste accessible au clavier et aux lecteurs d\'écran.</li></ul>' + ask('Faut-il la carte dès la démonstration, ou le repère écrit suffit-il pour commencer ?')],
+    'u-quand': ['<h2>Passagers et besoins</h2><ul><li>Nombre de personnes de 1 à ' + MAX_PASSENGERS + ', bagages, véhicule adapté (§7.4).</li><li>Un besoin s\'écrit comme un besoin (« véhicule adapté »), jamais comme un diagnostic (§12).</li><li>Les offres ne sont proposées qu\'aux chauffeurs dont le véhicule a assez de places.</li></ul>' + ask('Combien de passagers au plus ? Un enfant compte-t-il, et faut-il un siège enfant ?')],
+    'u-hors-horaire': ['<h2>Demande hors des horaires</h2><ul><li>Une demande refusée l\'est avec une explication en langage simple (§18).</li><li>Le texte reprend les horaires réglés par l\'administrateur : changez-les dans « Horaires autorisés », ce message suit.</li><li>Horaires montrés : <strong>exemple</strong> (lundi au samedi, 6 h à 20 h). Aujourd\'hui, rien n\'est bloqué.</li></ul>' + ask('Quels sont les horaires où les trajets sont possibles ? Les mêmes tous les jours ?')],
+    'u-recap': ['<h2>Résumé avant l\'envoi</h2><ul><li>Écran existant, avec en plus le repère et le nombre de passagers.</li><li>« Reste à payer : 0 € » : décision de l\'entretien du 03/11 (gratuit dans la structure de la porteuse).</li></ul>'],
+    'u-arrive': ['<h2>Nouvel état : chauffeur arrivé</h2><ul><li>Le cahier des charges ajoute « chauffeur arrivé » entre « confirmée » et « en cours » (§7.4).</li><li>L\'historique montre chaque étape avec son heure et son auteur (§7.4).</li><li>Sans suivi GPS (hors périmètre, §5) : c\'est le chauffeur qui appuie sur « Je suis arrivé ».</li><li>Au sprint 3, cet écran se met à jour tout seul (statut en direct).</li></ul>'],
+    'u-absent': ['<h2>Nouvel état : passager absent</h2><ul><li>Le chauffeur peut le signaler après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente (valeur provisoire).</li><li>Aucun frais tant que la cliente n\'en a pas fixé : le passager n\'a rien à payer.</li><li>Le passager peut contester : « J\'étais là : signaler un problème ».</li></ul>' + ask('Combien de minutes le chauffeur attend-il ? Un passager souvent absent doit-il être prévenu, puis suspendu ?', 'Pas de sanction automatique : c\'est l\'administrateur qui décide (RGPD art. 22).')],
+    'u-signaler': ['<h2>Signaler un problème</h2><ul><li>Exigé par le cahier des charges (§6, aide).</li><li>Depuis la page d\'un trajet ou depuis « J\'ai besoin d\'aide ».</li><li>On rappelle qu\'aucun service d\'urgence n\'est promis (§6).</li></ul>' + ask('Ces catégories vous conviennent-elles ? Qui lit les signalements, et sous quel délai ?')],
+    'u-signaler-ok': ['<h2>Signalement envoyé</h2><ul><li>Une confirmation seulement après la réponse du serveur (jamais de fausse confirmation).</li><li>Délai de « 2 jours ouvrés » : à confirmer.</li></ul>'],
+    'u-aide': ['<h2>J\'ai besoin d\'aide</h2><ul><li>Page existante : on ajoute « Être rappelé » et « Signaler un problème » en tête (§6).</li></ul>'],
+    'u-rappel': ['<h2>Être rappelé</h2><ul><li>Même écran que dans la maquette du questionnaire.</li><li>On ne demande que le numéro et un moment (minimisation, §2).</li></ul>' + ask('Qui rappelle, et sous quel délai ?')],
+    'u-rappel-ok': ['<h2>Demande enregistrée</h2><ul><li>Elle arrive chez l\'administrateur, dans « Demandes ».</li></ul>'],
+    'u-profil': ['<h2>Mon profil</h2><ul><li>La demande de suppression est exigée au palier P1 (§6).</li><li>Une fois demandée, elle peut être annulée tant qu\'elle n\'est pas traitée.</li></ul>'],
+    'u-suppr': ['<h2>Supprimer mon compte</h2><ul><li>Ce qui est effacé et ce qui reste : décision du 03/11 (#32).</li><li>Délai d\'un mois au plus : celui du RGPD (art. 12).</li><li>C\'est l\'administrateur qui fait la suppression, pour gérer les trajets en cours.</li></ul>' + ask('Faut-il prévenir la personne par SMS (simulé) quand c\'est fait ?')],
+    'u-suppr-ok': ['<h2>Suppression demandée</h2><ul><li>La demande apparaît chez l\'administrateur, avec la date limite.</li></ul>'],
+    'c-route': ['<h2>Aller chercher le passager</h2><ul><li>Le chauffeur voit le repère et le nombre de passagers.</li><li>Nouveau bouton « Je suis arrivé au départ » : l\'heure et son nom sont enregistrés (§7.4).</li></ul>'],
+    'c-arrive': () => ['<h2>Arrivé au départ</h2><ul><li>Le bouton « Le passager n\'est pas là » n\'est actif qu\'après ' + ABSENCE_WAIT_MIN + ' minutes, et le dit en texte.</li><li>Pour la maquette : <button type="button" data-wait="1">' + (state.waited ? 'Revenir à 8 h 21' : 'Avancer de ' + ABSENCE_WAIT_MIN + ' minutes') + '</button></li></ul>'],
+    'c-absent': ['<h2>Passager absent</h2><ul><li>Une confirmation avant, car la course se termine.</li><li>On rappelle d\'appeler le passager d\'abord.</li></ul>'],
+    'c-incident': ['<h2>Signaler un incident</h2><ul><li>Incident horodaté avec son auteur (§7.4).</li><li>Pas de catégorie médicale (§12) ; l\'application ne prévient pas les secours (§6).</li></ul>' + ask('Ces catégories vous conviennent-elles ?')],
+    'c-accueil': ['<h2>Accueil du chauffeur</h2><ul><li>Écran existant, avec la carte « Mes pièces » et une alerte 30 jours avant l\'expiration d\'une pièce.</li></ul>' + ask('Prévenir 30 jours avant, c\'est bien ? Faut-il aussi un SMS (simulé) ?')],
+    'c-pieces': ['<h2>Mes pièces</h2><ul><li>Le cahier des charges demande les pièces du chauffeur et la suspension à leur expiration (§7.4).</li><li>Choix de l\'équipe : <strong>aucune copie stockée</strong>, seulement le type et la date de fin, après vérification en personne (minimisation, §2).</li></ul>' + ask('La liste des pièces est-elle la bonne (permis, carte VTC, assurance, contrôle technique) ? En manque-t-il une ?')],
+    'c-suspendu': ['<h2>Compte suspendu</h2><ul><li>Suspension automatique le jour où une pièce expire (§7.4).</li><li>Un humain garde la main : l\'administrateur peut réactiver le compte (RGPD art. 22).</li><li>Les courses déjà acceptées repartent aux autres chauffeurs, comme un désistement.</li></ul>'],
+    'a-accueil': ['<h2>Accueil de l\'administrateur</h2><ul><li>Trois actions principales (§10) : demandes, réglages, comptes.</li><li>Une alerte pour les pièces qui expirent bientôt.</li></ul>'],
+    'a-reglages': ['<h2>Réglages des trajets</h2><ul><li>Horaires, zones et tarif réglables par l\'administrateur (§5, M9, P1).</li><li>Un trajet déjà réservé garde ses réglages (version du tarif conservée, §7.4).</li></ul>'],
+    'a-horaires': ['<h2>Horaires autorisés</h2><ul><li>Un jour par ligne : ouvert ou fermé, premier et dernier départ.</li><li>L\'aperçu montre le message de refus que lira l\'usager (§18).</li><li>Heure de Guyane (America/Cayenne, §3).</li></ul>' + ask('Quels horaires mettre pour la démonstration ?')],
+    'a-zones': ['<h2>Zones desservies</h2><ul><li>Valeur de départ : Cayenne, Rémire-Montjoly, Matoury (visio 1).</li><li>Une commune non cochée est signalée à l\'usager avec la liste des communes desservies (§3, §18).</li></ul>' + ask('Le pilote reste-t-il sur ces 3 communes ? Kourou ou Macouria plus tard ?')],
+    'a-tarif': ['<h2>Tarif</h2><ul><li>Une modification crée une nouvelle version : les trajets gardent celle du moment (§7.4).</li><li>L\'aperçu recalcule un exemple pendant la saisie.</li><li>Montants provisoires : 8 € + 0,80 €/km.</li></ul>' + ask('À quoi sert le tarif si l\'usager ne paie rien : au revenu du chauffeur ? Quels montants ?')],
+    'a-demandes': ['<h2>Demandes</h2><ul><li>Rappels, signalements et suppressions au même endroit.</li><li>« Traité » garde la date et le nom de la personne qui l\'a fait.</li><li>Le rôle opérateur (centre d\'appel) pourra traiter les rappels après la soutenance (palier P2).</li></ul>' + ask('Qui, chez vous, traitera ces demandes pendant la démonstration ?')],
+    'a-signalement': ['<h2>Un signalement</h2><ul><li>L\'historique avec les auteurs permet de comprendre ce qui s\'est passé.</li><li>L\'administrateur appelle les deux personnes et décide : rien n\'est tranché automatiquement (RGPD art. 22).</li></ul>'],
+    'a-suppression': ['<h2>Suppression d\'un compte</h2><ul><li>Règle décidée le 03/11 (#32) : statut « supprimé », nom et courriel effacés, téléphone remplacé, trajets gardés sans identité.</li><li>Irréversible : on le dit avant.</li></ul>'],
+    'a-pieces': ['<h2>Pièces d\'un chauffeur</h2><ul><li>L\'administrateur voit l\'original, puis note la date de fin : rien n\'est scanné.</li><li>« Vu en personne par » garde qui a vérifié et quand.</li><li>Il peut réactiver un compte suspendu à tout moment.</li></ul>']
+  };
+
+  // --- Rendering and events ---------------------------------------------------------
+  const RENDER = {
+    'u-depart': uDepart, 'u-carte': uCarte, 'u-quand': uQuand, 'u-hors-horaire': uHorsHoraire, 'u-recap': uRecap,
+    'u-arrive': uArrive, 'u-absent': uAbsent, 'u-signaler': uSignaler, 'u-signaler-ok': uSignalerOk, 'u-aide': uAide,
+    'u-rappel': uRappel, 'u-rappel-ok': uRappelOk, 'u-profil': uProfil, 'u-suppr': uSuppr, 'u-suppr-ok': uSupprOk,
+    'c-route': cRoute, 'c-arrive': cArrive, 'c-absent': cAbsent, 'c-incident': cIncident, 'c-accueil': cAccueil, 'c-pieces': cPieces, 'c-suspendu': cSuspendu,
+    'a-accueil': aAccueil, 'a-reglages': aReglages, 'a-horaires': aHoraires, 'a-zones': aZones, 'a-tarif': aTarif,
+    'a-demandes': aDemandes, 'a-signalement': aSignalement, 'a-suppression': aSuppression, 'a-pieces': aPieces
+  };
+  const device = document.getElementById('device');
+  const notesEl = document.getElementById('notes');
+  const select = document.getElementById('screen-select');
+  let n = 0;
+  select.innerHTML = GROUPS.map(([g, list]) => '<optgroup label="' + esc(g) + '">' + list.map(([id, name]) => '<option value="' + id + '">' + (++n) + '. ' + esc(name) + '</option>').join('') + '</optgroup>').join('');
+
+  function render(focus) {
+    device.innerHTML = '<div class="screen-enter">' + RENDER[current]() + '</div>';
+    const nv = NOTES[current];
+    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + (typeof nv === 'function' ? nv() : nv || []).join('');
+    select.value = current;
+    if (focus) {
+      const t = document.getElementById('screen-title');
+      if (t) t.focus({ preventScroll: true });
+      device.scrollIntoView({ block: 'start' });
+    }
+  }
+  // Re-render after a change, keeping the focus on the same control.
+  function rerender(selector) {
+    render(false);
+    const again = selector && device.querySelector(selector);
+    if (again) again.focus();
+  }
+
+  function go(id) {
+    if (!RENDER[id]) id = 'u-depart';
+    current = id;
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+    render(true);
+  }
+
+  let toastTimer;
+  function toast(text) {
+    const el = document.getElementById('toast');
+    el.textContent = text;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+  }
+
+  device.addEventListener('click', (e) => {
+    const map = e.target.closest('#map');
+    if (map) {
+      const r = map.getBoundingClientRect();
+      state.pin = { x: Math.round(((e.clientX - r.left) / r.width) * 100), y: Math.round(((e.clientY - r.top) / r.height) * 100) };
+      render(false);
+      return;
+    }
+    const t = e.target.closest('button, a[data-go]');
+    if (!t) return;
+    const d = t.dataset;
+    if (d.step) { state.passengers = Math.min(MAX_PASSENGERS, Math.max(1, state.passengers + Number(d.step))); rerender('[data-step="' + d.step + '"]:not([disabled])'); return; }
+    if (d.filter) { state.filter = d.filter; rerender('[data-filter="' + d.filter + '"]'); return; }
+    if (d.copyHours) { const m = state.hours[0]; state.hours = state.hours.map((h) => (h.open ? { open: true, from: m.from, to: m.to } : h)); rerender('[data-copy-hours]'); toast('Horaires du lundi copiés sur les jours cochés.'); return; }
+    if (d.saveTariff) { state.tariffSaved = true; rerender('[data-save-tariff]'); toast('Nouvelle version du tarif enregistrée. Les trajets déjà réservés gardent l\'ancienne.'); return; }
+    if (d.piece) { state.pieceUpdated = true; render(false); toast('Pièce mise à jour, vue en personne par Farid.'); return; }
+    if (d.delete) { state.deleteAsked = true; go('u-suppr-ok'); return; }
+    if (d.cancelDelete) { state.deleteAsked = false; render(false); toast('Demande de suppression annulée.'); return; }
+    if (d.need && !state[d.need]) { toast('Choisissez d\'abord de quoi il s\'agit.'); return; }
+    if (d.done) { state.done[d.done] = true; if (d.done === 'd1' && current === 'a-suppression') { render(false); return; } }
+    if (d.toast) toast(d.toast);
+    if (d.go) { e.preventDefault(); go(d.go); return; }
+    if (d.done) rerender();
+  });
+
+  device.addEventListener('change', (e) => {
+    const t = e.target;
+    const d = t.dataset;
+    if (d.flag) { state[d.flag] = t.checked; return; }
+    if (d.report) { state.report = t.value; return; }
+    if (d.incident) { state.incident = t.value; return; }
+    if (d.when) { state.callWhen = t.value; return; }
+    if (d.zone) { state.zones[d.zone] = t.checked; rerender('[data-zone="' + d.zone + '"]'); return; }
+    if (d.dayOpen) { state.hours[d.dayOpen].open = t.checked; rerender('[data-day-open="' + d.dayOpen + '"]'); return; }
+    if (d.dayFrom) { state.hours[d.dayFrom].from = t.value; rerender('[data-day-from="' + d.dayFrom + '"]'); return; }
+    if (d.dayTo) { state.hours[d.dayTo].to = t.value; rerender('[data-day-to="' + d.dayTo + '"]'); }
+  });
+  device.addEventListener('input', (e) => {
+    if (e.target.id === 'landmark') state.landmark = e.target.value;
+    if (e.target.dataset.tariff) {
+      state.tariff[e.target.dataset.tariff] = e.target.value;
+      const out = device.querySelector('.preview strong');
+      if (out) out.textContent = exampleFare();
+    }
+  });
+  notesEl.addEventListener('click', (e) => {
+    if (e.target.closest('[data-wait]')) { state.waited = !state.waited; render(false); }
+  });
+
+  const step = (k) => { const i = SCREENS.findIndex((s) => s[0] === current); go(SCREENS[(i + k + SCREENS.length) % SCREENS.length][0]); };
+  select.addEventListener('change', () => go(select.value));
+  document.getElementById('prev').addEventListener('click', () => step(-1));
+  document.getElementById('next').addEventListener('click', () => step(1));
+  document.getElementById('reset').addEventListener('click', () => { state = empty(); go('u-depart'); toast('Maquette remise à zéro.'); });
+  window.addEventListener('hashchange', () => go(location.hash.slice(1)));
+
+  current = RENDER[location.hash.slice(1)] ? location.hash.slice(1) : 'u-depart';
+  render(false);
+})();
+</script>
