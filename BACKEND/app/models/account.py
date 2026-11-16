@@ -1,10 +1,11 @@
 """Accounts and reference data: role, commune, utilisateur, usager, chauffeur,
-vehicule, demande_suppression (sql/schema-mvp.sql, migrations 001, 002 and 010)."""
+vehicule, demande_suppression (sql/schema-mvp.sql, migrations 001, 002 and 010),
+piece_chauffeur and chauffeur_commune (migration 024)."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import DECIMAL, Boolean, ForeignKey, Integer, LargeBinary, SmallInteger, String
+from sqlalchemy import DECIMAL, Boolean, Date, ForeignKey, Integer, LargeBinary, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..utils.database import Base
@@ -34,7 +35,11 @@ class Commune(Base):
 
 
 class UserRow(Base):
-    """Account shared by every role. `status`: 'actif' or 'suspendu'."""
+    """Account shared by every role. `status`: 'actif', 'suspendu' or 'supprime'.
+
+    A deleted account (migration 025) is anonymised, the database checks it:
+    empty names, no email, password nor code, phone '+000' + 9-digit id.
+    """
 
     __tablename__ = "utilisateur"
 
@@ -110,4 +115,36 @@ class DeletionRequest(Base):
     handled_at: Mapped[datetime | None] = mapped_column("traitee_le", UtcDateTime)
     handled_by_id: Mapped[int | None] = mapped_column(
         "id_traitee_par", Integer, ForeignKey("utilisateur.id_utilisateur")
+    )
+
+
+class DriverDocumentRow(Base):
+    """A document of the driver, CHECKED IN PERSON by an administrator: no file
+    and no number is kept, only its type and expiry (minimisation, §2). A
+    renewal is a new row; the document in force of a type is the one that
+    expires last. `expires_on` is the last valid day."""
+
+    __tablename__ = "piece_chauffeur"
+
+    id: Mapped[int] = mapped_column("id_piece", Integer, primary_key=True)
+    driver_id: Mapped[int] = mapped_column("id_chauffeur", Integer, ForeignKey("chauffeur.id_utilisateur"))
+    kind: Mapped[str] = mapped_column("type", String(30))
+    expires_on: Mapped[date] = mapped_column("expire_le", Date)
+    checked_at: Mapped[datetime] = mapped_column("verifiee_le", UtcDateTime)
+    checked_by_id: Mapped[int] = mapped_column(
+        "id_verifiee_par", Integer, ForeignKey("utilisateur.id_utilisateur")
+    )
+
+
+class DriverCommuneRow(Base):
+    """A commune where the driver agrees to drive. No row = the whole served
+    zone; only served communes make sense (rule of the API)."""
+
+    __tablename__ = "chauffeur_commune"
+
+    driver_id: Mapped[int] = mapped_column(
+        "id_chauffeur", Integer, ForeignKey("chauffeur.id_utilisateur"), primary_key=True
+    )
+    commune_id: Mapped[int] = mapped_column(
+        "id_commune", Integer, ForeignKey("commune.id_commune"), primary_key=True
     )

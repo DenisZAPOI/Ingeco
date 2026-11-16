@@ -16,7 +16,17 @@ repositories translate them.
 tests/test_models.py checks every model against the real tables.
 """
 
-from .account import Commune, DeletionRequest, DriverRow, RiderRow, Role, UserRow, VehicleRow
+from .account import (
+    Commune,
+    DeletionRequest,
+    DriverCommuneRow,
+    DriverDocumentRow,
+    DriverRow,
+    RiderRow,
+    Role,
+    UserRow,
+    VehicleRow,
+)
 from .content import (
     HelpServiceLanguageRow,
     HelpServiceRow,
@@ -30,13 +40,16 @@ from .content import (
     PracticalGuideTranslationRow,
 )
 from .orientation import ActionPlanRow, AnswerRow, PlanStepRow, QuestionnaireRow
-from .ride import RatingRow, RideRow, TariffRow
+from .ride import RatingRow, RideRow, RideStepRow, ServiceHoursRow, TariffRow
+from .support import SupportRequestRow
 
 __all__ = [
     "ActionPlanRow",
     "AnswerRow",
     "Commune",
     "DeletionRequest",
+    "DriverCommuneRow",
+    "DriverDocumentRow",
     "DriverRow",
     "HelpServiceLanguageRow",
     "HelpServiceRow",
@@ -52,8 +65,11 @@ __all__ = [
     "QuestionnaireRow",
     "RatingRow",
     "RideRow",
+    "RideStepRow",
     "RiderRow",
     "Role",
+    "ServiceHoursRow",
+    "SupportRequestRow",
     "TariffRow",
     "UserRow",
     "VehicleRow",
