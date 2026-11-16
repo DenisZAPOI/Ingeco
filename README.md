@@ -432,7 +432,8 @@ docker compose stop adminer                     # l'arrêter après usage
 
 Sur la page de connexion : système **MySQL**, serveur **`db`** (déjà rempli), utilisateur
 **`enroute`**, mot de passe **`MYSQL_PASSWORD`** du `.env`, base **`enroute`**. Port déjà pris :
-changer `ADMINER_PORT` dans le `.env`. Adminer permet de modifier les données : une
+changer `ADMINER_PORT` dans le `.env`. Pour qu'il démarre à chaque `docker compose up -d` sans
+y penser, ajouter `COMPOSE_PROFILES=outils` à son `.env` (à retirer avant une démo). Adminer permet de modifier les données : une
 modification à la main se défait en remettant la démo à zéro (ci-dessus), et le schéma ne se
 change jamais par là, seulement par une migration.
 

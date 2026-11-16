@@ -132,6 +132,9 @@ services:
     image: adminer:5.4.1
     container_name: enroute-adminer
     profiles: ["outils"]
+    # Repart avec Docker (redémarrage du PC) s'il tournait ; un « stop »
+    # le laisse arrêté
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
