@@ -7,13 +7,15 @@ which model to update (app/models/). The models never change the schema.
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from sqlalchemy import inspect, select
+from sqlalchemy import func, inspect, select
 from sqlalchemy.orm import Session
 
 from app.models import Commune, Role, TariffRow
 from app.models.types import UtcDateTime
 from app.services.account_rules import ROLES
 from app.utils.database import Base
+
+GUYANA_COMMUNES = 22
 
 # Columns computed by MySQL (GENERATED ALWAYS): never written by the API.
 COMPUTED_COLUMNS = {("tarif", "tarif_actif"), ("demande_suppression", "demande_en_cours")}
@@ -46,7 +48,9 @@ def test_every_table_of_the_schema_has_a_model(test_database):
 
 def test_the_reference_data_comes_from_the_schema(test_database):
     with Session(test_database) as session:
-        assert session.scalars(select(Commune.name).order_by(Commune.name)).all() == [
+        served = select(Commune.name).where(Commune.is_served.is_(True)).order_by(Commune.name)
+        assert session.scalar(select(func.count()).select_from(Commune)) == GUYANA_COMMUNES
+        assert session.scalars(served).all() == [
             "Cayenne",
             "Matoury",
             "Rémire-Montjoly",

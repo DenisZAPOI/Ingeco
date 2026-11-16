@@ -1,5 +1,5 @@
 """Accounts and reference data: role, commune, utilisateur, usager, chauffeur,
-vehicule, demande_suppression (sql/schema-mvp.sql, migrations 001 and 002)."""
+vehicule, demande_suppression (sql/schema-mvp.sql, migrations 001, 002 and 010)."""
 
 from datetime import datetime
 from decimal import Decimal
@@ -22,12 +22,15 @@ class Role(Base):
 
 
 class Commune(Base):
-    """A served commune: departure and arrival of a ride must be one of them."""
+    """One of the 22 communes of French Guiana (migration 010). Only the served
+    ones receive rides; offers and help services can be anywhere."""
 
     __tablename__ = "commune"
 
     id: Mapped[int] = mapped_column("id_commune", Integer, primary_key=True)
     name: Mapped[str] = mapped_column("nom", String(100), unique=True)
+    # Set by the administrator (zones, M9); provisional: the pilot zone
+    is_served: Mapped[bool] = mapped_column("desservie", Boolean, default=False)
 
 
 class UserRow(Base):

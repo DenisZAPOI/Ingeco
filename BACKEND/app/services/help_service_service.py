@@ -23,7 +23,7 @@ class ServiceWithCommune:
 
 def list_services(language: str) -> list[ServiceWithCommune]:
     with database.session() as session:
-        names = {commune.id: commune.name for commune in commune_repository.list_communes(session)}
+        names = {commune.id: commune.name for commune in commune_repository.list_communes(session, served_only=False)}
         return [
             ServiceWithCommune(service, names.get(service.commune_id, ""))
             for service in help_service_repository.list_services(session, language)

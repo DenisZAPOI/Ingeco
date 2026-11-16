@@ -23,7 +23,7 @@ class OfferWithCommune:
 
 def list_offers(language: str) -> list[OfferWithCommune]:
     with database.session() as session:
-        names = {commune.id: commune.name for commune in commune_repository.list_communes(session)}
+        names = {commune.id: commune.name for commune in commune_repository.list_communes(session, served_only=False)}
         return [_with_commune(offer, names) for offer in job_repository.list_active(session, language)]
 
 
