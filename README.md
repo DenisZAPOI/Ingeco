@@ -422,6 +422,21 @@ Les scripts ne sont relus que si la base est vide. Deux cas :
 
 Pour ouvrir une console SQL : `docker compose exec db mysql -u enroute -p enroute`.
 
+Pour **consulter la base dans le navigateur**, avec Adminer ([ADR 021](docs/adr/021-adminer.md)),
+lancé seulement à la demande, jamais pendant une démo :
+
+```bash
+docker compose --profile outils up -d adminer   # puis http://localhost:8081
+docker compose stop adminer                     # l'arrêter après usage
+```
+
+Sur la page de connexion : système **MySQL**, serveur **`db`** (déjà rempli), utilisateur
+**`enroute`**, mot de passe **`MYSQL_PASSWORD`** du `.env`, base **`enroute`**. Port déjà pris :
+changer `ADMINER_PORT` dans le `.env`. Pour qu'il démarre à chaque `docker compose up -d` sans
+y penser, ajouter `COMPOSE_PROFILES=outils` à son `.env` (à retirer avant une démo). Adminer permet de modifier les données : une
+modification à la main se défait en remettant la démo à zéro (ci-dessus), et le schéma ne se
+change jamais par là, seulement par une migration.
+
 ### Back-end
 
 ```bash
@@ -627,6 +642,10 @@ En local, l'API est branchée sur un conteneur **MySQL 8.4** (`compose.yaml`, vo
 (version 2 du schéma, validée par l'équipe BD le 03/11/2026) et des migrations de
 `sql/migrations/` ; `sql/schema-hors-scope.sql` garde ce qui n'est pas encore dans le périmètre
 (bons solidaires, documents, formation).
+
+Pour parcourir vos tables et tester vos vues sans ligne de commande : Adminer, dans le
+navigateur (`docker compose --profile outils up -d adminer`, puis http://localhost:8081,
+détail en [partie 4](#base-de-données-mysql-dans-docker)).
 
 Les tests automatiques (`pytest`, CI) tournent sur une **base MySQL à part**, recréée à chaque
 lancement depuis `sql/schema-mvp.sql` et `sql/migrations/`, puis remise à l'état de
