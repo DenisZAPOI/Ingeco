@@ -24,9 +24,20 @@ SET NAMES utf8mb4;
 -- ============================================================
 -- Les tables filles d'abord (clés étrangères). Une nouvelle table où l'API
 -- écrit s'ajoute ici, à sa place dans cet ordre.
+-- Questionnaire et plan d'action (migration 017) : renvoient à usager
+DELETE FROM etape_plan;
+DELETE FROM plan_action;
+DELETE FROM reponse_questionnaire;
+DELETE FROM questionnaire;
+-- Journal des courses et demandes d'aide (migrations 023 et 027) : renvoient à course
+DELETE FROM etape_course;
+DELETE FROM demande_aide;
 DELETE FROM evaluation;
 DELETE FROM course;
 DELETE FROM demande_suppression;
+-- Pièces et zones du chauffeur (migration 024) : renvoient à chauffeur
+DELETE FROM piece_chauffeur;
+DELETE FROM chauffeur_commune;
 DELETE FROM vehicule;
 DELETE FROM chauffeur;
 DELETE FROM usager;
