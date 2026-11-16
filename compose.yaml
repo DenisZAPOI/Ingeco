@@ -5,6 +5,9 @@
 #                                  l'interface à la main, README partie 4)
 #   docker compose up -d db-migrate  appliquer les nouvelles migrations de
 #                                  sql/migrations/ sans effacer la base
+#   docker compose --profile outils up -d adminer
+#                                  consulter la base dans le navigateur :
+#                                  http://localhost:8081
 #   docker compose down            tout arrêter
 #   docker compose down -v         tout arrêter et EFFACER la base (pour recharger sql/)
 #   Remettre la démo à zéro sans effacer la base : README, partie 4,
@@ -116,6 +119,28 @@ services:
       - api
     ports:
       - "127.0.0.1:5173:5173"
+
+  # Adminer : consulter la base depuis le navigateur (ADR 021), lancé
+  # seulement à la demande, jamais pendant une démo :
+  #   docker compose --profile outils up -d adminer
+  #   puis http://localhost:8081 (utilisateur et mot de passe : .env)
+  #   docker compose stop adminer   l'arrêter après usage
+  # Il se connecte à la base comme n'importe quel client : il ne voit que ce
+  # que le compte saisi a le droit de voir. Joignable depuis cet ordinateur
+  # seulement. Version figée : la monter quand une faille est corrigée.
+  adminer:
+    image: adminer:5.4.1
+    container_name: enroute-adminer
+    profiles: ["outils"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Serveur prérempli sur la page de connexion
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      # 8081 plutôt que 8080, souvent déjà pris (autre Adminer, Tomcat…)
+      - "127.0.0.1:${ADMINER_PORT:-8081}:8080"
 
   # Base des tests automatiques (pytest), lancée seulement à la demande :
   #   docker compose --profile test up -d db-test
