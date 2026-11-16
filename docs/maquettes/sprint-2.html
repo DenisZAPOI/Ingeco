@@ -441,10 +441,26 @@ fieldset.plain legend { padding: 0; margin-bottom: var(--space-xs); font-weight:
 .preview { padding: var(--space-m) var(--space); border: 2px dashed var(--color-border); border-radius: var(--radius); }
 .preview > p:first-child { margin: 0 0 var(--space-xs); color: var(--color-muted); font-size: var(--font-size-small); }
 textarea.field-input { min-height: 6rem; resize: vertical; }
+
+/* Status of each screen in the app: new, or already there (with or without additions).
+   Said with a symbol and a text, never with the color alone. */
+.mock-status { display: flex; gap: var(--space-s); align-items: flex-start; margin: 0 0 var(--space); padding: var(--space-s) var(--space-m); border: 2px solid currentColor; border-radius: var(--radius); font-weight: var(--font-weight-title); }
+.mock-status-mark { flex-shrink: 0; font-size: var(--font-size-lead); line-height: 1.2; }
+.mock-status small { display: block; margin-top: var(--space-xs); font-size: var(--font-size-small); font-weight: normal; }
+.mock-status-new { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
+.mock-status-changed { background: var(--color-help-soft); color: var(--color-on-help-soft); }
+.mock-status-existing { background: var(--color-primary-soft); color: var(--color-primary); }
+.mock-legend { margin: 0 0 var(--space); padding: 0; list-style: none; font-size: var(--font-size-small); }
+
+/* Tier of the cahier des charges (§5): P1, P1 by our reading, or P2. */
+.mock-tier { margin: 0 0 var(--space); padding: var(--space-s) var(--space-m); border: 2px dashed currentColor; border-radius: var(--radius); background: var(--color-background); color: var(--color-text); font-weight: var(--font-weight-title); }
+.mock-tier small { display: block; margin-top: var(--space-xs); font-size: var(--font-size-small); font-weight: normal; }
+.mock-tier-p2 { background: var(--color-surface); }
+.tier-chip { display: inline-block; margin-left: var(--space-s); padding: 0 var(--space-s); border: 1px dashed var(--color-mock); border-radius: var(--radius); background: var(--color-mock-bg); color: var(--color-mock); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); vertical-align: middle; }
 </style>
 
 <div class="mock-bar" role="region" aria-label="Commandes de la maquette">
-  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Écrans du sprint 2</strong> (trajets, chauffeur, administration), à valider avec la cliente</div>
+  <div class="mock-bar-title"><span class="mock-tag">Maquette</span> <strong>Écrans du sprint 2</strong> (trajets, chauffeur, administration), à valider avec vous</div>
   <label for="screen-select">Écran
     <select id="screen-select"></select>
   </label>
@@ -803,8 +819,8 @@ textarea.field-input { min-height: 6rem; resize: vertical; }
       '<div class="step-nav"><button type="button" class="button" data-toast="Démarrer (existant) : la course passe « en cours ».">' + icon('play') + 'Le passager est à bord : démarrer</button>' +
       '<button type="button" class="button button-secondary" data-toast="Appel (existant).">' + icon('phone') + 'Appeler Jordan</button>' +
       (can
-        ? '<button type="button" class="button button-secondary" data-go="c-absent">' + icon('alert') + 'Le passager n\'est pas là</button>'
-        : '<button type="button" class="button button-secondary" aria-disabled="true" aria-describedby="wait-hint" data-toast="Bouton actif à partir de 8 h 31.">' + icon('alert') + 'Le passager n\'est pas là</button><p class="field-hint" id="wait-hint">Possible à partir de 8 h 31, après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente.</p>') +
+        ? '<button type="button" class="button button-secondary" data-go="c-absent">' + icon('alert') + 'Le passager n\'est pas là' + tierChip('P2') + '</button>'
+        : '<button type="button" class="button button-secondary" aria-disabled="true" aria-describedby="wait-hint" data-toast="Bouton actif à partir de 8 h 31.">' + icon('alert') + 'Le passager n\'est pas là' + tierChip('P2') + '</button><p class="field-hint" id="wait-hint">Possible à partir de 8 h 31, après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente.</p>') +
       '</div>' +
       '<button type="button" class="link-action" data-go="c-incident">' + icon('flag') + 'Signaler un incident</button>');
   }
@@ -995,22 +1011,22 @@ textarea.field-input { min-height: 6rem; resize: vertical; }
   }
 
   // --- Notes for the client ---------------------------------------------------------------
-  const ask = (q, why) => '<p class="ask"><strong>À demander à la cliente</strong>' + q + (why ? '<br><em>' + why + '</em>' : '') + '</p>';
+  const ask = (q, why) => '<p class="ask"><strong>Question pour vous</strong>' + q + (why ? '<br><em>' + why + '</em>' : '') + '</p>';
   const NOTES = {
     'u-depart': ['<h2>Départ : adresse et repère</h2><ul><li>Le cahier des charges demande un départ « par adresse, repère ou point sur carte » (§3, §7.4).</li><li>L\'adresse reste obligatoire (elle sert à vérifier la zone et à calculer la distance). Le repère et le point sont facultatifs et aident le chauffeur.</li><li>Le repère est un texte court, 120 caractères au plus : le chauffeur le voit sur la course.</li></ul>' + ask('Un repère écrit vous paraît-il utile, en plus de l\'adresse ?', 'En Guyane, beaucoup d\'adresses sont imprécises : c\'est souvent le repère qui permet de se retrouver.')],
     'u-carte': ['<h2>Point sur la carte</h2><ul><li>Carte dessinée pour la maquette : touchez-la pour déplacer l\'épingle.</li><li>Dans l\'application : fond OpenStreetMap (bibliothèque Leaflet, prévue au sprint 3 avec une fiche de décision), chargé seulement quand on ouvre cet écran, pour rester léger sur un réseau faible.</li><li>Facultatif : on peut toujours continuer sans placer de point, ce qui reste accessible au clavier et aux lecteurs d\'écran.</li></ul>' + ask('Faut-il la carte dès la démonstration, ou le repère écrit suffit-il pour commencer ?')],
     'u-quand': ['<h2>Passagers et besoins</h2><ul><li>Nombre de personnes de 1 à ' + MAX_PASSENGERS + ', bagages, véhicule adapté (§7.4).</li><li>Un besoin s\'écrit comme un besoin (« véhicule adapté »), jamais comme un diagnostic (§12).</li><li>Les offres ne sont proposées qu\'aux chauffeurs dont le véhicule a assez de places.</li></ul>' + ask('Combien de passagers au plus ? Un enfant compte-t-il, et faut-il un siège enfant ?')],
     'u-hors-horaire': ['<h2>Demande hors des horaires</h2><ul><li>Une demande refusée l\'est avec une explication en langage simple (§18).</li><li>Le texte reprend les horaires réglés par l\'administrateur : changez-les dans « Horaires autorisés », ce message suit.</li><li>Horaires montrés : <strong>exemple</strong> (lundi au samedi, 6 h à 20 h). Aujourd\'hui, rien n\'est bloqué.</li></ul>' + ask('Quels sont les horaires où les trajets sont possibles ? Les mêmes tous les jours ?')],
-    'u-recap': ['<h2>Résumé avant l\'envoi</h2><ul><li>Écran existant, avec en plus le repère et le nombre de passagers.</li><li>« Reste à payer : 0 € » : décision de l\'entretien du 03/11 (gratuit dans la structure de la porteuse).</li></ul>'],
+    'u-recap': ['<h2>Résumé avant l\'envoi</h2><ul><li>Écran existant, avec en plus le repère et le nombre de passagers.</li><li>« Reste à payer : 0 € » : comme convenu avec vous le 03/11 : gratuit dans votre structure.</li></ul>'],
     'u-arrive': ['<h2>Nouvel état : chauffeur arrivé</h2><ul><li>Le cahier des charges ajoute « chauffeur arrivé » entre « confirmée » et « en cours » (§7.4).</li><li>L\'historique montre chaque étape avec son heure et son auteur (§7.4).</li><li>Sans suivi GPS (hors périmètre, §5) : c\'est le chauffeur qui appuie sur « Je suis arrivé ».</li><li>Au sprint 3, cet écran se met à jour tout seul (statut en direct).</li></ul>'],
-    'u-absent': ['<h2>Nouvel état : passager absent</h2><ul><li>Le chauffeur peut le signaler après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente (valeur provisoire).</li><li>Aucun frais tant que la cliente n\'en a pas fixé : le passager n\'a rien à payer.</li><li>Le passager peut contester : « J\'étais là : signaler un problème ».</li></ul>' + ask('Combien de minutes le chauffeur attend-il ? Un passager souvent absent doit-il être prévenu, puis suspendu ?', 'Pas de sanction automatique : c\'est l\'administrateur qui décide (RGPD art. 22).')],
+    'u-absent': ['<h2>Nouvel état : passager absent</h2><ul><li>Le chauffeur peut le signaler après ' + ABSENCE_WAIT_MIN + ' minutes d\'attente (valeur provisoire).</li><li>Aucun frais tant que vous n\'en avez pas fixé : le passager n\'a rien à payer.</li><li>Le passager peut contester : « J\'étais là : signaler un problème ».</li></ul>' + ask('Combien de minutes le chauffeur attend-il ? Un passager souvent absent doit-il être prévenu, puis suspendu ?', 'Pas de sanction automatique : c\'est l\'administrateur qui décide (RGPD art. 22).')],
     'u-signaler': ['<h2>Signaler un problème</h2><ul><li>Exigé par le cahier des charges (§6, aide).</li><li>Depuis la page d\'un trajet ou depuis « J\'ai besoin d\'aide ».</li><li>On rappelle qu\'aucun service d\'urgence n\'est promis (§6).</li></ul>' + ask('Ces catégories vous conviennent-elles ? Qui lit les signalements, et sous quel délai ?')],
     'u-signaler-ok': ['<h2>Signalement envoyé</h2><ul><li>Une confirmation seulement après la réponse du serveur (jamais de fausse confirmation).</li><li>Délai de « 2 jours ouvrés » : à confirmer.</li></ul>'],
     'u-aide': ['<h2>J\'ai besoin d\'aide</h2><ul><li>Page existante : on ajoute « Être rappelé » et « Signaler un problème » en tête (§6).</li></ul>'],
     'u-rappel': ['<h2>Être rappelé</h2><ul><li>Même écran que dans la maquette du questionnaire.</li><li>On ne demande que le numéro et un moment (minimisation, §2).</li></ul>' + ask('Qui rappelle, et sous quel délai ?')],
     'u-rappel-ok': ['<h2>Demande enregistrée</h2><ul><li>Elle arrive chez l\'administrateur, dans « Demandes ».</li></ul>'],
     'u-profil': ['<h2>Mon profil</h2><ul><li>La demande de suppression est exigée au palier P1 (§6).</li><li>Une fois demandée, elle peut être annulée tant qu\'elle n\'est pas traitée.</li></ul>'],
-    'u-suppr': ['<h2>Supprimer mon compte</h2><ul><li>Ce qui est effacé et ce qui reste : décision du 03/11 (#32).</li><li>Délai d\'un mois au plus : celui du RGPD (art. 12).</li><li>C\'est l\'administrateur qui fait la suppression, pour gérer les trajets en cours.</li></ul>' + ask('Faut-il prévenir la personne par SMS (simulé) quand c\'est fait ?')],
+    'u-suppr': ['<h2>Supprimer mon compte</h2><ul><li>Ce qui est effacé et ce qui reste : notre proposition.</li><li>Délai d\'un mois au plus : celui du RGPD (art. 12).</li><li>C\'est l\'administrateur qui fait la suppression, pour gérer les trajets en cours.</li></ul>' + ask('Faut-il prévenir la personne par SMS (simulé) quand c\'est fait ?')],
     'u-suppr-ok': ['<h2>Suppression demandée</h2><ul><li>La demande apparaît chez l\'administrateur, avec la date limite.</li></ul>'],
     'c-route': ['<h2>Aller chercher le passager</h2><ul><li>Le chauffeur voit le repère et le nombre de passagers.</li><li>Nouveau bouton « Je suis arrivé au départ » : l\'heure et son nom sont enregistrés (§7.4).</li></ul>'],
     'c-arrive': () => ['<h2>Arrivé au départ</h2><ul><li>Le bouton « Le passager n\'est pas là » n\'est actif qu\'après ' + ABSENCE_WAIT_MIN + ' minutes, et le dit en texte.</li><li>Pour la maquette : <button type="button" data-wait="1">' + (state.waited ? 'Revenir à 8 h 21' : 'Avancer de ' + ABSENCE_WAIT_MIN + ' minutes') + '</button></li></ul>'],
@@ -1022,13 +1038,94 @@ textarea.field-input { min-height: 6rem; resize: vertical; }
     'a-accueil': ['<h2>Accueil de l\'administrateur</h2><ul><li>Trois actions principales (§10) : demandes, réglages, comptes.</li><li>Une alerte pour les pièces qui expirent bientôt.</li></ul>'],
     'a-reglages': ['<h2>Réglages des trajets</h2><ul><li>Horaires, zones et tarif réglables par l\'administrateur (§5, M9, P1).</li><li>Un trajet déjà réservé garde ses réglages (version du tarif conservée, §7.4).</li></ul>'],
     'a-horaires': ['<h2>Horaires autorisés</h2><ul><li>Un jour par ligne : ouvert ou fermé, premier et dernier départ.</li><li>L\'aperçu montre le message de refus que lira l\'usager (§18).</li><li>Heure de Guyane (America/Cayenne, §3).</li></ul>' + ask('Quels horaires mettre pour la démonstration ?')],
-    'a-zones': ['<h2>Zones desservies</h2><ul><li>Valeur de départ : Cayenne, Rémire-Montjoly, Matoury (visio 1).</li><li>Une commune non cochée est signalée à l\'usager avec la liste des communes desservies (§3, §18).</li></ul>' + ask('Le pilote reste-t-il sur ces 3 communes ? Kourou ou Macouria plus tard ?')],
+    'a-zones': ['<h2>Zones desservies</h2><ul><li>Valeur de départ : Cayenne, Rémire-Montjoly, Matoury, comme convenu lors de notre première visio.</li><li>Une commune non cochée est signalée à l\'usager avec la liste des communes desservies (§3, §18).</li></ul>' + ask('Le pilote reste-t-il sur ces 3 communes ? Kourou ou Macouria plus tard ?')],
     'a-tarif': ['<h2>Tarif</h2><ul><li>Une modification crée une nouvelle version : les trajets gardent celle du moment (§7.4).</li><li>L\'aperçu recalcule un exemple pendant la saisie.</li><li>Montants provisoires : 8 € + 0,80 €/km.</li></ul>' + ask('À quoi sert le tarif si l\'usager ne paie rien : au revenu du chauffeur ? Quels montants ?')],
     'a-demandes': ['<h2>Demandes</h2><ul><li>Rappels, signalements et suppressions au même endroit.</li><li>« Traité » garde la date et le nom de la personne qui l\'a fait.</li><li>Le rôle opérateur (centre d\'appel) pourra traiter les rappels après la soutenance (palier P2).</li></ul>' + ask('Qui, chez vous, traitera ces demandes pendant la démonstration ?')],
     'a-signalement': ['<h2>Un signalement</h2><ul><li>L\'historique avec les auteurs permet de comprendre ce qui s\'est passé.</li><li>L\'administrateur appelle les deux personnes et décide : rien n\'est tranché automatiquement (RGPD art. 22).</li></ul>'],
-    'a-suppression': ['<h2>Suppression d\'un compte</h2><ul><li>Règle décidée le 03/11 (#32) : statut « supprimé », nom et courriel effacés, téléphone remplacé, trajets gardés sans identité.</li><li>Irréversible : on le dit avant.</li></ul>'],
+    'a-suppression': ['<h2>Suppression d\'un compte</h2><ul><li>Notre proposition : statut « supprimé », nom et courriel effacés, téléphone remplacé, trajets gardés sans identité.</li><li>Irréversible : on le dit avant.</li></ul>'],
     'a-pieces': ['<h2>Pièces d\'un chauffeur</h2><ul><li>L\'administrateur voit l\'original, puis note la date de fin : rien n\'est scanné.</li><li>« Vu en personne par » garde qui a vérifié et quand.</li><li>Il peut réactiver un compte suspendu à tout moment.</li></ul>']
   };
+
+
+  const STATUS = {
+    'u-depart': ['changed', 'Ajouts : le repère et le lien vers la carte. Le choix de l\'adresse existe déjà.'],
+    'u-quand': ['changed', 'Ajouts : le nombre de personnes et les bagages. Le motif, l\'heure et le véhicule adapté existent déjà.'],
+    'u-hors-horaire': ['changed', 'Ajout : le refus hors des horaires, avec son explication. L\'écran « Pourquoi et quand ? » existe déjà.'],
+    'u-recap': ['changed', 'Ajouts : le repère et les passagers dans le résumé. Le reste existe déjà.'],
+    'u-arrive': ['changed', 'Ajouts : l\'état « chauffeur arrivé » et l\'historique du trajet. La page du trajet existe déjà.'],
+    'u-absent': ['changed', 'Ajouts : l\'état « passager absent » et l\'historique. La page du trajet existe déjà.'],
+    'u-aide': ['changed', 'Ajouts : « Être rappelé » et « Signaler un problème ». La page d\'aide existe déjà.'],
+    'u-profil': ['changed', 'Ajout : « Supprimer mon compte ». Le profil existe déjà.'],
+    'c-route': ['changed', 'Ajouts : le repère, les passagers et « Je suis arrivé au départ ». La page de la course existe déjà.'],
+    'c-arrive': ['changed', 'Ajouts : l\'étape « arrivé au départ » et « Le passager n\'est pas là ». Démarrer et appeler existent déjà.'],
+    'c-accueil': ['changed', 'Ajouts : l\'alerte sur les pièces et la carte « Mes pièces ». L\'accueil du chauffeur existe déjà.'],
+    'c-suspendu': ['changed', 'Ajout : l\'explication d\'une suspension pour une pièce expirée.'],
+    'a-accueil': ['changed', 'Ajouts : l\'alerte sur les pièces, « Demandes » et « Réglages des trajets ». « Comptes » existe déjà.'],
+    'a-pieces': ['changed', 'Ajout : la partie « Pièces » de la fiche du compte. La fiche existe déjà.']
+  };
+
+  // --- Is the screen already in the app? Shown on top of each note. -------------------
+  const STATUS_LABEL = {
+    new: ['★', 'Nouvel écran', 'Pas encore dans l\'application.', 'nouveau'],
+    changed: ['✎', 'Écran existant, avec des ajouts', '', 'existant + ajouts'],
+    existing: ['✓', 'Écran existant', 'Déjà dans l\'application, inchangé.', 'existant']
+  };
+  const statusOf = (id) => STATUS[id] || ['new'];
+  const statusBanner = (id) => {
+    const [kind, detail] = statusOf(id);
+    const [mark, title, text] = STATUS_LABEL[kind];
+    return '<p class="mock-status mock-status-' + kind + '"><span class="mock-status-mark" aria-hidden="true">' + mark + '</span><span>' + title + '<small>' + (detail || text) + '</small></span></p>';
+  };
+  const statusSuffix = (id) => ' · ' + STATUS_LABEL[statusOf(id)[0]][3];
+
+
+  const TIER = {
+    'u-depart': ['p1', 'Repère : exigence de conception pour les adresses imprécises (§3).'],
+    'u-carte': ['p1', 'Point sur la carte : exigence de conception pour les adresses imprécises (§3).'],
+    'u-quand': ['p1team', 'Motif, heure et besoin de prise en charge : P1 (US05). Nombre de passagers et bagages : décrits au §7.4, que nous rangeons dans « demande » du P1.'],
+    'u-hors-horaire': ['p1', 'Demande hors horaire bloquée avec une explication (§18).'],
+    'u-recap': ['p1', 'Prix et conditions avant l\'envoi (US05, §7.4).'],
+    'u-arrive': ['p1team', '« Chauffeur arrivé » et l\'historique avec auteur : décrits au §7.4, que nous rangeons dans « statuts » du P1.'],
+    'u-absent': ['p2', 'Règles d\'absence du passager : palier P2 (§18).'],
+    'u-signaler': ['p1', 'Signalement d\'un problème : aide du socle commun (§6).'],
+    'u-signaler-ok': ['p1', 'Signalement d\'un problème : aide du socle commun (§6).'],
+    'u-aide': ['p1', 'Aide du socle commun (§6).'],
+    'u-rappel': ['p1', '« Être rappelé » : aide du socle commun (§6).'],
+    'u-rappel-ok': ['p1', '« Être rappelé » : aide du socle commun (§6).'],
+    'u-profil': ['p1', 'Demande de suppression du compte (M0).'],
+    'u-suppr': ['p1', 'Demande de suppression du compte (M0).'],
+    'u-suppr-ok': ['p1', 'Demande de suppression du compte (M0).'],
+    'c-route': ['p1team', '« Je suis arrivé au départ » : étape horodatée du §7.4, que nous rangeons dans « statuts » du P1.'],
+    'c-arrive': ['p1team', 'Étape « arrivé au départ » : §7.4, rangée dans « statuts » du P1.', 'Sauf « Le passager n\'est pas là » : palier P2 (§18).'],
+    'c-absent': ['p2', 'Règles d\'absence du passager : palier P2 (§18).'],
+    'c-incident': ['p1team', 'Incident horodaté avec son auteur : décrit au §7.4.'],
+    'c-accueil': ['p1team', 'Pièces et suspension à leur expiration : décrites au §7.4 (dossier du chauffeur).'],
+    'c-pieces': ['p1team', 'Pièces et suspension à leur expiration : décrites au §7.4 (dossier du chauffeur).'],
+    'c-suspendu': ['p1team', 'Suspension à l\'expiration des pièces : décrite au §7.4. Le P1 exige seulement qu\'un dossier non validé ne reçoive pas de course (§18).'],
+    'a-accueil': ['p1', 'Administration (M9).'],
+    'a-reglages': ['p1', 'Zones, horaires et tarifs réglables (M9, US07).'],
+    'a-horaires': ['p1', 'Horaires réglables (M9, US07).'],
+    'a-zones': ['p1', 'Zones réglables (M9, US07).'],
+    'a-tarif': ['p1', 'Tarifs réglables (M9, US07) ; version du tarif conservée (§7.4).'],
+    'a-demandes': ['p1', 'Traiter les rappels, signalements et suppressions demandés au socle (§6).'],
+    'a-signalement': ['p1', 'Traiter un signalement (§6).', 'L\'historique avec auteur suit notre lecture du §7.4.'],
+    'a-suppression': ['p1', 'Demande de suppression du compte (M0).'],
+    'a-pieces': ['p1team', 'Pièces du chauffeur : décrites au §7.4 (dossier du chauffeur).']
+  };
+
+  // --- Tier of the cahier des charges (§5) for each screen ---------------------------
+  const TIER_LABEL = {
+    p1: ['Palier P1, le socle', 'Exigé de toutes les équipes.'],
+    p1team: ['Palier P1, selon notre lecture', 'Le cahier des charges le décrit comme cible du module (§7.4) sans le classer ; nous le rangeons dans le P1.'],
+    p2: ['Palier P2', 'Au-delà du socle : prévu si le temps le permet.']
+  };
+  const tierBanner = (id) => {
+    const [kind, why, extra] = TIER[id] || ['p1'];
+    const [title, text] = TIER_LABEL[kind];
+    return '<p class="mock-tier mock-tier-' + kind + '">' + title + '<small>' + (why || text) + '</small>' + (extra ? '<small>' + extra + '</small>' : '') + '</p>';
+  };
+  const tierSuffix = (id) => ' · ' + ((TIER[id] || ['p1'])[0] === 'p2' ? 'P2' : 'P1');
+  const tierChip = (t) => '<span class="tier-chip" title="Palier du cahier des charges">' + t + '</span>';
 
   // --- Rendering and events ---------------------------------------------------------
   const RENDER = {
@@ -1043,12 +1140,12 @@ textarea.field-input { min-height: 6rem; resize: vertical; }
   const notesEl = document.getElementById('notes');
   const select = document.getElementById('screen-select');
   let n = 0;
-  select.innerHTML = GROUPS.map(([g, list]) => '<optgroup label="' + esc(g) + '">' + list.map(([id, name]) => '<option value="' + id + '">' + (++n) + '. ' + esc(name) + '</option>').join('') + '</optgroup>').join('');
+  select.innerHTML = GROUPS.map(([g, list]) => '<optgroup label="' + esc(g) + '">' + list.map(([id, name]) => '<option value="' + id + '">' + (++n) + '. ' + esc(name) + statusSuffix(id) + tierSuffix(id) + '</option>').join('') + '</optgroup>').join('');
 
   function render(focus) {
     device.innerHTML = '<div class="screen-enter">' + RENDER[current]() + '</div>';
     const nv = NOTES[current];
-    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + (typeof nv === 'function' ? nv() : nv || []).join('');
+    notesEl.innerHTML = '<p class="mock-tag" style="margin:0 0 var(--space-s)">Note de maquette</p>' + statusBanner(current) + tierBanner(current) + (typeof nv === 'function' ? nv() : nv || []).join('');
     select.value = current;
     if (focus) {
       const t = document.getElementById('screen-title');
