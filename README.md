@@ -217,7 +217,7 @@ On peut ensuite quitter Docker Desktop (clic droit sur son icône près de l'hor
 | `no configuration file provided: not found` | La fenêtre n'est pas ouverte dans le bon dossier : le chemin écrit avant le `>` doit finir par `Ingeco-main` |
 | `required variable MYSQL_ROOT_PASSWORD is missing` (ou `MYSQL_PASSWORD`, `FLASK_SECRET_KEY`) | Le fichier `.env` manque ou une ligne est vide : refaire l'étape 3, sans oublier d'enregistrer |
 | `FLASK_SECRET_KEY must be generated, 32 characters minimum` (dans Docker Desktop, conteneur `enroute-api`) | La clé secrète n'a pas été remplacée : refaire l'étape 3, puis relancer `docker compose up -d` |
-| `port is already allocated` (5173, 5000 ou 3307) | Un autre programme utilise ce port, ou l'application tourne déjà. Lancer `docker compose down`, puis réessayer ; sinon redémarrer l'ordinateur |
+| `port is already allocated` (5173, 5000, 3307 ou 8081) | Un autre programme utilise ce port, ou l'application tourne déjà. Lancer `docker compose down`, puis réessayer ; sinon redémarrer l'ordinateur. Quel port sert à quoi : [Ports utilisés](#ports-utilisés) |
 | La page http://localhost:5173 ne s'ouvre pas | L'application n'est pas lancée, ou pas encore prête : relancer l'étape 5 et attendre une minute |
 | L'application affiche « Le service ne répond pas pour le moment » | L'API s'est arrêtée : dans Docker Desktop, onglet **Containers**, regarder si `enroute-api` est rouge et lire son journal ; relancer `docker compose up -d` |
 | Le mot de passe d'un compte de test est refusé | Vérifier `Trajet-2026!` : majuscule au début, point d'exclamation à la fin. Le compte de Hugo (`0694 00 00 08`) est volontairement suspendu |
@@ -361,6 +361,23 @@ pourquoi de chaque choix technique dans les [fiches de décision](docs/adr/READM
 Prérequis : **Python 3.14**, **Node.js 24**, et **Docker** pour la base de données (Docker
 Desktop, ou Docker installé dans WSL : lancer alors les commandes `docker` depuis WSL, dans le
 dossier du dépôt, par exemple `/mnt/c/Users/.../Ingeco`).
+
+### Ports utilisés
+
+Tous les ports ne sont ouverts que sur cet ordinateur (`127.0.0.1`), jamais sur le réseau.
+
+| Port | Service | Adresse | Lancé par | Réglage |
+|---|---|---|---|---|
+| **5173** | Interface (écrans de l'application) | http://localhost:5173 | `docker compose up -d` (service `web`) ou `npm run dev` | – |
+| **5000** | API (Swagger sur `/apidoc/swagger`) | http://localhost:5000 | `docker compose up -d` (service `api`) ou `python -m app` | `PORT` dans `BACKEND/.env` |
+| **3307** | Base MySQL de développement | `127.0.0.1:3307` (client SQL) | `docker compose up -d` (service `db`) | `MYSQL_PORT` dans `.env` |
+| **8081** | Adminer, la base dans le navigateur | http://localhost:8081 | `docker compose --profile outils up -d adminer` | `ADMINER_PORT` dans `.env` |
+| **3308** | Base MySQL des tests, jetable | `127.0.0.1:3308` | `docker compose --profile test up -d db-test` | – |
+
+Le service `db-migrate` n'ouvre aucun port : il applique les migrations, puis s'arrête. Le mode
+démo (Docker) et le mode développement (`python -m app`, `npm run dev`) se disputent les ports
+5000 et 5173 : arrêter l'un avant de lancer l'autre (`docker compose stop api web`). Un port déjà
+pris donne l'erreur `port is already allocated` ([En cas de problème](#en-cas-de-problème)).
 
 ### Tout lancer avec Docker, en une commande
 
