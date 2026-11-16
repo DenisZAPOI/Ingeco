@@ -1,0 +1,2 @@
+# Scripts lancés dans les conteneurs Linux : jamais de fin de ligne Windows
+*.sh text eol=lf

@@ -3,6 +3,8 @@
 #   docker compose up -d --build   tout lancer : http://localhost:5173
 #   docker compose up -d db        la base seule (pour lancer l'API et
 #                                  l'interface à la main, README partie 4)
+#   docker compose up -d db-migrate  appliquer les nouvelles migrations de
+#                                  sql/migrations/ sans effacer la base
 #   docker compose down            tout arrêter
 #   docker compose down -v         tout arrêter et EFFACER la base (pour recharger sql/)
 #   Remettre la démo à zéro sans effacer la base : README, partie 4,
@@ -38,7 +40,8 @@ services:
       - db-data:/var/lib/mysql
       # Au premier démarrage seulement (base vide), sql/charger-base.sh
       # charge le schéma, puis sql/migrations/ dans l'ordre, puis
-      # sql/demo-data.sql. Le script hors MVP n'est pas chargé : l'API ne
+      # sql/demo-data.sql. Ensuite, c'est db-migrate (plus bas) qui applique
+      # les nouvelles migrations. Le script hors MVP n'est pas chargé : l'API ne
       # s'en sert pas. demo-data.sql contient des comptes au mot de passe
       # public : base locale seulement, jamais dans un environnement hébergé.
       - ./sql:/sql:ro
@@ -48,6 +51,27 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # Applique à la base les migrations de sql/migrations/ qu'elle n'a pas
+  # encore reçues, sans rien effacer (sql/migrer.sh, issue #82), puis
+  # s'arrête. Lancé à chaque « docker compose up » : il attend que la base
+  # soit prête, et l'API attend qu'il ait fini. Une migration en échec
+  # l'arrête avec une erreur : « docker compose logs db-migrate » pour la
+  # lire. Même image que la base : elle contient le client mysql.
+  db-migrate:
+    image: mysql:8.4
+    container_name: enroute-db-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?à définir dans .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-enroute}
+    volumes:
+      - ./sql:/sql:ro
+    entrypoint: ["bash", "/sql/migrer.sh"]
+    restart: "no"
 
   # L'API en mode démo : codes SMS fixes et cookies sur http. Les comptes sont
   # lus dans la base ; les trajets, offres, services et fiches restent en
@@ -60,6 +84,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER:-enroute}:${MYSQL_PASSWORD:?à définir dans .env}@db:3306/${MYSQL_DATABASE:-enroute}?charset=utf8mb4
       FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?à définir dans .env}

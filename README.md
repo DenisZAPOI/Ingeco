@@ -409,13 +409,16 @@ Les scripts ne sont relus que si la base est vide. Deux cas :
   docker compose exec db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --default-character-set=utf8mb4 "$MYSQL_DATABASE" < /sql/demo-data.sql'
   ```
 
-- **Le schéma ou une migration a changé** : il faut, pour l'instant, recréer la base (une
-  application des migrations sans tout effacer est demandée à l'équipe BD, issue #82).
+- **Une nouvelle migration est arrivée** : rien à effacer. `docker compose up -d` lance le
+  service `db-migrate`, qui applique à la base les migrations qu'elle n'a pas encore reçues
+  (`sql/migrer.sh`, issue #82), puis s'arrête ; l'API attend qu'il ait fini. Base seule :
 
   ```bash
-  docker compose down -v             # EFFACE la base
-  docker compose up -d db            # la recrée avec les scripts
+  docker compose up -d db db-migrate   # applique ce qui manque, sans effacer
+  docker compose logs db-migrate       # ce qui a été appliqué, ou l'erreur
   ```
+
+  Recréer la base reste possible (`docker compose down -v`, qui l'EFFACE, puis `up -d db`).
 
 Pour ouvrir une console SQL : `docker compose exec db mysql -u enroute -p enroute`.
 
@@ -585,10 +588,19 @@ une base en production se **modifie**, elle ne se recrée pas. Les migrations se
 - **En local**, la base se crée avec : le schéma, puis toutes les migrations dans l'ordre, puis
   les données de test. C'est `sql/charger-base.sh` qui s'en charge au premier démarrage du
   conteneur : une nouvelle migration est prise en compte sans toucher à `compose.yaml`, et une
-  erreur SQL arrête la création (`docker compose logs db` pour la voir). Prévenez les
-  développeurs à chaque migration : ils devront refaire `docker compose down -v` puis `up -d db`.
-  Pour l'éviter, l'issue #82 propose de noter les migrations appliquées et de n'appliquer que
-  celles qui manquent, à chaque démarrage.
+  erreur SQL arrête la création (`docker compose logs db` pour la voir).
+- **Une base déjà créée reçoit les nouvelles migrations sans être effacée** (issue #82). La table
+  `migration_appliquee` garde le numéro, le fichier et la date (UTC) de chaque migration
+  appliquée. `sql/migrer.sh` applique, dans l'ordre des numéros, seulement celles qui n'y sont pas,
+  et note chacune après son succès ; une erreur l'arrête sans noter la migration en échec. Il
+  tourne à chaque `docker compose up`, dans le service `db-migrate`, et à la création de la base.
+  Une base créée avant ce script (001 à 008 chargées, sans la table) : il crée la table, y note
+  001 à 008 sans les rejouer, puis applique la suite. Attention : MySQL valide chaque `CREATE` ou
+  `ALTER` aussitôt ; une migration de plusieurs instructions qui échoue au milieu peut laisser les
+  premières appliquées. Il faut alors réparer à la main (retour arrière en tête du fichier), puis
+  relancer.
+- **Toujours tester une migration sur une base existante**, pas seulement sur une base neuve :
+  `docker compose up -d db-migrate` sur votre base, puis `docker compose logs db-migrate`.
 - Les développeurs suivent chaque migration dans leurs classes Python (`models/`). Annoncez-la
   avant de la merger.
 
@@ -621,7 +633,43 @@ lancement depuis `sql/schema-mvp.sql` et `sql/migrations/`, puis remise à l'ét
 `sql/demo-data.sql` avant chaque test : une migration qui ne passe pas fait échouer les tests, et `tests/test_models.py` signale toute colonne qui ne
 correspond plus aux classes de `BACKEND/app/models/`. En local : `docker compose --profile test
 up -d db-test` (conteneur jetable, port 3308, jamais votre base de développement). La démo de la soutenance tourne en local (décidé le 03/11/2026) : pas d'hébergement de
-la base à préparer, seulement un export par `mysqldump` (#26).
+la base à préparer, seulement un export par `mysqldump` (#26, ci-dessous).
+
+### Exporter et restaurer la base (`mysqldump`)
+
+Un export est un fichier `.sql` qui recrée la base telle qu'elle est : schéma, vues, données, et
+la table `migration_appliquee` (la base restaurée sait quelles migrations elle a reçues). Il sert
+à garder une copie avant une manipulation risquée, à remettre la base à quelqu'un, ou à la
+transmettre en fin de projet (cahier des charges §1).
+
+Exporter (la base tourne, depuis la racine du projet) :
+
+```bash
+docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqldump -uroot   --single-transaction --routines --triggers --no-tablespaces   --default-character-set=utf8mb4 "$MYSQL_DATABASE"' > sauvegarde-enroute-$(date +%F).sql
+```
+
+- `-T` : sans terminal, sinon le fichier reçoit des fins de ligne Windows.
+- `--single-transaction` : une copie cohérente sans bloquer l'API (tables InnoDB).
+- `--routines --triggers` : rien n'est oublié si on en ajoute un jour. Les vues sont incluses
+  d'office.
+- Schéma seul, sans aucune ligne : ajouter `--no-data`.
+
+Restaurer dans une base vide (ici la base locale, effacée puis recréée) :
+
+```bash
+docker compose down -v && docker compose up -d db   # EFFACE la base actuelle
+docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot   --default-character-set=utf8mb4 "$MYSQL_DATABASE"' < sauvegarde-enroute-AAAA-MM-JJ.sql
+```
+
+Testé le 12/11/2026 sur MySQL 8.4 : export, restauration dans une base neuve, mêmes comptes,
+mêmes vues, mêmes migrations notées. À savoir :
+
+- l'export de la base locale contient les **comptes de test au mot de passe public** : ne jamais
+  le charger sur un serveur accessible ;
+- un export de vraies données (après le projet) contient des **données personnelles** : le
+  ranger chiffré, hors du dépôt Git, et le supprimer quand il ne sert plus ;
+- les vues sont créées au nom de `root@localhost` (`DEFINER`) : ce compte doit exister sur le
+  serveur qui restaure, ce qui est le cas d'un MySQL standard.
 
 ### Comment l'API parle à la base : SQLAlchemy
 
@@ -681,6 +729,8 @@ Si la base ne répond pas : `"status": "degraded"` et `"reachable": false`. Le d
 | Table `demande_suppression` : une demande en cours au plus par compte, traitée par un administrateur | `sql/migrations/002_creer_demande_suppression.sql` | #32 |
 | Vues des statistiques, une ligne par jour en heure de Guyane : `v_stats_courses_par_jour`, `v_stats_courses_par_commune`, `v_stats_courses_par_motif`, `v_stats_evaluations_par_jour` | `sql/migrations/003` à `006` | #23 |
 | Vue des chauffeurs en ligne, `v_chauffeur_en_ligne`, et la requête de tri par distance (en tête du fichier) | `sql/migrations/007_creer_vue_chauffeurs_en_ligne.sql` | #24 |
+| Migrations appliquées sans effacer la base : table `migration_appliquee`, script `sql/migrer.sh`, service `db-migrate` de `compose.yaml` | `sql/migrer.sh`, `sql/charger-base.sh`, `compose.yaml` | #82 |
+| Export et restauration de la base par `mysqldump`, testés | README, partie « Exporter et restaurer la base » | #26 |
 
 Chaque fichier explique en tête comment s'en servir depuis l'API, et ce qui est propre à MySQL.
 
@@ -700,8 +750,8 @@ des demandes de suppression et les vues sont livrés (tableau ci-dessus, PR #36)
 2. **Les tables des nouveaux modules**, pour le sprint 2 (18/11 → 01/12) : offres d'emploi,
    services d'aide, fiches pratiques, questionnaire et plan d'action, horaires, zones, nouveaux
    états des courses… Une issue `bd` chacune, ouverte par les développeurs.
-3. **L'export de la base** par `mysqldump`, documenté (#26). La démo de la soutenance tourne en
-   local (décidé le 03/11) : pas d'hébergement à préparer.
+3. ~~**L'export de la base** par `mysqldump`, documenté (#26)~~ : fait, partie « Exporter et
+   restaurer la base » ci-dessus.
 4. **Les tables des bons solidaires**, dès que la cliente aura dit comment marche un bon (point
    de départ : `sql/schema-hors-scope.sql`, #25).
 5. **Votre partie du rapport de gestion et de la soutenance** : le temps passé par chacun, et qui
