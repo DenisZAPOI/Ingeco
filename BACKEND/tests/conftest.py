@@ -29,14 +29,14 @@ os.environ.setdefault("COOKIE_SECURE", "false")
 os.environ["ORS_API_KEY"] = ""
 # The tests run the expiry themselves, after moving the clock.
 os.environ["PERIODIC_TASKS_ENABLED"] = "false"
-# Forced: the demo rides kept in memory are loaded by the tests that need them.
+# Forced: the fixed SMS codes are switched on by the tests themselves.
 os.environ["LOAD_DEMO_DATA"] = "false"
 os.environ.setdefault("API_DOCS_ENABLED", "true")
 
 from app.dtos.base import InputModel  # noqa: E402
 from app.extensions import spec  # noqa: E402
 from app.main import create_app  # noqa: E402
-from app.repository import registration_repository, ride_repository, user_repository  # noqa: E402
+from app.repository import registration_repository, user_repository  # noqa: E402
 from app.services import auth_service, place_service, ride_rules, user_service  # noqa: E402
 from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
@@ -107,9 +107,8 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def fresh_state(test_database):
-    """Every test starts from sql/demo-data.sql, no ride in memory, and no failed attempt counted."""
+    """Every test starts from sql/demo-data.sql (accounts and rides) and no failed attempt counted."""
     mysql_setup.reset_demo_data(TEST_DATABASE_URL)
-    ride_repository.reset(dev_rides=False)
     auth_service.login_attempts.clear()
     auth_service.activation_attempts.clear()
     auth_service.registration_codes_by_phone.clear()
@@ -138,7 +137,8 @@ def clock(monkeypatch):
     """Moves the API's clock: clock.move(minutes=16)."""
 
     class Clock:
-        current = datetime.now(timezone.utc)
+        # To the second, like ride_rules.now() and the DATETIME columns.
+        current = datetime.now(timezone.utc).replace(microsecond=0)
 
         def move(self, **delta):
             self.current += timedelta(**delta)

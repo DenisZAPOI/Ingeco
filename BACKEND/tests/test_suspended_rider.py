@@ -7,12 +7,14 @@ from datetime import datetime, timedelta, timezone
 
 from app.repository import ride_repository
 from app.services.admin_service import RIDER_HAS_RIDE
+from tests.helpers import in_session
 from tests.test_auth import ADMIN_PHONE, RIDER_PHONE, csrf_headers, login
 from tests.test_drivers import act, go_online
 from tests.test_rides import OPERATOR_PHONE, book, booking, pay
 
 RIDER_ID = 1  # Alice
 ADMIN_ID = 6
+GAELLE_ID = 7
 
 
 def suspend(client, user_id=RIDER_ID):
@@ -21,7 +23,7 @@ def suspend(client, user_id=RIDER_ID):
 
 
 def ride(ride_id):
-    return ride_repository.find_by_id(None, ride_id)
+    return in_session(lambda session: ride_repository.find_by_id(session, ride_id))
 
 
 def sms_kinds(caplog):
@@ -88,7 +90,8 @@ def test_a_started_ride_blocks_the_suspension(client):
 
 
 def test_a_rider_without_ride_gets_no_sms(client, caplog):
-    assert suspend(client).status_code == 200
+    # Gaëlle has no ride in sql/demo-data.sql (Alice and Bruno have some).
+    assert suspend(client, user_id=GAELLE_ID).status_code == 200
     assert sms_kinds(caplog) == []
 
 

@@ -23,7 +23,10 @@ class UtcDateTime(TypeDecorator[datetime]):
             return None
         if value.tzinfo is None:
             raise ValueError("A datetime written to the database must carry its time zone (UTC).")
-        return value.astimezone(timezone.utc).replace(tzinfo=None)
+        # DATETIME keeps no fraction of a second, and MySQL ROUNDS one away
+        # (12:00:00.6 would become 12:00:01): cut it here, so a time is never
+        # stored later than the one given.
+        return value.astimezone(timezone.utc).replace(tzinfo=None, microsecond=0)
 
     def process_result_value(self, value: datetime | None, _dialect) -> datetime | None:
         return value.replace(tzinfo=timezone.utc) if value is not None else None

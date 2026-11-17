@@ -28,11 +28,11 @@ from ..repository.ride_repository import (
     Position,
     Rating,
     Ride,
+    Step,
     Stop,
 )
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
-from ..utils.locks import KeyedLock
 from . import ride_rules
 from .place_service import check_proposed, check_served, count_lookup
 from .ride_rules import (
@@ -80,10 +80,6 @@ TOO_MANY_SCHEDULED = (
     "Attendez que l'un d'eux soit passé, ou annulez-en un."
 )
 
-# Counting the open rides then inserting one: two bookings sent at the same
-# moment must not both pass the count (audit F15).
-rider_locks = KeyedLock()
-
 # Who sees any ride (contract 4.2): the call centre and the administrators.
 STAFF_ROLES = ("operator", "admin")
 
@@ -117,7 +113,10 @@ def book_ride(
     Sent again with the same client_request_id (network cut during the
     sending), it returns the ride already booked instead of a second one.
     """
-    with rider_locks.hold(rider_id), database.session() as session:
+    with database.session() as session:
+        # Counting the open rides then inserting one: two bookings sent at the
+        # same moment must not both pass the count (audit F15, ADR 022).
+        user_repository.lock(session, rider_id)
         already_booked = _replayed_booking(session, client_request_id, rider_id)
         if already_booked is not None:
             return already_booked, False
@@ -150,7 +149,7 @@ def book_ride(
             created_at=created_at,
         )
         try:
-            ride = ride_repository.insert_ride(session, ride)
+            ride = ride_repository.insert_ride(session, ride, Step("created", created_at, rider_id))
         except DuplicateRequest:
             # Two sendings of the same booking at the same moment: the other one won.
             return _replayed_booking(session, client_request_id, rider_id), False
@@ -183,7 +182,7 @@ def pay_ride(*, rider_id: int, ride_id: int) -> Ride:
         ride.paid_at = paid_at
         # A scheduled ride waits for a driver until its time; an immediate one, 15 minutes.
         ride.expires_at = ride.scheduled_at or paid_at + DRIVER_SEARCH_DELAY
-        if not ride_repository.update_if_status(session, ride, AWAITING_PAYMENT):
+        if not ride_repository.update_if_status(session, ride, AWAITING_PAYMENT, [Step("paid", paid_at, rider_id)]):
             # Changed in between (other payment, cancellation): answer with its new state.
             return _payment_already_settled(session, ride_id)
 
@@ -338,13 +337,16 @@ def cancel_in(session: Session, ride: Ride, *, by_id: int) -> bool:
     The write of cancel_ride, shared with the suspension of a rider (admin_service).
     """
     previous_status = ride.status
+    now = ride_rules.now()
     ride.status = CANCELLED
-    ride.cancelled_at = ride_rules.now()
+    ride.cancelled_at = now
     ride.cancelled_by_id = by_id
+    steps = [Step("cancelled", now, by_id)]
     if ride.payment_status == PAYMENT_PAID:
         # Simulated (H10): with a real provider, the refund call follows the transaction.
         ride.payment_status = PAYMENT_REFUNDED
-    return ride_repository.update_if_status(session, ride, previous_status)
+        steps.append(Step("refunded", now, by_id))
+    return ride_repository.update_if_status(session, ride, previous_status, steps)
 
 
 def rate_ride(*, rider_id: int, ride_id: int, score: int, comment: str | None) -> Ride:

@@ -90,6 +90,19 @@ class DuplicateValue(Exception):
     """Phone, e-mail or plate already used: a unique constraint of the tables refused it."""
 
 
+def lock(session: Session, user_id: int) -> None:
+    """Locks the account's row until the end of the transaction (SELECT … FOR UPDATE).
+
+    Two requests about the same rider (or driver) then run one after the
+    other: a check then a write (open rides, then the booking; the timetable,
+    then the acceptance) is never interleaved with the same check of another
+    request, even with several API processes (ADR 022). Call it FIRST in the
+    transaction: MySQL takes its snapshot at the first plain read, so what
+    follows sees what the other request committed.
+    """
+    session.execute(select(UserRow.id).where(UserRow.id == user_id).with_for_update())
+
+
 def find_by_id(session: Session, user_id: int) -> User | None:
     row = session.get(UserRow, user_id)
     return _to_users(session, [row])[0] if row else None

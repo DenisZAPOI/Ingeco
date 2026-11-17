@@ -14,11 +14,10 @@ from sqlalchemy.orm import Session
 
 from ..repository import ride_repository, user_repository
 from ..repository.place_repository import straight_distance_km
-from ..repository.ride_repository import DayEarnings, Ride
+from ..repository.ride_repository import DayEarnings, Ride, Step
 from ..repository.user_repository import Location, User
 from ..utils import database
 from ..utils.errors import Conflict, Forbidden, NotFound
-from ..utils.locks import KeyedLock
 from . import ride_rules
 from .account_rules import DRIVER, SUSPENDED
 from .auth_service import ACCOUNT_SUSPENDED
@@ -40,12 +39,6 @@ NOT_YOUR_RIDE = "Vous n'êtes plus le chauffeur de cette course."
 NOT_ACCEPTED = "Cette course n'est pas en attente de départ."
 TOO_EARLY = "Cette course est programmée plus tard : vous pourrez la démarrer une heure avant."
 NOT_IN_PROGRESS = "Cette course n'a pas encore démarré."
-
-# The timetable check reads the other rides of the driver, then the acceptance
-# writes one: two acceptances of the same driver at the same moment must not
-# both pass the check. Held by a suspension too (admin_service). Audit F15.
-driver_locks = KeyedLock()
-
 
 @dataclass(frozen=True)
 class Offer:
@@ -141,7 +134,10 @@ def earnings(driver_id: int, first_day: date, last_day: date) -> Earnings:
 
 def accept_ride(driver_id: int, ride_id: int) -> Ride:
     """Takes a ride waiting for a driver. Accepting again a ride already taken by the same driver returns it."""
-    with driver_locks.hold(driver_id), database.session() as session:
+    with database.session() as session:
+        # The timetable check then the acceptance: never interleaved with
+        # another acceptance of the same driver (audit F15, ADR 022).
+        user_repository.lock(session, driver_id)
         driver = _online_driver(session, driver_id)
         ride = _find(session, ride_id)
         if ride.driver_id == driver_id and ride.status in ride_rules.HELD_STATUSES:
@@ -151,7 +147,9 @@ def accept_ride(driver_id: int, ride_id: int) -> Ride:
         ride.status = ACCEPTED
         ride.driver_id = driver_id
         ride.accepted_at = ride_rules.now()
-        if not ride_repository.update_if_status(session, ride, PENDING):
+        if not ride_repository.update_if_status(
+            session, ride, PENDING, [Step("accepted", ride.accepted_at, driver_id)]
+        ):
             # Another driver, a cancellation or the expiry got there first.
             raise Conflict(_why_not_offered(session, ride_id))
         logger.info("Ride accepted", extra={"context": {"rideId": ride.id, "driverId": driver_id}})
@@ -171,9 +169,9 @@ def release_ride(driver_id: int, ride_id: int) -> Ride:
         ride.accepted_at = None
         # Contract 6.8: 15 more minutes to find a driver, or until its time if later.
         ride.expires_at = max(now + ride_rules.DRIVER_SEARCH_DELAY, ride.scheduled_at or now)
-        if not ride_repository.update_if_status(session, ride, ACCEPTED):
+        # Kept in the log of the ride (etape_course), with the driver who gave it up.
+        if not ride_repository.update_if_status(session, ride, ACCEPTED, [Step("released", now, driver_id)]):
             raise Conflict(NOT_ACCEPTED)
-        # Not stored (H11): a line in the logs only.
         logger.info("Ride released", extra={"context": {"rideId": ride.id, "driverId": driver_id}})
         return _present(session, ride, driver_id)
 
@@ -192,7 +190,7 @@ def start_ride(driver_id: int, ride_id: int) -> Ride:
 
         ride.status = IN_PROGRESS
         ride.started_at = now
-        if not ride_repository.update_if_status(session, ride, ACCEPTED):
+        if not ride_repository.update_if_status(session, ride, ACCEPTED, [Step("started", now, driver_id)]):
             # Cancelled by the rider at the same moment.
             raise Conflict(NOT_ACCEPTED)
         logger.info("Ride started", extra={"context": {"rideId": ride.id}})
@@ -210,7 +208,9 @@ def complete_ride(driver_id: int, ride_id: int) -> Ride:
 
         ride.status = COMPLETED
         ride.completed_at = ride_rules.now()
-        if not ride_repository.update_if_status(session, ride, IN_PROGRESS):
+        if not ride_repository.update_if_status(
+            session, ride, IN_PROGRESS, [Step("completed", ride.completed_at, driver_id)]
+        ):
             raise Conflict(NOT_IN_PROGRESS)
         logger.info("Ride completed", extra={"context": {"rideId": ride.id}})
         return _present(session, ride, driver_id)

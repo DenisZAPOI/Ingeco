@@ -12,6 +12,9 @@ from tests.test_drivers import go_online, scheduled_in, waiting_ride
 from tests.test_rides import book, booking
 
 RIDER_ID = 1  # Alice
+# Alice's ride 3 of sql/demo-data.sql was booked 2 minutes before the load and
+# is not paid: it is due 13 minutes after it, so every run below expires it too.
+DEMO_UNPAID_RIDES_DUE = 1
 
 
 def ride(client, ride_id):
@@ -32,7 +35,8 @@ def test_an_unpaid_ride_expires_15_minutes_after_the_booking_without_sms(client,
     ride_id = unpaid_ride(client)
 
     clock.move(minutes=14)
-    assert expiry_service.expire_due_rides() == 0
+    assert expiry_service.expire_due_rides() == DEMO_UNPAID_RIDES_DUE
+    assert ride(client, ride_id)["status"] == "awaiting_payment"
     clock.move(minutes=2)
     assert expiry_service.expire_due_rides() == 1
 
@@ -83,9 +87,9 @@ def test_a_second_run_changes_nothing_and_sends_no_second_sms(client, clock, cap
     waiting_ride(client)
     clock.move(minutes=16)
 
-    assert expiry_service.expire_due_rides() == 1
+    assert expiry_service.expire_due_rides() == 1 + DEMO_UNPAID_RIDES_DUE
     assert expiry_service.expire_due_rides() == 0
-    assert len(sms_lines(caplog)) == 1
+    assert len(sms_lines(caplog)) == 1  # the demo ride was not paid: no SMS
 
 
 def test_an_expired_ride_is_in_the_past_rides_and_can_no_longer_be_paid_or_cancelled(client, clock):
@@ -95,7 +99,7 @@ def test_an_expired_ride_is_in_the_past_rides_and_can_no_longer_be_paid_or_cance
 
     login(client)
     past = client.get("/rides?when=past").get_json()["items"]
-    assert [item["id"] for item in past] == [ride_id]
+    assert past[0]["id"] == ride_id
     assert client.post(f"/rides/{ride_id}/payment", headers=csrf_headers(client)).status_code == 409
     assert client.post(f"/rides/{ride_id}/cancel", headers=csrf_headers(client)).status_code == 409
 

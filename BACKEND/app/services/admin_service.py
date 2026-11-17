@@ -20,7 +20,6 @@ from ..utils.errors import Conflict, NotFound, UnprocessableEntity
 from ..utils.passwords import hash_secret
 from . import account_rules, ride_rules
 from . import ride_service
-from .driver_service import driver_locks
 from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVATION_CODE_VALIDITY_HOURS, ACTIVE, DRIVER, RIDER, SUSPENDED
 from .auth_service import EMAIL_TAKEN
 
@@ -149,10 +148,12 @@ def create_account(
 
 def update_account(*, admin_id: int, user_id: int, changes: AccountChanges) -> User:
     """Suspends or reactivates, marks a rider as priority, changes a driver's vehicle."""
-    # The driver's lock: a suspension and an acceptance at the same moment must
-    # not leave a suspended driver holding a ride (audit F15). The rider's lock:
-    # no booking slips in while their rides are cancelled.
-    with driver_locks.hold(user_id), ride_service.rider_locks.hold(user_id), database.session() as session:
+    with database.session() as session:
+        # The account's row locked first (ADR 022): a suspension and an
+        # acceptance at the same moment must not leave a suspended driver
+        # holding a ride (audit F15), and no booking slips in while a rider's
+        # rides are cancelled. Same row as booking and accepting lock.
+        user_repository.lock(session, user_id)
         user = _find(session, user_id)
 
         if changes.is_priority is not _UNCHANGED:
