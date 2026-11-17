@@ -32,9 +32,9 @@ Territoires) avant la remise.
 |---|---|---|
 | Comptes, connexion, rôles | **Réel** : mots de passe hachés, sessions sécurisées, droits vérifiés côté serveur | À garder |
 | Réservation, suivi, annulation, évaluation, côté chauffeur | **Réel** dans la logique, testé (~240 tests) | À garder |
-| Données (comptes, trajets) | Comptes, communes et tarif **en base** (MySQL, schéma de l'équipe BD). Trajets encore **en mémoire** : ils reviennent à zéro quand l'API redémarre | **À brancher** pour les trajets (chantier 4.1) |
-| Fiches pratiques « Comment faire ? » | Écrites par nous, générales, en mémoire, avec leur source officielle ; écoute par la voix du téléphone (ADR 019) | À faire relire par la structure (§15), puis en base (issue #49) ; les règles des démarches changent : prévoir qui les tient à jour |
-| Offres d'emploi, services d'aide | **Fictifs**, écrits par nous, en mémoire. Les numéros des services sont dans la plage réservée à la fiction par l'ARCEP (05 36 49 xx xx) : ils ne sonnent chez personne | Contenus réels fournis ou validés par la structure, en base (issues #48 et #49), avec de vrais numéros |
+| Données (comptes, trajets) | Comptes, communes, tarif, trajets, évaluations et journal des étapes **en base** (MySQL, schéma de l'équipe BD) | Fait (chantier 4.1) ; restent en mémoire les inscriptions en attente et les limites d'essais |
+| Fiches pratiques « Comment faire ? » | Écrites par nous, générales, en base (migrations 013 et 016), avec leur source officielle ; écoute par la voix du téléphone (ADR 019) | À faire relire par la structure (§15) ; les règles des démarches changent : prévoir qui les tient à jour |
+| Offres d'emploi, services d'aide | **Fictifs**, écrits par nous, en base (migrations 011 à 015). Les numéros des services sont dans la plage réservée à la fiction par l'ARCEP (05 36 49 xx xx) : ils ne sonnent chez personne | Contenus réels fournis ou validés par la structure, avec de vrais numéros, et un écran pour les tenir à jour |
 | Comptes de test | Dans `sql/demo-data.sql`, mot de passe public (`Trajet-2026!`), dont un administrateur | **Ne jamais charger ce fichier** (4.3) |
 | SMS (codes, alertes) | **Simulés** : une ligne dans les journaux, rien n'est envoyé. Codes fixes en démo (`123456`, `12345678`) | **À brancher** sur un vrai prestataire (4.4) |
 | Paiement | **Simulé** : un bouton « payer » sans carte | Selon le modèle choisi (2 et 4.5) |
@@ -116,20 +116,17 @@ Chaque chantier dit **quoi**, **pourquoi** et **les options**. L'effort est donn
 grandeur pour une personne qui découvre le code : petit (quelques jours), moyen (une à deux
 semaines), gros (plus).
 
-### 4.1 Brancher la vraie base de données — gros, obligatoire
+### 4.1 Brancher la vraie base de données — fait le 17/11/2026
 
-Les comptes, les communes et le tarif sont lus en base. Les trajets, les offres, les services
-d'aide et les fiches passent encore par des listes en mémoire dans `BACKEND/app/repository/`.
-L'architecture a été pensée pour ça : **seuls les fichiers de `repository/` changent**, les
-services et les écrans restent les mêmes.
+Comptes, communes, tarif, trajets, évaluations, offres, services d'aide et fiches pratiques sont
+lus et écrits en base ; chaque étape d'une course est écrite dans le journal `etape_course`. Les
+verrous sont pris dans MySQL (`SELECT … FOR UPDATE`, [ADR 022](adr/022-verrous-en-base.md)).
 
-- Écrire les modèles SQLAlchemy dans `app/models/` d'après `sql/schema-mvp.sql` et
-  `sql/migrations/`.
-- Réécrire chaque `*_repository.py` en requêtes SQLAlchemy.
-- Remplacer les verrous en mémoire par `SELECT … FOR UPDATE` (fiche
-  [ADR 007](adr/007-etat-en-memoire.md)).
-- Ajouter les tables qui manquent pour les modules du palier P1 non encore codés (offres,
-  annuaire, questionnaire), en passant par des **migrations** numérotées.
+- Restent en mémoire, par choix ([ADR 007](adr/007-etat-en-memoire.md)) : les inscriptions en
+  attente de leur code (quelques minutes) et les limites d'essais. Pour plusieurs processus
+  d'API : une table ou Redis.
+- Les tables des modules pas encore codés (questionnaire, horaires, pièces du chauffeur, demandes
+  d'aide) existent (migrations 017 à 027) : il reste l'API et les écrans.
 - Base en production : **MySQL 8.4** (choix de l'équipe BD, [ADR 008](adr/008-mysql.md)). Un
   utilisateur MySQL **sans droit de modifier le schéma** pour l'API.
 
@@ -213,7 +210,7 @@ faire avant une mise en ligne :
 
 - **F3** : pouvoir couper toutes les sessions d'un compte (la colonne `version_session` existe en
   base, migration 001 : la brancher).
-- **F15** : verrous en base au lieu des verrous en mémoire (avec 4.1).
+- **F15** : fait, verrous en base ([ADR 022](adr/022-verrous-en-base.md)).
 - **F20** : politique de sécurité du contenu (CSP) pour l'interface, Socket.IO authentifié,
   échappement des recherches `LIKE`.
 - Un nouvel audit, par quelqu'un d'extérieur, avant l'ouverture au public.

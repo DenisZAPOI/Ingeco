@@ -5,6 +5,7 @@ offer is a normal booking, with the place the offer gave.
 """
 
 from app.repository import job_repository
+from tests.helpers import in_session
 from tests.test_auth import login
 from tests.test_rides import book, booking, estimate
 
@@ -16,7 +17,7 @@ def test_a_visitor_reads_the_offers_without_an_account(client):
 
     assert response.status_code == 200
     offers = response.get_json()["items"]
-    assert len(offers) == len(job_repository.list_active(None, "fr"))
+    assert len(offers) == len(in_session(lambda session: job_repository.list_active(session, "fr")))
     assert {"title", "employer", "description", "contractType", "schedule", "beginnerWelcome"} <= offers[0].keys()
 
 

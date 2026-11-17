@@ -1,7 +1,10 @@
 """After the booking: the rider's lists (UC17), cancellation (UC16) and rating (UC18).
 
-The driver side does not exist yet: a ride is taken or finished here by
-writing it in the repository, as a driver's action will.
+A ride is taken or finished here by writing it in the repository, as the
+driver's actions do (tests/test_drivers.py goes through them).
+
+Every test starts from sql/demo-data.sql: Alice (account 1) already has six
+rides, Bruno one, and Chloé (DRIVER_ID) drove three of Alice's.
 """
 
 from datetime import timedelta
@@ -9,11 +12,17 @@ from datetime import timedelta
 import pytest
 
 from app.repository import ride_repository
+from app.utils import database
 from app.services import ride_rules
 from tests.test_auth import DRIVER_PHONE, csrf_headers, login
 from tests.test_rides import OPERATOR_PHONE, OTHER_RIDER_PHONE, book, booking, pay
 
-DRIVER_ID = 3  # Chloé, development account
+DRIVER_ID = 3  # Chloé, demo account
+# Rides of sql/demo-data.sql, in the order of the lists. Alice's past ones are
+# all older than any ride booked by a test.
+ALICE_DEMO_UPCOMING = [3]  # scheduled in three days, awaiting payment
+ALICE_DEMO_PAST = [7, 6, 5, 4, 1]  # most recently booked first
+BRUNO_DEMO_UPCOMING = [2]  # scheduled in two days, booked by the call centre
 ADMIN_PHONE = "0694 00 00 06"
 
 
@@ -28,9 +37,15 @@ def paid_ride(client) -> int:
 
 
 def move_to(ride_id: int, status: str) -> None:
-    """What the driver side will do: take, start or finish the ride."""
-    ride = ride_repository.find_by_id(None, ride_id)
-    previous = ride.status
+    """What the driver does: take, start or finish the ride."""
+    with database.session() as session:
+        ride = ride_repository.find_by_id(session, ride_id)
+        previous = ride.status
+        _move(ride, status)
+        assert ride_repository.update_if_status(session, ride, previous, [])
+
+
+def _move(ride, status: str) -> None:
     ride.status = status
     if status in (ride_rules.ACCEPTED, ride_rules.IN_PROGRESS, ride_rules.COMPLETED):
         ride.driver_id = DRIVER_ID
@@ -39,7 +54,6 @@ def move_to(ride_id: int, status: str) -> None:
         ride.started_at = ride_rules.now()
     if status == ride_rules.COMPLETED:
         ride.completed_at = ride_rules.now()
-    assert ride_repository.update_if_status(None, ride, previous)
 
 
 def finished_ride(client) -> int:
@@ -54,7 +68,11 @@ def list_rides(client, when, cursor=None):
 
 
 def ids(response) -> list[int]:
-    return [ride["id"] for ride in response.get_json()["items"]]
+    return ids_of(response.get_json())
+
+
+def ids_of(page) -> list[int]:
+    return [ride["id"] for ride in page["items"]]
 
 
 def cancel(client, ride_id):
@@ -77,9 +95,9 @@ def test_upcoming_rides_come_soonest_first_and_past_ones_most_recent_first(clien
     clock.move(minutes=1)
     last_finished = finished_ride(client)
 
-    assert ids(list_rides(client, "upcoming")) == [sooner, later]
+    assert ids(list_rides(client, "upcoming")) == [sooner, later, *ALICE_DEMO_UPCOMING]
     past = list_rides(client, "past").get_json()
-    assert [ride["id"] for ride in past["items"]] == [last_finished, first_finished]
+    assert [ride["id"] for ride in past["items"]] == [last_finished, first_finished, *ALICE_DEMO_PAST]
     assert past["nextCursor"] is None
 
 
@@ -96,7 +114,7 @@ def test_past_rides_come_by_pages_of_20_without_repeat(client, clock):
     assert len(first["items"]) == ride_rules.PAST_PAGE_SIZE
     assert second["nextCursor"] is None
     seen = [ride["id"] for ride in first["items"] + second["items"]]
-    assert seen == list(reversed(created))
+    assert seen == list(reversed(created)) + ALICE_DEMO_PAST
 
 
 def test_a_ride_booked_between_two_pages_does_not_shift_them(client, clock):
@@ -110,8 +128,8 @@ def test_a_ride_booked_between_two_pages_does_not_shift_them(client, clock):
     finished_ride(client)  # newer than all: belongs to the first page, not the second
     second = list_rides(client, "past", first["nextCursor"]).get_json()
 
-    assert len(second["items"]) == 1
-    assert second["items"][0]["id"] not in [ride["id"] for ride in first["items"]]
+    assert len(second["items"]) == 1 + len(ALICE_DEMO_PAST)
+    assert not set(ids_of(second)) & set(ids_of(first))
 
 
 def test_a_rider_only_sees_their_own_rides(client):
@@ -120,7 +138,7 @@ def test_a_rider_only_sees_their_own_rides(client):
 
     login(client, phone=OTHER_RIDER_PHONE)
 
-    assert list_rides(client, "upcoming").get_json()["items"] == []
+    assert ids(list_rides(client, "upcoming")) == BRUNO_DEMO_UPCOMING
 
 
 def test_a_driver_sees_the_rides_they_took(client):
@@ -163,7 +181,7 @@ def test_cancelling_a_paid_ride_refunds_it_in_full(client):
     ride = response.get_json()
     assert (ride["status"], ride["paymentStatus"]) == ("cancelled", "refunded")
     assert ride["cancelledAt"] is not None
-    assert ids(list_rides(client, "past")) == [ride_id]
+    assert ids(list_rides(client, "past")) == [ride_id, *ALICE_DEMO_PAST]
 
 
 def test_a_ride_not_paid_yet_is_cancelled_without_refund(client):
@@ -280,14 +298,16 @@ def test_only_the_rider_of_the_ride_rates_it(client):
     assert rate(client, ride_id).status_code == 403
 
 
-# --- Development rides -------------------------------------------------------
+# --- Demo rides --------------------------------------------------------------
 
-def test_the_development_rides_let_alice_try_the_lists_and_the_rating(client):
-    ride_repository.reset(dev_rides=True)
+def test_the_demo_rides_let_alice_try_the_lists_and_the_rating(client):
+    """sql/demo-data.sql: what the README promises to whoever tries the demo."""
     login(client)
 
     past = list_rides(client, "past").get_json()["items"]
+    upcoming = list_rides(client, "upcoming").get_json()["items"]
 
-    assert [ride["status"] for ride in past] == ["completed", "completed", "cancelled", "completed"]
-    assert [ride["rating"] is not None for ride in past] == [False, False, False, True]
+    assert [ride["status"] for ride in past] == ["completed", "completed", "cancelled", "expired", "completed"]
+    assert [ride["rating"] is not None for ride in past] == [False, False, False, False, True]
+    assert [ride["status"] for ride in upcoming] == ["awaiting_payment"]
     assert rate(client, past[0]["id"]).status_code == 201

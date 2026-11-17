@@ -2,6 +2,9 @@
 
 Chloé (account 3) drives an accessible vehicle. A second driver without one
 is added here when a test needs two.
+
+Every test starts from sql/demo-data.sql: Chloé has one rating (5), and
+Bruno's ride scheduled in two days waits for a driver.
 """
 
 from datetime import timedelta
@@ -16,6 +19,9 @@ from tests.test_rides import CAYENNE_TOWN_HALL, OPERATOR_PHONE, OTHER_RIDER_PHON
 
 SECOND_DRIVER_PHONE = "0694 00 00 09"
 INES_ID = 9
+# sql/demo-data.sql
+DEMO_WAITING_RIDE = 2  # Bruno's, scheduled in two days
+CHLOE_DEMO_SCORES = [5]
 # Near the town hall of Cayenne, and 15 km away (outside the 10 km of the offers).
 NEAR_CAYENNE = {"lat": 4.9400, "lng": -52.3300}
 FAR_AWAY = {"lat": 4.8000, "lng": -52.4200}
@@ -141,13 +147,13 @@ def test_without_a_recent_position_the_whole_zone_is_offered(client, clock):
 
 
 def test_scheduled_offers_come_by_date_whatever_the_position(client, clock):
-    later = waiting_ride(client, scheduledAt=scheduled_in(clock, days=2))
+    later = waiting_ride(client, scheduledAt=scheduled_in(clock, days=3))
     sooner = waiting_ride(client, scheduledAt=scheduled_in(clock, days=1))
     waiting_ride(client)  # immediate: not in this tab
     go_online(client)
     send_position(client, FAR_AWAY)
 
-    assert offered_ids(client, "scheduled") == [sooner, later]
+    assert offered_ids(client, "scheduled") == [sooner, DEMO_WAITING_RIDE, later]
 
 
 def test_a_ride_needing_an_accessible_vehicle_is_offered_only_to_such_a_vehicle(client, second_driver):
@@ -200,7 +206,7 @@ def test_accepting_a_ride_gives_each_one_the_other_s_contact(client):
     assert driver["firstName"] == "Chloé"
     assert driver["phone"] == "+594694000003"
     assert driver["vehicle"] == {"plate": "AA-001-AA", "model": "Véhicule fictif", "isAccessible": True}
-    assert driver["averageScore"] is None
+    assert driver["averageScore"] == sum(CHLOE_DEMO_SCORES) / len(CHLOE_DEMO_SCORES)
 
 
 def test_accepting_twice_is_not_an_error(client):
@@ -245,7 +251,8 @@ def test_a_driver_holds_one_active_ride_at_a_time(client):
 def test_scheduled_rides_held_must_be_an_hour_apart(client, clock):
     at_ten = waiting_ride(client, scheduledAt=scheduled_in(clock, days=1))
     half_an_hour_later = waiting_ride(client, scheduledAt=scheduled_in(clock, days=1, minutes=30))
-    two_hours_later = waiting_ride(client, scheduledAt=scheduled_in(clock, days=1, hours=2))
+    # Another rider: Alice already has a scheduled ride in the demo data, and three at most.
+    two_hours_later = waiting_ride(client, phone=OTHER_RIDER_PHONE, scheduledAt=scheduled_in(clock, days=1, hours=2))
     go_online(client)
     act(client, at_ten, "accept")
 
@@ -337,7 +344,8 @@ def test_a_ride_goes_from_accepted_to_completed_then_can_be_rated(client):
     login(client)
     rated = client.post(f"/rides/{ride_id}/rating", json={"score": 4}, headers=csrf_headers(client))
     assert rated.status_code == 201
-    assert rated.get_json()["driver"]["averageScore"] == 4
+    scores = [*CHLOE_DEMO_SCORES, 4]
+    assert rated.get_json()["driver"]["averageScore"] == sum(scores) / len(scores)
     assert rated.get_json()["driver"]["phone"] is None
 
 

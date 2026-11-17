@@ -2,6 +2,7 @@
 "Comment faire ?" (module M5), on fake data. Public routes."""
 
 from app.repository import help_service_repository, practical_guide_repository
+from tests.helpers import in_session
 
 MIN_STEPS, MAX_STEPS = 3, 6
 OFFICIAL_SITES = ("gouv.fr", "ameli.fr", "monenfant.fr", "francetravail.fr")
@@ -17,7 +18,7 @@ def test_a_visitor_reads_the_guides_without_an_account(client):
 
     assert response.status_code == 200
     guides = response.get_json()["items"]
-    assert len(guides) == len(practical_guide_repository.list_guides(None, "fr"))
+    assert len(guides) == len(in_session(lambda session: practical_guide_repository.list_guides(session, "fr")))
     assert {"category", "title", "intro", "steps", "toBring", "source", "updatedOn", "language"} <= guides[0].keys()
 
 

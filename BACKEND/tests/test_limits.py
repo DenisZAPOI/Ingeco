@@ -13,6 +13,7 @@ from app.services.auth_service import MAX_FAILED_ATTEMPTS, MAX_FAILED_ATTEMPTS_P
 from app.services.ride_rules import MAX_OPEN_SCHEDULED_RIDES
 from app.utils import passwords, rate_limit
 from app.utils.rate_limit import AttemptLimiter
+from tests.helpers import in_session
 from tests.test_auth import DEV_PASSWORD, DRIVER_PHONE, RIDER_PHONE, csrf_headers, login
 from tests.test_rides import OTHER_RIDER_PHONE, book, booking, pay
 
@@ -117,7 +118,9 @@ def test_a_cancelled_ride_frees_the_place(client):
 
 def test_a_rider_has_three_scheduled_rides_at_most(client):
     login(client)
-    for hours in range(1, MAX_OPEN_SCHEDULED_RIDES + 1):
+    # Alice already has one in sql/demo-data.sql (ride 3, awaiting payment).
+    already_scheduled = 1
+    for hours in range(1, MAX_OPEN_SCHEDULED_RIDES - already_scheduled + 1):
         assert book(client, booking(scheduledAt=later(hours * 2))).status_code == 201
     assert book(client).status_code == 201  # an immediate one is still possible
 
@@ -194,4 +197,7 @@ def test_a_driver_accepting_two_rides_at_once_gets_only_one(app, client, monkeyp
         thread.join()
 
     assert sorted(codes) == [200, 409]
-    assert len(ride_repository.find_driver_rides(None, 3, driver_service.ride_rules.HELD_STATUSES)) == 1
+    held = in_session(
+        lambda session: ride_repository.find_driver_rides(session, 3, driver_service.ride_rules.HELD_STATUSES)
+    )
+    assert len(held) == 1

@@ -44,8 +44,13 @@ TOO_SOON = (
 
 
 def now() -> datetime:
-    """The current time, in UTC. One place, so the tests can move the clock."""
-    return datetime.now(timezone.utc)
+    """The current time, in UTC, to the second. One place, so the tests can move the clock.
+
+    To the second: the DATETIME columns of the schema keep no fraction, and
+    MySQL ROUNDS one away (12:00:00.6 is stored 12:00:01). A time written
+    then read back must be the same.
+    """
+    return datetime.now(timezone.utc).replace(microsecond=0)
 
 
 def check_scheduled_at(scheduled_at: datetime | None) -> datetime | None:

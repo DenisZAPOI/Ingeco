@@ -1055,7 +1055,7 @@ export interface components {
             /** Name */
             name: string;
             /** Phone */
-            phone: string;
+            phone: string | null;
             place: components["schemas"]["StopDto"];
             /** Spokenlanguages */
             spokenLanguages: ("fr" | "gcr" | "ht" | "pt-BR" | "en")[];

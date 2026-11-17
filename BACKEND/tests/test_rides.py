@@ -193,12 +193,13 @@ def test_once_paid_an_immediate_ride_waits_15_minutes_for_a_driver(client, clock
 
 def test_once_paid_a_scheduled_ride_waits_for_a_driver_until_its_time(client, clock):
     login(client)
-    scheduled_at = clock.current + timedelta(hours=3)
+    # A time typed by a person: the fraction of a second is not kept (DATETIME).
+    scheduled_at = clock.current + timedelta(hours=3, microseconds=513_060)
     ride_id = book(client, booking(scheduledAt=scheduled_at.isoformat())).get_json()["id"]
 
     ride = pay(client, ride_id).get_json()
 
-    assert datetime.fromisoformat(ride["expiresAt"]) == scheduled_at
+    assert datetime.fromisoformat(ride["expiresAt"]) == scheduled_at.replace(microsecond=0)
 
 
 def test_paying_twice_is_not_an_error(client):

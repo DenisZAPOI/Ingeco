@@ -15,6 +15,7 @@ cleanly, and a second run (another process) changes nothing.
 import logging
 
 from ..repository import ride_repository, sms_repository
+from ..repository.ride_repository import Step
 from ..utils import database
 from . import ride_rules
 from .ride_rules import AWAITING_PAYMENT, EXPIRED, PAYMENT_PAID, PAYMENT_REFUNDED, PENDING
@@ -33,10 +34,13 @@ def expire_due_rides() -> int:
             previous_status = ride.status
             ride.status = EXPIRED
             ride.expired_at = now
+            # No author: the application itself expires the ride.
+            steps = [Step("expired", now, None)]
             if ride.payment_status == PAYMENT_PAID:
                 # Simulated (H10): with a real provider, the refund call follows the transaction.
                 ride.payment_status = PAYMENT_REFUNDED
-            if not ride_repository.update_if_status(session, ride, previous_status):
+                steps.append(Step("refunded", now, None))
+            if not ride_repository.update_if_status(session, ride, previous_status, steps):
                 # Accepted, paid or cancelled in between: it is no longer due.
                 continue
             expired += 1
