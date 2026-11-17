@@ -82,16 +82,18 @@ function ServiceDetail({ service }: { service: HelpService }) {
         {t('jobs.howToGetThere')}
       </button>
       <p className="note">{t('jobs.howToGetThereHint')}</p>
-      <div className="panel help">
-        <h2>{t('helpServices.callTitle')}</h2>
-        {/* In full, for someone who dials it from another phone. */}
-        <p className="help-phone">{formatPhone(service.phone)}</p>
-        <a href={`tel:${service.phone}`} className="button button-block button-secondary">
-          <PhoneIcon className="button-icon" />
-          {t('helpServices.call')}
-        </a>
-        <p className="note">{t('helpServices.fictionalPhone')}</p>
-      </div>
+      {service.phone && (
+        <div className="panel help">
+          <h2>{t('helpServices.callTitle')}</h2>
+          {/* In full, for someone who dials it from another phone. */}
+          <p className="help-phone">{formatPhone(service.phone)}</p>
+          <a href={`tel:${service.phone}`} className="button button-block button-secondary">
+            <PhoneIcon className="button-icon" />
+            {t('helpServices.call')}
+          </a>
+          <p className="note">{t('helpServices.fictionalPhone')}</p>
+        </div>
+      )}
     </>
   );
 }

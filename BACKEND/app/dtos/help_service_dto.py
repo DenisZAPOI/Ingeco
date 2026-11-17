@@ -26,7 +26,8 @@ class HelpServiceDto(ApiModel):
     place: StopDto
     commune_name: str = Field(examples=["Cayenne"])
     # International format. Fictitious numbers of the range the ARCEP reserves for fiction.
-    phone: str = Field(examples=["+33536490003"])
+    # None for a service that cannot be called (the table allows it).
+    phone: str | None = Field(examples=["+33536490003"])
     wheelchair_accessible: bool
     spoken_languages: list[SpokenLanguage]
     updated_on: date

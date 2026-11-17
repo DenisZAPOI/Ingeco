@@ -8,6 +8,7 @@ service is a normal booking, with the place the service gave.
 import re
 
 from app.repository import help_service_repository
+from tests.helpers import in_session
 from tests.test_auth import login
 from tests.test_rides import CAYENNE_TOWN_HALL, MATOURY_TOWN_HALL, book, booking, estimate
 
@@ -25,7 +26,7 @@ def test_a_visitor_reads_the_directory_without_an_account(client):
 
     assert response.status_code == 200
     services = response.get_json()["items"]
-    assert len(services) == len(help_service_repository.list_services(None, "fr"))
+    assert len(services) == len(in_session(lambda session: help_service_repository.list_services(session, "fr")))
     assert {
         "name", "category", "description", "hours", "place", "communeName",
         "phone", "wheelchairAccessible", "spokenLanguages", "updatedOn",
