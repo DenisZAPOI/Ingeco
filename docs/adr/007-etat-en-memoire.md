@@ -2,6 +2,7 @@
 
 - **Statut** : Acceptée
 - **Date** : décidée le 02/11/2026 (audit de sécurité, F5 et F15) ; verrous ajoutés le 03/11/2026
+- **Suite** : les verrous passent dans MySQL avec la fiche [022](022-verrous-en-base.md) ; les limites d'essais et les inscriptions en attente restent en mémoire
 - **Voir aussi** : [architecture.md](../architecture.md#transitions-dune-course), [004](004-mots-de-passe-scrypt.md)
 
 ## Contexte

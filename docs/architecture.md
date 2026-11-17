@@ -43,7 +43,7 @@ BACKEND/
     ├── models/                 Modèles ORM des tables de l'équipe BD (classes en anglais, colonnes en français)
     ├── sockets/                Événements temps réel ; broadcast.py pour émettre
     └── utils/                  database, errors, logs, request_logs, security_headers,
-                                access (session, rôles), passwords, rate_limit, locks,
+                                access (session, rôles), passwords, rate_limit,
                                 periodic (tâches de fond : expiration des courses)
 ```
 
@@ -187,9 +187,12 @@ deux fois en 2G). Règles et délais : `services/ride_rules.py` ; côté chauffe
 
 Quand une vérification lit **d'autres lignes** que celle qu'on écrit (l'horaire du chauffeur avant
 d'accepter, le nombre de courses ouvertes avant de réserver), l'écriture conditionnelle ne suffit
-plus : un verrou par chauffeur ou par usager (`utils/locks.py`) entoure la vérification et
-l'écriture. Il est en mémoire ; avec les repositories MySQL, le remplacer par
-`SELECT … FOR UPDATE` sur la ligne du chauffeur (ou de l'usager) dans la même transaction.
+plus : la ligne du compte (chauffeur ou usager) est verrouillée par `SELECT … FOR UPDATE`
+(`user_repository.lock`), en première instruction de la transaction ([ADR 022](adr/022-verrous-en-base.md)).
+
+Chaque transition écrit aussi une ligne dans le journal de la course (`etape_course`, migration
+023), dans la même transaction : ce qui s'est passé, quand, et qui l'a fait (`NULL` pour
+l'application, comme une expiration). Les lignes ne sont jamais modifiées.
 
 ### Temps réel
 

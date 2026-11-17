@@ -63,3 +63,4 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [019](019-audio-par-synthese-vocale.md) | Audio des fiches pratiques par la synthèse vocale du téléphone | Proposée | 11/11/2026 |
 | [020](020-geoplateforme-ign.md) | Géoplateforme de l'IGN pour les lieux et la distance (remplacerait 009) | Proposée | 12/11/2026 |
 | [021](021-adminer.md) | Adminer pour consulter la base depuis le navigateur, à la demande | Proposée | 16/11/2026 |
+| [022](022-verrous-en-base.md) | Verrous par usager et par chauffeur dans MySQL (`SELECT … FOR UPDATE`) | Proposée | 17/11/2026 |

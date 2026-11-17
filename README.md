@@ -511,7 +511,7 @@ la base locale. Pour les remettre dans leur état de départ, sans effacer la ba
 « Remettre la démo à zéro » dans [Base de données](#base-de-données-mysql-dans-docker). L'API n'en
 crée aucun elle-même. Personnes fictives, mot de passe commun **`Trajet-2026!`**.
 `LOAD_DEMO_DATA=true` dans `BACKEND/.env` (c'est la valeur de `.env.example`) ne sert plus
-qu'aux codes SMS fixes ci-dessous et aux trajets d'Alice ; l'API refuse de démarrer avec ce
+qu'aux codes SMS fixes ci-dessous ; l'API refuse de démarrer avec ce
 réglage si `COOKIE_SECURE=true` (serveur en https, donc hébergé).
 
 **Inscription d'un nouvel usager** : les SMS sont simulés. Avec `LOAD_DEMO_DATA=true`, le code
@@ -533,16 +533,17 @@ ci-dessous sauf Farid (administrateur) et Hugo (suspendu).
 | 0694 00 00 08 | Hugo | Usager suspendu |
 | 0694 00 00 09 | Inès | Chauffeur, véhicule non adapté |
 
-Alice a aussi quatre trajets passés, encore en mémoire de l'API
-(`BACKEND/app/repository/ride_repository.py`, avec `LOAD_DEMO_DATA=true`) : trois terminés, dont
-un déjà noté, et un annulé. Ils servent à essayer « Mes trajets » et la notation sans passer par
-le côté chauffeur. `sql/demo-data.sql` contient déjà les courses qui les remplaceront quand les
-trajets seront lus en base (une par statut, datées par rapport au chargement).
+Les trajets de test sont aussi dans la base (`sql/demo-data.sql`), datés par rapport au
+chargement. Alice en a six : trois terminés avec Chloé (le plus ancien déjà noté), un annulé, un
+expiré et un programmé dans trois jours qui attend son paiement. Il expire au bout de 15
+minutes, comme un vrai. Bruno a un trajet programmé dans deux jours, réservé par Emma au
+téléphone, qui attend un chauffeur. Ils servent à essayer « Mes trajets » et la notation sans
+passer par le côté chauffeur.
 
 Pour essayer une course de bout en bout : réserver et payer un trajet en Alice, se déconnecter,
 puis se connecter en Chloé, appuyer sur « Je suis disponible » et ouvrir « Courses ». Sans
 position autorisée, Chloé voit les courses de toute la zone. Ses revenus sont dans « Mes
-revenus », sur son accueil : les trajets factices d'Alice comptent comme les siens.
+revenus », sur son accueil : les trajets terminés d'Alice y comptent.
 
 En développement, `COOKIE_SECURE=false` dans `BACKEND/.env` : les cookies de session marqués
 `Secure` ne passent qu'en HTTPS, ce qui bloque Safari sur `http://localhost` et tout téléphone qui
