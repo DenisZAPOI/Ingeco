@@ -12,11 +12,18 @@ Mixed approach, one rule to decide:
 In both cases the SQLAlchemy session is the only entry point.
 """
 
+import logging
+from collections.abc import Callable
 from contextlib import contextmanager
 from typing import Iterator
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+logger = logging.getLogger(__name__)
+
+# Key of session.info holding the actions to run once the transaction is committed.
+_AFTER_COMMIT = "after_commit"
 
 
 class Base(DeclarativeBase):
@@ -66,3 +73,24 @@ def session() -> Iterator[Session]:
         raise
     finally:
         current_session.close()
+    # Only reached once the commit succeeded: a rollback never runs them.
+    _run_after_commit(current_session)
+
+
+def after_commit(current_session: Session, action: Callable[[], None]) -> None:
+    """Runs `action` once the transaction of `current_session` is committed, never if it fails.
+
+    For what must not be announced before it is saved: a real-time event
+    emitted, then cancelled by a rollback, would tell of a state that never
+    existed.
+    """
+    current_session.info.setdefault(_AFTER_COMMIT, []).append(action)
+
+
+def _run_after_commit(committed_session: Session) -> None:
+    for action in committed_session.info.pop(_AFTER_COMMIT, []):
+        try:
+            action()
+        except Exception:
+            # The write is saved: a failed announcement must not turn it into an error.
+            logger.exception("Action after commit failed")

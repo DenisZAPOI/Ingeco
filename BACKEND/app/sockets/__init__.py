@@ -1,32 +1,11 @@
 """
-Real-time channel (Flask-SocketIO): ride tracking, driver position, new ride
-offers.
+Real-time channel (Flask-SocketIO): the status of a ride and the drivers'
+offers, updated without pressing "Actualiser". No position of the driver: GPS
+tracking is out of scope (specification §5).
 
-Like a controller, a handler holds no business rule: it calls a service, which
-decides. Services emit events through broadcast.py, AFTER their transaction is
-committed: an event emitted then cancelled by a rollback would announce a state
-that never existed.
+- handlers.py   events received: connection, subscriptions (ride:follow, offers:follow);
+- broadcast.py  events sent by the services, once their transaction is committed.
 
-Handled for now: connection and disconnection, so the front-end can check the
-channel works.
+This file imports neither: the services import broadcast.py, and handlers.py
+imports the services. Without imports here, there is no import cycle.
 """
-
-import logging
-
-from flask import request
-from flask_socketio import emit
-
-from ..extensions import socketio
-
-logger = logging.getLogger(__name__)
-
-
-@socketio.on("connect")
-def on_connect():
-    logger.info("Real-time client connected", extra={"context": {"socketId": request.sid}})
-    emit("welcome", {"message": "Real-time channel ready"})
-
-
-@socketio.on("disconnect")
-def on_disconnect(*_):
-    logger.info("Real-time client disconnected", extra={"context": {"socketId": request.sid}})

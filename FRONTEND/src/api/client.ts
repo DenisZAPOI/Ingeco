@@ -94,10 +94,21 @@ function isRenewable(error: unknown, path: string): boolean {
   return isUnauthorized && !NO_RENEWAL_PATHS.has(path) && storedSession() !== 'none';
 }
 
+/** Before a connection made outside request() (the real-time one, realtime.ts):
+ *  renews the session if its 15 minutes are over, without any call otherwise.
+ *  False without a session, or if it cannot be renewed. */
+export async function ensureSession(): Promise<boolean> {
+  const stored = storedSession();
+  if (stored === 'none') return false;
+  if (stored === 'active') return true;
+  return renewSession();
+}
+
 // Several calls failing at the same moment share one renewal.
 let pendingRenewal: Promise<boolean> | null = null;
 
-function renewSession(): Promise<boolean> {
+/** Renews the 15-minute access token with the 30-day one. False if the session is over. */
+export function renewSession(): Promise<boolean> {
   pendingRenewal ??= send('POST', REFRESH_PATH)
     .then(() => true)
     .catch(() => false)

@@ -16,6 +16,7 @@ from ..repository import ride_repository, user_repository
 from ..repository.place_repository import straight_distance_km
 from ..repository.ride_repository import DayEarnings, Ride, Step
 from ..repository.user_repository import Location, User
+from ..sockets import broadcast
 from ..utils import database
 from ..utils.errors import Conflict, Forbidden, NotFound
 from . import ride_rules
@@ -152,6 +153,7 @@ def accept_ride(driver_id: int, ride_id: int) -> Ride:
         ):
             # Another driver, a cancellation or the expiry got there first.
             raise Conflict(_why_not_offered(session, ride_id))
+        broadcast.ride_changed(session, ride, previous_status=PENDING)
         logger.info("Ride accepted", extra={"context": {"rideId": ride.id, "driverId": driver_id}})
         return _present(session, ride, driver_id)
 
@@ -172,6 +174,7 @@ def release_ride(driver_id: int, ride_id: int) -> Ride:
         # Kept in the log of the ride (etape_course), with the driver who gave it up.
         if not ride_repository.update_if_status(session, ride, ACCEPTED, [Step("released", now, driver_id)]):
             raise Conflict(NOT_ACCEPTED)
+        broadcast.ride_changed(session, ride, previous_status=ACCEPTED)
         logger.info("Ride released", extra={"context": {"rideId": ride.id, "driverId": driver_id}})
         return _present(session, ride, driver_id)
 
@@ -193,6 +196,7 @@ def start_ride(driver_id: int, ride_id: int) -> Ride:
         if not ride_repository.update_if_status(session, ride, ACCEPTED, [Step("started", now, driver_id)]):
             # Cancelled by the rider at the same moment.
             raise Conflict(NOT_ACCEPTED)
+        broadcast.ride_changed(session, ride, previous_status=ACCEPTED)
         logger.info("Ride started", extra={"context": {"rideId": ride.id}})
         return _present(session, ride, driver_id)
 
@@ -212,6 +216,7 @@ def complete_ride(driver_id: int, ride_id: int) -> Ride:
             session, ride, IN_PROGRESS, [Step("completed", ride.completed_at, driver_id)]
         ):
             raise Conflict(NOT_IN_PROGRESS)
+        broadcast.ride_changed(session, ride, previous_status=IN_PROGRESS)
         logger.info("Ride completed", extra={"context": {"rideId": ride.id}})
         return _present(session, ride, driver_id)
 

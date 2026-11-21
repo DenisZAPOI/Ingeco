@@ -55,7 +55,7 @@ Ce que ça rend facile, ce que ça coûte, ce qu'il faudra surveiller.
 | [011](011-types-generes.md) | Types TypeScript générés depuis l'OpenAPI | Acceptée | 06/10/2026 |
 | [012](012-objectif-regular-2g.md) | Objectif réseau « Regular 2G » pour chaque fonctionnalité | Acceptée | 20/10/2026 |
 | [013](013-traductions-maison.md) | Textes dans des fichiers de traduction maison | Acceptée | 03/11/2026 |
-| [014](014-socket-io.md) | Socket.IO pour le temps réel | Proposée | – |
+| [014](014-socket-io.md) | Socket.IO pour le temps réel | Acceptée | 21/11/2026 |
 | [015](015-leaflet-openstreetmap.md) | Leaflet et OpenStreetMap pour la carte | Proposée | – |
 | [016](016-vitest.md) | Vitest pour les tests du front | Acceptée | 03/11/2026 |
 | [017](017-cinq-langues.md) | Cinq langues, repli sur le français, traductions chargées à la demande | Proposée | 07/11/2026 |

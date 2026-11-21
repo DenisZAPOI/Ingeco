@@ -196,15 +196,28 @@ l'application, comme une expiration). Les lignes ne sont jamais modifiées.
 
 ### Temps réel
 
-**Pas encore en place (étape 4)** : aujourd'hui, tout passe par HTTP et les écrans ont un bouton
-« Actualiser ». Il restera comme secours quand le temps réel arrivera.
+Flask-SocketIO, donc protocole **Socket.IO** : le front utilise `socket.io-client`, pas un
+`WebSocket` natif ([ADR 014](adr/014-socket-io.md)). Le statut d'un trajet et la liste des offres
+des chauffeurs se mettent à jour seuls ; le bouton « Actualiser » reste en secours. Pas de
+position du chauffeur envoyée au passager : le suivi GPS en temps réel est hors périmètre (cahier
+des charges §5, [decisions.md](decisions.md#ce-que-fixe-le-cahier-des-charges-v10)).
 
-Flask-SocketIO, donc protocole **Socket.IO** : le front utilisera `socket.io-client`, pas un
-`WebSocket` natif. Un salon par course (`ride:{id}`). Les services émettent via
-`sockets/broadcast.py` **après** la validation de leur transaction. Événements prévus par le
-contrat (partie 5) : `ride:updated`, `ride:offer`, `ride:offer-closed`. Pas de position du
-chauffeur envoyée au passager : le suivi GPS en temps réel est hors périmètre (cahier des
-charges §5, [decisions.md](decisions.md#ce-que-fixe-le-cahier-des-charges-v10)).
+- **Des signaux, pas des données** : `ride:updated { rideId, status }` au salon `ride:{id}`,
+  `offers:changed` (vide) au salon `drivers`. L'écran relit par HTTP : ce que chacun peut voir
+  reste décidé par `present()`.
+- **Connexion** (`sockets/handlers.py`) : refusée sans cookie de session valide
+  (`access.socket_caller`). Le compte est relu à chaque abonnement (`access.socket_account`).
+- **Abonnements** : `ride:follow { rideId }`, accepté pour qui peut lire la course
+  (`ride_service.may_follow`, même règle que `GET /rides/{id}`) ; `offers:follow`, réservé aux
+  chauffeurs. Réponse `{ accepted }`.
+- **Émission** (`sockets/broadcast.py`) : un service appelle `broadcast.ride_changed(session,
+  ride, previous_status)` juste après une écriture réussie, dans sa transaction. L'émission attend
+  le commit (`database.after_commit`) : une écriture annulée n'annonce rien. `offers:changed`
+  part quand la course entre dans l'attente d'un chauffeur (`pending`) ou en sort.
+- **Front** : `api/realtime.ts` est le seul endroit qui ouvre la connexion, chargée à la demande
+  et ouverte seulement tant qu'un écran suit quelque chose (`hooks/useRealtime.ts`). À chaque
+  signal et à chaque (re)connexion, l'écran relit discrètement (`reloadQuietly` de
+  `useRequest`) : un événement perdu pendant une coupure n'est pas renvoyé.
 
 ### Journalisation
 
@@ -224,13 +237,13 @@ l'identité. Le détail technique d'une erreur va dans les logs, jamais dans la 
 | Interface | React 19 + TypeScript 6 |
 | Build | Vite 8 |
 | Navigation | react-router-dom 7 |
+| Temps réel | socket.io-client 4 (MIT), chargé à la demande |
 | PWA (installable, coquille hors ligne) | vite-plugin-pwa |
 | Types de l'API | openapi-typescript (génération) |
 | Lint | oxlint |
 | Style | CSS maison avec variables, **sans framework** |
 
-À ajouter quand l'étape arrive, pas avant : Leaflet (carte, étape 4), socket.io-client (temps
-réel, étape 4). Peu de dépendances : chaque Ko compte sur le réseau guyanais.
+À ajouter quand l'étape arrive, pas avant : Leaflet (carte, étape 4). Peu de dépendances : chaque Ko compte sur le réseau guyanais.
 
 ### Dossiers
 

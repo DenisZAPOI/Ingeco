@@ -31,6 +31,7 @@ from ..repository.ride_repository import (
     Step,
     Stop,
 )
+from ..sockets import broadcast
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
 from . import ride_rules
@@ -159,6 +160,8 @@ def book_ride(
         except DuplicateRequest:
             # Two sendings of the same booking at the same moment: the other one won.
             return _replayed_booking(session, client_request_id, rider_id), False
+        # Nobody follows it yet, but a free ride already waits for a driver: the offers change.
+        broadcast.ride_changed(session, ride, previous_status=None)
 
     logger.info("Ride booked", extra={"context": {"rideId": ride.id, "scheduled": scheduled_at is not None}})
     return ride, True
@@ -191,6 +194,7 @@ def pay_ride(*, rider_id: int, ride_id: int) -> Ride:
         if not ride_repository.update_if_status(session, ride, AWAITING_PAYMENT, [Step("paid", paid_at, rider_id)]):
             # Changed in between (other payment, cancellation): answer with its new state.
             return _payment_already_settled(session, ride_id)
+        broadcast.ride_changed(session, ride, previous_status=AWAITING_PAYMENT)
 
     logger.info("Ride paid", extra={"context": {"rideId": ride.id}})
     return ride
@@ -216,6 +220,15 @@ def get_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
         if ride is None or not _may_see(session, ride, user_id, role):
             raise NotFound(RIDE_NOT_FOUND)
         return present(session, [ride], user_id=user_id, role=role)[0]
+
+
+def may_follow(*, user_id: int, role: str, ride_id: int) -> bool:
+    """Whether the caller may follow a ride in real time: the same people as get_ride."""
+    with database.session() as session:
+        ride = ride_repository.find_by_id(session, ride_id)
+        if ride is None:
+            return False
+        return _may_see(session, ride, user_id, role)
 
 
 def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> list[Ride]:
@@ -336,7 +349,6 @@ def cancel_ride(*, user_id: int, role: str, ride_id: int) -> Ride:
             return present(session, [_cancellation_already_settled(session, ride_id)], user_id=user_id, role=role)[0]
         present(session, [ride], user_id=user_id, role=role)
 
-    # No real-time yet (step 4): the driver, if any, sees it at their next reading.
     context = {"rideId": ride.id, "by": role, "hadDriver": ride.driver_id is not None}
     logger.info("Ride cancelled", extra={"context": context})
     return ride
@@ -357,7 +369,11 @@ def cancel_in(session: Session, ride: Ride, *, by_id: int) -> bool:
         # Simulated (H10): with a real provider, the refund call follows the transaction.
         ride.payment_status = PAYMENT_REFUNDED
         steps.append(Step("refunded", now, by_id))
-    return ride_repository.update_if_status(session, ride, previous_status, steps)
+    if not ride_repository.update_if_status(session, ride, previous_status, steps):
+        return False
+    # The driver who held it, or the drivers who were offered it, hear of it.
+    broadcast.ride_changed(session, ride, previous_status)
+    return True
 
 
 def rate_ride(*, rider_id: int, ride_id: int, score: int, comment: str | None) -> Ride:
