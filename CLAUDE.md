@@ -225,6 +225,12 @@ Le détail des sprints et les questions à poser pour chacun : [docs/questions-s
 - Identifiants de code en anglais (`ride`, `driver`, `voucher`, `ride_service.py`), textes d'interface en français. Documentation en français.
 - Fichiers back : `<resource>_controller.py`, `<resource>_service.py`, `<resource>_repository.py`, `<resource>_dto.py`. Front : composants en `PascalCase.tsx` (export nommé), hooks en `useSomething.ts`, pages en `SomethingPage.tsx`.
 - Pas de nombre magique : une constante nommée. Les commentaires expliquent le pourquoi, pas le quoi. Jamais `any` en TypeScript.
+- **Lisibilité d'abord** : un développeur qui ouvre le code dans six mois doit le comprendre sans reconstituer la logique. Clarté plutôt que concision, simplicité plutôt qu'astuce, code explicite plutôt qu'abstraction. Concrètement :
+  - pas de ternaires enchaînés ni de longues conditions sans nom : un booléen nommé (`isRenewable`, `show_contact`) ou une petite fonction avec retours anticipés ;
+  - pas d'appel imbriqué dans un `return` (`return jsonify(to_dto(service.f(...)))`) : le résultat du service va d'abord dans une variable nommée ;
+  - une fonction ou un composant fait une seule chose, mais on ne découpe pas pour découper ;
+  - pas de structure lue par index (`totals[0]`) : des variables ou des clés nommées ;
+  - aucune abstraction ni dépendance ajoutée pour gagner des lignes, aucun changement de comportement ou de contrat d'API au nom de la lisibilité.
 - Pas de push direct sur `main`. Une branche par fonctionnalité (`feature/...`, `fix/...`, `perf/...` pour la performance), une pull request relue par l'autre développeur.
 - Messages de commit courts, à l'impératif, préfixés (`feat:`, `fix:`, `perf:`, `docs:`, `refactor:`, `test:`, `chore:`).
 - Toute logique de `services/` a ses tests pytest, dont au moins un qui prouve qu'un rôle non autorisé est refusé.
