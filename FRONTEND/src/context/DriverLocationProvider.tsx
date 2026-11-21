@@ -57,6 +57,13 @@ export function DriverLocationProvider({ children }: { children: ReactNode }) {
     };
   }, [sharing]);
 
-  const value: LocationStatus = !sharing ? 'off' : SUPPORTED ? status : 'unavailable';
-  return <DriverLocationContext.Provider value={value}>{children}</DriverLocationContext.Provider>;
+  return (
+    <DriverLocationContext.Provider value={locationStatus(sharing, status)}>{children}</DriverLocationContext.Provider>
+  );
+}
+
+function locationStatus(sharing: boolean, phoneStatus: PhoneStatus): LocationStatus {
+  if (!sharing) return 'off';
+  if (!SUPPORTED) return 'unavailable';
+  return phoneStatus;
 }

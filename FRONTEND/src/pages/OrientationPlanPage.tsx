@@ -62,7 +62,14 @@ export function OrientationPlanPage() {
 
   return (
     <section>
-      <PlanContent shown={shown.data} role={role} loading={shown.loading && !shown.data} error={shown.error} onRetry={shown.retry} onChange={(plan) => shown.setData({ kind: 'kept', plan })} />
+      <PlanContent
+        shown={shown.data}
+        role={role}
+        loading={shown.loading && !shown.data}
+        error={shown.error}
+        onRetry={shown.retry}
+        onChange={(plan) => shown.setData({ kind: 'kept', plan })}
+      />
     </section>
   );
 }
@@ -78,7 +85,7 @@ type PlanContentProps = {
 
 function PlanContent({ shown, role, loading, error, onRetry, onChange }: PlanContentProps) {
   const navigate = useNavigate();
-  const steps = shown?.kind === 'kept' ? shown.plan.steps : shown?.kind === 'preview' ? shown.steps : [];
+  const steps = stepsOf(shown);
   const done = steps.filter((step) => step.doneAt !== null).length;
 
   function changeAnswers() {
@@ -121,15 +128,7 @@ function PlanContent({ shown, role, loading, error, onRetry, onChange }: PlanCon
                   {t('orientation.callMe')}
                 </Link>
               </div>
-              {shown?.kind === 'kept' ? (
-                <p className="note">{t('orientation.kept')}</p>
-              ) : role === null ? (
-                <Link to={ORIENTATION_KEEP_PATH} className="button button-block">
-                  {t('orientation.keepPlan')}
-                </Link>
-              ) : (
-                <p className="note">{t('orientation.notKeptOtherRole')}</p>
-              )}
+              <KeepPlan isKept={shown?.kind === 'kept'} role={role} />
               <button type="button" className="link-button" onClick={changeAnswers}>
                 {t('orientation.changeAnswers')}
               </button>
@@ -139,6 +138,27 @@ function PlanContent({ shown, role, loading, error, onRetry, onChange }: PlanCon
       </PageSheet>
     </>
   );
+}
+
+function stepsOf(shown: Shown | null): PlanStep[] {
+  if (shown?.kind === 'kept') return shown.plan.steps;
+  if (shown?.kind === 'preview') return shown.steps;
+  return [];
+}
+
+/** A kept plan says so; a visitor is offered to keep it; another role cannot keep one. */
+function KeepPlan({ isKept, role }: { isKept: boolean; role: string | null }) {
+  if (isKept) {
+    return <p className="note">{t('orientation.kept')}</p>;
+  }
+  if (role === null) {
+    return (
+      <Link to={ORIENTATION_KEEP_PATH} className="button button-block">
+        {t('orientation.keepPlan')}
+      </Link>
+    );
+  }
+  return <p className="note">{t('orientation.notKeptOtherRole')}</p>;
 }
 
 type PlanStepCardProps = { step: PlanStep; canTick: boolean; onChange: (plan: Plan) => void };

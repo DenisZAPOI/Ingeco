@@ -298,14 +298,15 @@ def earnings_by_day(
         RideRow.completed_at >= start,
         RideRow.completed_at < end,
     )
-    days: dict[date, list[int]] = {}
+    ride_count_by_day: dict[date, int] = {}
+    total_cents_by_day: dict[date, int] = {}
     for completed_at, price_cents in session.execute(query):
-        totals = days.setdefault(completed_at.astimezone(local_time).date(), [0, 0])
-        totals[0] += 1
-        totals[1] += price_cents
+        day = completed_at.astimezone(local_time).date()
+        ride_count_by_day[day] = ride_count_by_day.get(day, 0) + 1
+        total_cents_by_day[day] = total_cents_by_day.get(day, 0) + price_cents
     return [
-        DayEarnings(day=day, ride_count=count, total_cents=total)
-        for day, (count, total) in sorted(days.items(), reverse=True)
+        DayEarnings(day=day, ride_count=ride_count_by_day[day], total_cents=total_cents_by_day[day])
+        for day in sorted(ride_count_by_day, reverse=True)
     ]
 
 

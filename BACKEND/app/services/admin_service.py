@@ -9,7 +9,6 @@ the MVP schema yet.
 """
 
 import logging
-import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -17,7 +16,7 @@ from ..repository import ride_repository, sms_repository, user_repository
 from ..repository.user_repository import DuplicateValue, Position, User, Vehicle
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, UnprocessableEntity
-from ..utils.passwords import hash_secret
+from ..utils.passwords import hash_secret, random_digits
 from . import account_rules, ride_rules
 from . import ride_service
 from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVATION_CODE_VALIDITY_HOURS, ACTIVE, DRIVER, RIDER, SUSPENDED
@@ -275,7 +274,7 @@ def new_activation_code(*, admin_id: int, user_id: int) -> ActivationCode:
 
 def _new_code() -> tuple[str, str, datetime]:
     """8 random digits, easy to dictate; only their hash is stored."""
-    code = "".join(secrets.choice("0123456789") for _ in range(ACTIVATION_CODE_LENGTH))
+    code = random_digits(ACTIVATION_CODE_LENGTH)
     expires_at = ride_rules.now() + timedelta(hours=ACTIVATION_CODE_VALIDITY_HOURS)
     return code, hash_secret(code), expires_at
 

@@ -125,27 +125,33 @@ def book_ride(
         rider = user_repository.find_by_id(session, rider_id)
         price = _estimate(session, pickup, dropoff)
         created_at = ride_rules.now()
-        # Free for the rider: nothing to wait for, the search for a driver
-        # starts at once (same deadline as after a payment).
-        free = price.rider_amount_cents == 0
-        # The signatures were checked by _estimate: not stored with the ride.
-        pickup, dropoff = _unsigned(pickup), _unsigned(dropoff)
+        if price.rider_amount_cents == 0:
+            # Free for the rider: nothing to wait for, the search for a driver
+            # starts at once (same deadline as after a payment).
+            status = PENDING
+            payment_status = PAYMENT_NOT_REQUIRED
+            expires_at = scheduled_at or created_at + DRIVER_SEARCH_DELAY
+        else:
+            status = AWAITING_PAYMENT
+            payment_status = PAYMENT_PENDING
+            expires_at = created_at + PAYMENT_DELAY
         ride = Ride(
             client_request_id=client_request_id,
             rider_id=rider_id,
             booked_by_id=rider_id,
             channel=APP_CHANNEL,
-            status=PENDING if free else AWAITING_PAYMENT,
+            status=status,
             purpose=purpose,
-            pickup=pickup,
-            dropoff=dropoff,
+            # The signatures were checked by _estimate: not stored with the ride.
+            pickup=_unsigned(pickup),
+            dropoff=_unsigned(dropoff),
             scheduled_at=scheduled_at,
             needs_accessible_vehicle=rider.needs_accessible_vehicle,
             distance_km=price.distance_km,
             tariff_id=tariff_repository.active_tariff(session).id,
             price_cents=price.price_cents,
-            payment_status=PAYMENT_NOT_REQUIRED if free else PAYMENT_PENDING,
-            expires_at=(scheduled_at or created_at + DRIVER_SEARCH_DELAY) if free else created_at + PAYMENT_DELAY,
+            payment_status=payment_status,
+            expires_at=expires_at,
             created_at=created_at,
         )
         try:
@@ -224,24 +230,29 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
     rider_ids = {ride.rider_id for ride in rides}
     people = user_repository.find_by_ids(session, driver_ids | rider_ids)
     scores = ride_repository.average_scores(session, driver_ids)
+    is_staff = role in STAFF_ROLES
     for ride in rides:
         under_way = ride.status in ride_rules.CONTACT_STATUSES
-        staff = role in STAFF_ROLES
-        if ride.driver_id is not None and (staff or user_id == ride.rider_id):
+        caller_is_rider = user_id == ride.rider_id
+        caller_is_driver = user_id == ride.driver_id
+
+        if ride.driver_id is not None and (is_staff or caller_is_rider):
             driver = people[ride.driver_id]
+            show_contact = under_way or is_staff
             ride.driver = DriverInfo(
                 id=driver.id,
                 first_name=driver.first_name,
-                phone=driver.phone if under_way or staff else None,
+                phone=driver.phone if show_contact else None,
                 vehicle_plate=driver.vehicle.plate,
                 vehicle_model=driver.vehicle.model,
                 vehicle_is_accessible=driver.vehicle.is_accessible,
                 average_score=scores.get(driver.id),
                 # Like the phone: to recognise the driver at the pick-up, so
                 # only while the ride is under way (minimisation).
-                photo_updated_at=driver.photo_updated_at if under_way or staff else None,
+                photo_updated_at=driver.photo_updated_at if show_contact else None,
             )
-        if staff or (under_way and user_id == ride.driver_id):
+
+        if is_staff or (under_way and caller_is_driver):
             rider = people[ride.rider_id]
             ride.rider = Contact(first_name=rider.first_name, phone=rider.phone)
     return rides

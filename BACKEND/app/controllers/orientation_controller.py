@@ -30,7 +30,8 @@ def preview_plan():
     another answer.
     """
     body: AnswersDto = request.context.body
-    return jsonify(preview_to_dto(orientation_service.preview(body.to_answers())).to_json()), 200
+    steps = orientation_service.preview(body.to_answers())
+    return jsonify(preview_to_dto(steps).to_json()), 200
 
 
 @orientation_bp.post("/questionnaires")
@@ -55,7 +56,8 @@ def save_questionnaire():
 @spec.validate(resp=Response(HTTP_200=PlanDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto), tags=_TAGS)
 def current_plan():
     """The rider's current plan and the answers it comes from. 404 before any questionnaire."""
-    return jsonify(plan_to_dto(orientation_service.current(current_user_id())).to_json()), 200
+    plan = orientation_service.current(current_user_id())
+    return jsonify(plan_to_dto(plan).to_json()), 200
 
 
 @orientation_bp.put("/plan/steps/<int:position>")

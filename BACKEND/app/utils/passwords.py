@@ -1,11 +1,12 @@
 """
-Hashing of secrets: passwords and activation codes.
+Secrets: random codes, and the hashing of passwords and codes.
 
 scrypt (through Werkzeug, already installed with Flask): a deliberately slow,
 salted algorithm. A stolen hash cannot be reversed, and testing millions of
 guesses costs too much. A secret is NEVER stored or logged in clear.
 """
 
+import secrets
 import threading
 from collections.abc import Callable
 from typing import TypeVar
@@ -34,6 +35,11 @@ def _in_a_slot(work: Callable[[], Result]) -> Result:
         return work()
     finally:
         _hashing_slots.release()
+
+
+def random_digits(length: int) -> str:
+    """A code of `length` random digits, easy to dictate or to type from an SMS."""
+    return "".join(secrets.choice("0123456789") for _ in range(length))
 
 
 def hash_secret(secret: str) -> str:

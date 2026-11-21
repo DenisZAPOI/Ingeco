@@ -121,6 +121,7 @@ function Identity({ account }: { account: Account }) {
 
 function Priority({ account, onChange }: { account: Account; onChange: (account: Account) => void }) {
   const { submit, submitting, error } = useUpdateAccount(account.id);
+  const toggleLabel = account.isPriority ? t('admin.removePriority') : t('admin.setPriority');
 
   async function toggle() {
     const changed = await submit({ isPriority: !account.isPriority });
@@ -140,7 +141,7 @@ function Priority({ account, onChange }: { account: Account; onChange: (account:
         </p>
       )}
       <button type="button" className="button button-block button-secondary" onClick={toggle} disabled={submitting}>
-        {submitting ? t('common.sending') : account.isPriority ? t('admin.removePriority') : t('admin.setPriority')}
+        {submitting ? t('common.sending') : toggleLabel}
       </button>
     </>
   );
@@ -184,16 +185,23 @@ type AccessActionsProps = {
 
 function AccessActions({ account, onActivation, onChange }: AccessActionsProps) {
   const { user } = useSession();
-  const status = useUpdateAccount(account.id);
+  // An administrator never changes the status of their own account (refused by the API too).
+  const isMe = user?.id === account.id;
+
+  return (
+    <>
+      <h2>{t('admin.access')}</h2>
+      <ActivationCodeButton account={account} onActivation={onActivation} />
+      {account.status === 'active' && !isMe && <SuspendButton account={account} onChange={onChange} />}
+      {account.status !== 'active' && <ReactivateButton account={account} onChange={onChange} />}
+    </>
+  );
+}
+
+function ActivationCodeButton({ account, onActivation }: Omit<AccessActionsProps, 'onChange'>) {
   const code = useNewActivationCode(account.id);
   // A new key closes the confirmation once the code is shown.
   const [codesIssued, setCodesIssued] = useState(0);
-  const isMe = user?.id === account.id;
-
-  async function setStatus(next: Account['status']) {
-    const changed = await status.submit({ status: next });
-    if (changed) onChange(changed);
-  }
 
   async function issueCode() {
     const issued = await code.submit(undefined);
@@ -204,61 +212,74 @@ function AccessActions({ account, onActivation, onChange }: AccessActionsProps) 
   }
 
   return (
+    <ConfirmButton
+      key={codesIssued}
+      label={account.isActivated ? t('admin.newResetCode') : t('admin.newActivationCode')}
+      question={t('admin.codeQuestion', { name: account.firstName })}
+      details={
+        <p>
+          {t('admin.codeDetails')}
+          {account.isActivated && t('admin.codeSmsWarning')}
+        </p>
+      }
+      confirmLabel={t('admin.codeConfirm')}
+      keepLabel={t('admin.codeKeep')}
+      submitting={code.submitting}
+      error={code.error}
+      onConfirm={issueCode}
+    />
+  );
+}
+
+type StatusButtonProps = { account: Account; onChange: (account: Account) => void };
+
+function SuspendButton({ account, onChange }: StatusButtonProps) {
+  const { submit, submitting, error } = useUpdateAccount(account.id);
+
+  async function suspend() {
+    const changed = await submit({ status: 'suspended' });
+    if (changed) onChange(changed);
+  }
+
+  return (
+    <ConfirmButton
+      label={t('admin.suspend')}
+      question={t('admin.suspendQuestion', { name: account.firstName })}
+      details={
+        <p>
+          {t('admin.suspendDetails', { name: account.firstName })}
+          {account.role === 'driver' && t('admin.suspendDriver')}
+          {account.role === 'rider' && t('admin.suspendRider')}
+          {t('admin.suspendReactivate')}
+        </p>
+      }
+      confirmLabel={t('admin.suspendConfirm')}
+      keepLabel={t('admin.suspendKeep')}
+      submitting={submitting}
+      error={error}
+      onConfirm={suspend}
+    />
+  );
+}
+
+function ReactivateButton({ account, onChange }: StatusButtonProps) {
+  const { submit, submitting, error } = useUpdateAccount(account.id);
+
+  async function reactivate() {
+    const changed = await submit({ status: 'active' });
+    if (changed) onChange(changed);
+  }
+
+  return (
     <>
-      <h2>{t('admin.access')}</h2>
-      <ConfirmButton
-        key={codesIssued}
-        label={account.isActivated ? t('admin.newResetCode') : t('admin.newActivationCode')}
-        question={t('admin.codeQuestion', { name: account.firstName })}
-        details={
-          <p>
-            {t('admin.codeDetails')}
-            {account.isActivated && t('admin.codeSmsWarning')}
-          </p>
-        }
-        confirmLabel={t('admin.codeConfirm')}
-        keepLabel={t('admin.codeKeep')}
-        submitting={code.submitting}
-        error={code.error}
-        onConfirm={issueCode}
-      />
-      {account.status === 'active' ? (
-        !isMe && (
-          <ConfirmButton
-            label={t('admin.suspend')}
-            question={t('admin.suspendQuestion', { name: account.firstName })}
-            details={
-              <p>
-                {t('admin.suspendDetails', { name: account.firstName })}
-                {account.role === 'driver' && t('admin.suspendDriver')}
-                {account.role === 'rider' && t('admin.suspendRider')}
-                {t('admin.suspendReactivate')}
-              </p>
-            }
-            confirmLabel={t('admin.suspendConfirm')}
-            keepLabel={t('admin.suspendKeep')}
-            submitting={status.submitting}
-            error={status.error}
-            onConfirm={() => setStatus('suspended')}
-          />
-        )
-      ) : (
-        <>
-          {status.error && (
-            <p role="alert" className="alert alert-error">
-              {status.error}
-            </p>
-          )}
-          <button
-            type="button"
-            className="button button-block button-secondary"
-            onClick={() => setStatus('active')}
-            disabled={status.submitting}
-          >
-            {status.submitting ? t('common.sending') : t('admin.reactivate')}
-          </button>
-        </>
+      {error && (
+        <p role="alert" className="alert alert-error">
+          {error}
+        </p>
       )}
+      <button type="button" className="button button-block button-secondary" onClick={reactivate} disabled={submitting}>
+        {submitting ? t('common.sending') : t('admin.reactivate')}
+      </button>
     </>
   );
 }
