@@ -855,8 +855,35 @@ export interface components {
          * @description An account seen by an administrator: the user, and where its access stands.
          */
         AccountDto: {
+            /** Activationcodeexpiresat */
+            activationCodeExpiresAt: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Email */
+            email: string | null;
+            /** Firstname */
+            firstName: string;
             /** Id */
             id: number;
+            /** Isactivated */
+            isActivated: boolean;
+            /** Isavailable */
+            isAvailable: boolean | null;
+            /** Ispriority */
+            isPriority: boolean | null;
+            /** Lastname */
+            lastName: string;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean | null;
+            /** Partnerid */
+            partnerId: number | null;
+            /** Phone */
+            phone: string;
+            /** Photoupdatedat */
+            photoUpdatedAt: string | null;
             /**
              * Role
              * @enum {string}
@@ -867,34 +894,7 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "suspended";
-            /** Firstname */
-            firstName: string;
-            /** Lastname */
-            lastName: string;
-            /** Phone */
-            phone: string;
-            /** Email */
-            email: string | null;
-            /** Ispriority */
-            isPriority: boolean | null;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean | null;
             vehicle: components["schemas"]["VehicleDto"] | null;
-            /** Isavailable */
-            isAvailable: boolean | null;
-            /** Partnerid */
-            partnerId: number | null;
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
-            /** Isactivated */
-            isActivated: boolean;
-            /** Activationcodeexpiresat */
-            activationCodeExpiresAt: string | null;
-            /** Photoupdatedat */
-            photoUpdatedAt: string | null;
         };
         /** AccountListDto */
         AccountListDto: {
@@ -906,34 +906,34 @@ export interface components {
         /** AccountListQuery */
         AccountListQuery: {
             /**
-             * Search
+             * Cursor
              * @default null
              */
-            search: string | null;
+            cursor: string | null;
             /**
              * Role
              * @default null
              */
             role: ("rider" | "driver" | "partner" | "operator" | "admin") | null;
             /**
+             * Search
+             * @default null
+             */
+            search: string | null;
+            /**
              * Status
              * @default null
              */
             status: ("active" | "suspended") | null;
-            /**
-             * Cursor
-             * @default null
-             */
-            cursor: string | null;
         };
         /** ActivateBody */
         ActivateBody: {
-            /** Phone */
-            phone: string;
             /** Code */
             code: string;
             /** Password */
             password: string;
+            /** Phone */
+            phone: string;
         };
         /** ActivationCodeDto */
         ActivationCodeDto: {
@@ -950,31 +950,31 @@ export interface components {
          * @description The answers to the 7 questions. Every question may be skipped: null or [].
          */
         AnswersDto: {
-            /**
-             * Situation
-             * @default null
-             */
-            situation: ("sans_emploi" | "petits_boulots" | "en_emploi" | "en_formation" | "reprise") | null;
-            /**
-             * Project
-             * @default null
-             */
-            project: ("travail_vite" | "formation" | "creer" | "ne_sait_pas") | null;
-            /** Experiences */
-            experiences?: ("agriculture" | "peche" | "artisanat" | "garde_enfants" | "aide_personne" | "menage" | "batiment" | "cuisine" | "vente" | "benevolat" | "aucune")[];
+            /** Availability */
+            availability?: ("matin" | "apres_midi" | "soir" | "nuit" | "week_end")[];
+            /** Digitalequipment */
+            digitalEquipment?: ("smartphone" | "ordinateur" | "internet_maison" | "email" | "rien")[];
             /**
              * Experiencetext
              * @default null
              */
             experienceText: string | null;
-            /** Availability */
-            availability?: ("matin" | "apres_midi" | "soir" | "nuit" | "week_end")[];
-            /** Needs */
-            needs?: ("trajet" | "vehicule_adapte" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "aucun")[];
+            /** Experiences */
+            experiences?: ("agriculture" | "peche" | "artisanat" | "garde_enfants" | "aide_personne" | "menage" | "batiment" | "cuisine" | "vente" | "benevolat" | "aucune")[];
             /** Languages */
             languages?: ("fr" | "gcr" | "ht" | "pt" | "es" | "en" | "nenge" | "autre")[];
-            /** Digitalequipment */
-            digitalEquipment?: ("smartphone" | "ordinateur" | "internet_maison" | "email" | "rien")[];
+            /** Needs */
+            needs?: ("trajet" | "vehicule_adapte" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "aucun")[];
+            /**
+             * Project
+             * @default null
+             */
+            project: ("travail_vite" | "formation" | "creer" | "ne_sait_pas") | null;
+            /**
+             * Situation
+             * @default null
+             */
+            situation: ("sans_emploi" | "petits_boulots" | "en_emploi" | "en_formation" | "reprise") | null;
         };
         /** AvailabilityBody */
         AvailabilityBody: {
@@ -996,13 +996,13 @@ export interface components {
              * Format: uuid
              */
             clientRequestId: string;
+            dropoff: components["schemas"]["StopBody"];
+            pickup: components["schemas"]["StopBody"];
             /**
              * Purpose
              * @enum {string}
              */
             purpose: "employment" | "training" | "health" | "administrative" | "other";
-            pickup: components["schemas"]["StopBody"];
-            dropoff: components["schemas"]["StopBody"];
             /**
              * Scheduledat
              * @default null
@@ -1028,18 +1028,18 @@ export interface components {
         };
         /** ConfirmRegistrationBody */
         ConfirmRegistrationBody: {
-            /** Phone */
-            phone: string;
             /** Code */
             code: string;
+            /** Phone */
+            phone: string;
         };
         /** CreateAccountBody */
         CreateAccountBody: {
             /**
-             * Role
-             * @enum {string}
+             * Email
+             * @default null
              */
-            role: "driver" | "operator" | "admin";
+            email: string | null;
             /** Firstname */
             firstName: string;
             /** Lastname */
@@ -1047,10 +1047,10 @@ export interface components {
             /** Phone */
             phone: string;
             /**
-             * Email
-             * @default null
+             * Role
+             * @enum {string}
              */
-            email: string | null;
+            role: "driver" | "operator" | "admin";
             /** @default null */
             vehicle: components["schemas"]["VehicleBody"] | null;
         };
@@ -1061,13 +1061,13 @@ export interface components {
         };
         /** DatabaseStateDto */
         DatabaseStateDto: {
-            /** Reachable */
-            reachable: boolean;
             /**
              * Dialect
              * @default null
              */
             dialect: string | null;
+            /** Reachable */
+            reachable: boolean;
         };
         /** DayEarningsDto */
         DayEarningsDto: {
@@ -1083,12 +1083,12 @@ export interface components {
         };
         /** EarningsDto */
         EarningsDto: {
-            /** Totalcents */
-            totalCents: number;
-            /** Ridecount */
-            rideCount: number;
             /** Days */
             days: components["schemas"]["DayEarningsDto"][];
+            /** Ridecount */
+            rideCount: number;
+            /** Totalcents */
+            totalCents: number;
         };
         /**
          * EarningsQuery
@@ -1112,18 +1112,18 @@ export interface components {
          *     the documentation then lists all its errors, and so do the front types.
          */
         ErrorDto: {
-            /** Error */
-            error: string;
             /**
              * Detail
              * @default null
              */
             detail: unknown;
+            /** Error */
+            error: string;
         };
         /** EstimateBody */
         EstimateBody: {
-            pickup: components["schemas"]["StopBody"];
             dropoff: components["schemas"]["StopBody"];
+            pickup: components["schemas"]["StopBody"];
         };
         /** EstimateDto */
         EstimateDto: {
@@ -1131,10 +1131,10 @@ export interface components {
             distanceKm: number;
             /** Pricecents */
             priceCents: number;
-            /** Voucheramountcents */
-            voucherAmountCents: number;
             /** Rideramountcents */
             riderAmountCents: number;
+            /** Voucheramountcents */
+            voucherAmountCents: number;
         };
         /**
          * GuideSourceDto
@@ -1148,35 +1148,35 @@ export interface components {
         };
         /** HealthDto */
         HealthDto: {
+            database: components["schemas"]["DatabaseStateDto"];
             /**
              * Status
              * @enum {string}
              */
             status: "ok" | "degraded";
-            database: components["schemas"]["DatabaseStateDto"];
         };
         /** HelpServiceDto */
         HelpServiceDto: {
-            /** Id */
-            id: number;
-            /** Name */
-            name: string;
             /**
              * Category
              * @enum {string}
              */
             category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
+            /** Communename */
+            communeName: string;
             /** Description */
             description: string;
             /** Hours */
             hours: string;
-            place: components["schemas"]["StopDto"];
-            /** Communename */
-            communeName: string;
+            /** Id */
+            id: number;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
             /** Phone */
             phone: string | null;
-            /** Wheelchairaccessible */
-            wheelchairAccessible: boolean;
+            place: components["schemas"]["StopDto"];
             /** Spokenlanguages */
             spokenLanguages: ("fr" | "gcr" | "ht" | "pt-BR" | "en")[];
             /**
@@ -1184,8 +1184,8 @@ export interface components {
              * Format: date
              */
             updatedOn: string;
-            /** Language */
-            language: string;
+            /** Wheelchairaccessible */
+            wheelchairAccessible: boolean;
         };
         /** HelpServiceListDto */
         HelpServiceListDto: {
@@ -1194,40 +1194,40 @@ export interface components {
         };
         /** JobOfferDto */
         JobOfferDto: {
-            /** Id */
-            id: number;
-            /** Title */
-            title: string;
-            /** Employer */
-            employer: string;
-            /** Description */
-            description: string;
+            /** Beginnerwelcome */
+            beginnerWelcome: boolean;
+            /** Communename */
+            communeName: string;
             /**
              * Contracttype
              * @enum {string}
              */
             contractType: "permanent" | "fixed_term" | "temp" | "apprenticeship" | "seasonal";
-            /**
-             * Schedule
-             * @enum {string}
-             */
-            schedule: "day" | "shifted" | "night";
-            /** Parttime */
-            partTime: boolean;
-            /** Beginnerwelcome */
-            beginnerWelcome: boolean;
+            /** Description */
+            description: string;
+            /** Employer */
+            employer: string;
+            /** Id */
+            id: number;
+            /** Language */
+            language: string;
             /** Nodiplomarequired */
             noDiplomaRequired: boolean;
+            /** Parttime */
+            partTime: boolean;
             place: components["schemas"]["StopDto"];
-            /** Communename */
-            communeName: string;
             /**
              * Publishedat
              * Format: date-time
              */
             publishedAt: string;
-            /** Language */
-            language: string;
+            /**
+             * Schedule
+             * @enum {string}
+             */
+            schedule: "day" | "shifted" | "night";
+            /** Title */
+            title: string;
         };
         /** JobOfferListDto */
         JobOfferListDto: {
@@ -1243,16 +1243,16 @@ export interface components {
         };
         /** LoginBody */
         LoginBody: {
-            /** Phone */
-            phone: string;
             /** Password */
             password: string;
+            /** Phone */
+            phone: string;
         };
         /** OfferDto */
         OfferDto: {
-            ride: components["schemas"]["RideDto"];
             /** Distancetopickupkm */
             distanceToPickupKm: number | null;
+            ride: components["schemas"]["RideDto"];
         };
         /** OfferListDto */
         OfferListDto: {
@@ -1292,14 +1292,14 @@ export interface components {
         };
         /** PlaceDto */
         PlaceDto: {
+            /** Communeid */
+            communeId: number;
             /** Label */
             label: string;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
-            /** Communeid */
-            communeId: number;
             /** Token */
             token: string;
         };
@@ -1310,16 +1310,17 @@ export interface components {
         };
         /** PlaceQuery */
         PlaceQuery: {
-            /** Search */
-            search: string;
             /** Communeid */
             communeId: number;
+            /** Search */
+            search: string;
         };
         /**
          * PlanDto
          * @description The rider's current plan, with the answers it comes from ("Modifier mes réponses").
          */
         PlanDto: {
+            answers: components["schemas"]["AnswersDto"];
             /**
              * Createdat
              * Format: date-time
@@ -1327,7 +1328,6 @@ export interface components {
             createdAt: string;
             /** Steps */
             steps: components["schemas"]["PlanStepDto"][];
-            answers: components["schemas"]["AnswersDto"];
         };
         /**
          * PlanPreviewDto
@@ -1339,8 +1339,6 @@ export interface components {
         };
         /** PlanStepDto */
         PlanStepDto: {
-            /** Position */
-            position: number;
             /**
              * Code
              * @enum {string}
@@ -1348,32 +1346,34 @@ export interface components {
             code: "offres" | "formation" | "creer" | "conseiller" | "trajet" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "francais_auto" | "numerique_auto" | "entretien";
             /** Doneat */
             doneAt: string | null;
+            /** Position */
+            position: number;
         };
         /** PracticalGuideDto */
         PracticalGuideDto: {
-            /** Id */
-            id: number;
             /**
              * Category
              * @enum {string}
              */
             category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
-            /** Title */
-            title: string;
+            /** Id */
+            id: number;
             /** Intro */
             intro: string;
+            /** Language */
+            language: string;
+            source: components["schemas"]["GuideSourceDto"] | null;
             /** Steps */
             steps: string[];
+            /** Title */
+            title: string;
             /** Tobring */
             toBring: string[];
-            source: components["schemas"]["GuideSourceDto"] | null;
             /**
              * Updatedon
              * Format: date
              */
             updatedOn: string;
-            /** Language */
-            language: string;
         };
         /** PracticalGuideListDto */
         PracticalGuideListDto: {
@@ -1382,18 +1382,16 @@ export interface components {
         };
         /** RateRideBody */
         RateRideBody: {
-            /** Score */
-            score: number;
             /**
              * Comment
              * @default null
              */
             comment: string | null;
+            /** Score */
+            score: number;
         };
         /** RatingDto */
         RatingDto: {
-            /** Score */
-            score: number;
             /** Comment */
             comment: string | null;
             /**
@@ -1401,27 +1399,29 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+            /** Score */
+            score: number;
         };
         /** RegisterBody */
         RegisterBody: {
-            /** Phone */
-            phone: string;
-            /** Firstname */
-            firstName: string;
-            /** Lastname */
-            lastName: string;
-            /** Password */
-            password: string;
             /**
              * Email
              * @default null
              */
             email: string | null;
+            /** Firstname */
+            firstName: string;
+            /** Lastname */
+            lastName: string;
             /**
              * Needsaccessiblevehicle
              * @default false
              */
             needsAccessibleVehicle: boolean;
+            /** Password */
+            password: string;
+            /** Phone */
+            phone: string;
         };
         /**
          * RegistrationCodeDto
@@ -1439,81 +1439,81 @@ export interface components {
          * @description The driver, for the rider and the staff. Phone only while the ride is under way.
          */
         RideDriverDto: {
-            /** Id */
-            id: number;
-            /** Firstname */
-            firstName: string;
-            /** Phone */
-            phone: string | null;
             /** Averagescore */
             averageScore: number | null;
-            vehicle: components["schemas"]["RideVehicleDto"];
+            /** Firstname */
+            firstName: string;
+            /** Id */
+            id: number;
+            /** Phone */
+            phone: string | null;
             /** Photoupdatedat */
             photoUpdatedAt: string | null;
+            vehicle: components["schemas"]["RideVehicleDto"];
         };
         /** RideDto */
         RideDto: {
-            /** Id */
-            id: number;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "awaiting_payment" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled" | "expired";
+            /** Acceptedat */
+            acceptedAt: string | null;
+            /** Cancelledat */
+            cancelledAt: string | null;
             /**
              * Channel
              * @enum {string}
              */
             channel: "app" | "phone";
-            /**
-             * Purpose
-             * @enum {string}
-             */
-            purpose: "employment" | "training" | "health" | "administrative" | "other";
-            pickup: components["schemas"]["StopDto"];
-            dropoff: components["schemas"]["StopDto"];
-            /** Scheduledat */
-            scheduledAt: string | null;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean;
-            /** Distancekm */
-            distanceKm: number;
-            /** Pricecents */
-            priceCents: number;
-            /** Voucheramountcents */
-            voucherAmountCents: number;
-            /** Rideramountcents */
-            riderAmountCents: number;
-            /**
-             * Paymentstatus
-             * @enum {string}
-             */
-            paymentStatus: "not_required" | "pending" | "paid" | "refunded";
-            rating: components["schemas"]["RatingDto"] | null;
-            driver: components["schemas"]["RideDriverDto"] | null;
-            rider: components["schemas"]["RideRiderDto"] | null;
+            /** Completedat */
+            completedAt: string | null;
             /**
              * Createdat
              * Format: date-time
              */
             createdAt: string;
-            /** Paidat */
-            paidAt: string | null;
+            /** Distancekm */
+            distanceKm: number;
+            driver: components["schemas"]["RideDriverDto"] | null;
+            dropoff: components["schemas"]["StopDto"];
+            /** Expiredat */
+            expiredAt: string | null;
             /**
              * Expiresat
              * Format: date-time
              */
             expiresAt: string;
-            /** Acceptedat */
-            acceptedAt: string | null;
+            /** Id */
+            id: number;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean;
+            /** Paidat */
+            paidAt: string | null;
+            /**
+             * Paymentstatus
+             * @enum {string}
+             */
+            paymentStatus: "not_required" | "pending" | "paid" | "refunded";
+            pickup: components["schemas"]["StopDto"];
+            /** Pricecents */
+            priceCents: number;
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            rating: components["schemas"]["RatingDto"] | null;
+            rider: components["schemas"]["RideRiderDto"] | null;
+            /** Rideramountcents */
+            riderAmountCents: number;
+            /** Scheduledat */
+            scheduledAt: string | null;
             /** Startedat */
             startedAt: string | null;
-            /** Completedat */
-            completedAt: string | null;
-            /** Cancelledat */
-            cancelledAt: string | null;
-            /** Expiredat */
-            expiredAt: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_payment" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled" | "expired";
+            /** Voucheramountcents */
+            voucherAmountCents: number;
         };
         /** RideListDto */
         RideListDto: {
@@ -1525,15 +1525,15 @@ export interface components {
         /** RideListQuery */
         RideListQuery: {
             /**
-             * When
-             * @enum {string}
-             */
-            when: "upcoming" | "past";
-            /**
              * Cursor
              * @default null
              */
             cursor: string | null;
+            /**
+             * When
+             * @enum {string}
+             */
+            when: "upcoming" | "past";
         };
         /**
          * RideRiderDto
@@ -1547,12 +1547,12 @@ export interface components {
         };
         /** RideVehicleDto */
         RideVehicleDto: {
-            /** Plate */
-            plate: string;
-            /** Model */
-            model: string;
             /** Isaccessible */
             isAccessible: boolean;
+            /** Model */
+            model: string;
+            /** Plate */
+            plate: string;
         };
         /** StepDoneBody */
         StepDoneBody: {
@@ -1566,12 +1566,12 @@ export interface components {
         StopBody: {
             /** Address */
             address: string;
+            /** Communeid */
+            communeId: number;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
-            /** Communeid */
-            communeId: number;
             /** Token */
             token: string;
         };
@@ -1579,12 +1579,12 @@ export interface components {
         StopDto: {
             /** Address */
             address: string;
+            /** Communeid */
+            communeId: number;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
-            /** Communeid */
-            communeId: number;
             /** Token */
             token: string;
         };
@@ -1594,15 +1594,15 @@ export interface components {
          */
         UpdateAccountBody: {
             /**
-             * Status
-             * @default null
-             */
-            status: ("active" | "suspended") | null;
-            /**
              * Ispriority
              * @default null
              */
             isPriority: boolean | null;
+            /**
+             * Status
+             * @default null
+             */
+            status: ("active" | "suspended") | null;
             /** @default null */
             vehicle: components["schemas"]["VehicleBody"] | null;
         };
@@ -1611,6 +1611,16 @@ export interface components {
          * @description Only the fields sent are changed. email: null removes the address.
          */
         UpdateProfileBody: {
+            /**
+             * Currentpassword
+             * @default null
+             */
+            currentPassword: string | null;
+            /**
+             * Email
+             * @default null
+             */
+            email: string | null;
             /**
              * Firstname
              * @default null
@@ -1622,20 +1632,10 @@ export interface components {
              */
             lastName: string | null;
             /**
-             * Email
-             * @default null
-             */
-            email: string | null;
-            /**
              * Needsaccessiblevehicle
              * @default null
              */
             needsAccessibleVehicle: boolean | null;
-            /**
-             * Currentpassword
-             * @default null
-             */
-            currentPassword: string | null;
             /**
              * Newpassword
              * @default null
@@ -1647,8 +1647,29 @@ export interface components {
          * @description The logged-in account. Fields of another role are null.
          */
         UserDto: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Email */
+            email: string | null;
+            /** Firstname */
+            firstName: string;
             /** Id */
             id: number;
+            /** Isavailable */
+            isAvailable: boolean | null;
+            /** Ispriority */
+            isPriority: boolean | null;
+            /** Lastname */
+            lastName: string;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean | null;
+            /** Partnerid */
+            partnerId: number | null;
+            /** Phone */
+            phone: string;
             /**
              * Role
              * @enum {string}
@@ -1659,50 +1680,29 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "suspended";
-            /** Firstname */
-            firstName: string;
-            /** Lastname */
-            lastName: string;
-            /** Phone */
-            phone: string;
-            /** Email */
-            email: string | null;
-            /** Ispriority */
-            isPriority: boolean | null;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean | null;
             vehicle: components["schemas"]["VehicleDto"] | null;
-            /** Isavailable */
-            isAvailable: boolean | null;
-            /** Partnerid */
-            partnerId: number | null;
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
         };
         /** VehicleBody */
         VehicleBody: {
-            /** Plate */
-            plate: string;
-            /** Model */
-            model: string;
-            /** Seats */
-            seats: number;
             /** Isaccessible */
             isAccessible: boolean;
+            /** Model */
+            model: string;
+            /** Plate */
+            plate: string;
+            /** Seats */
+            seats: number;
         };
         /** VehicleDto */
         VehicleDto: {
-            /** Plate */
-            plate: string;
-            /** Model */
-            model: string;
-            /** Seats */
-            seats: number;
             /** Isaccessible */
             isAccessible: boolean;
+            /** Model */
+            model: string;
+            /** Plate */
+            plate: string;
+            /** Seats */
+            seats: number;
         };
     };
     responses: never;
