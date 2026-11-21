@@ -5,6 +5,7 @@ import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { HomeIllustration } from '../components/home/HomeIllustration';
 import { NeedCards } from '../components/home/NeedCards';
+import { PlanLink } from '../components/orientation/PlanLink';
 import { NextRide } from '../components/rides/NextRide';
 import { ArrowRightIcon, CalendarIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
@@ -41,6 +42,7 @@ export function HomePage() {
             <NeedCards />
             {/* Below the three needs, smaller: they are not needs but the rider's own pages. */}
             <ul className="quick-links">
+              <PlanLink />
               <li>
                 <Link to={RIDES_PATH} className="link-action">
                   <CalendarIcon className="button-icon" />

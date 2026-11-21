@@ -93,6 +93,11 @@ export function draftForHelpService(helpServiceId: number, place: Stop, purpose:
   return { ...EMPTY_DRAFT, dropoff: place, purpose, helpServiceId };
 }
 
+/** "Réserver un trajet" from the action plan: only the purpose is known. */
+export function draftForPurpose(purpose: Purpose): BookingDraft {
+  return { ...EMPTY_DRAFT, purpose };
+}
+
 /** Whether the drop-off step is skipped: it was given by a job offer or a help service. */
 export function skipsDropoff(draft: BookingDraft): boolean {
   return (draft.jobOfferId !== null || draft.helpServiceId !== null) && draft.dropoff !== null;

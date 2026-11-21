@@ -372,6 +372,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/help-requests/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * « Être rappelé » : someone of the structure calls this number back.
+         * @description Open to visitors; a logged-in caller's request is linked to the account.
+         *     401 only if a session cookie is sent but no longer valid. 429 beyond
+         *     5 requests in an hour from one network address.
+         */
+        post: operations["requestCallback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/help-services": {
         parameters: {
             query?: never;
@@ -446,6 +468,68 @@ export interface paths {
         get: operations["getJob"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The rider's current plan and the answers it comes from. 404 before any questionnaire. */
+        get: operations["currentPlan"];
+        put?: never;
+        /**
+         * The action plan for these answers, for anyone, without an account. Keeps nothing.
+         * @description 400 if an answer is unknown, or if "nothing of all that" is ticked with
+         *     another answer.
+         */
+        post: operations["previewPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/plan/steps/{position}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * « C'est fait » on a step of the current plan, or taken back. Sent twice, same result.
+         * @description 404 if the rider has no plan, or no step at this position.
+         */
+        put: operations["markPlanStep"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/questionnaires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keeps the rider's answers and their plan, which becomes the current plan.
+         * @description Answering again keeps the earlier fillings; the most recent one counts.
+         */
+        post: operations["saveQuestionnaire"];
         delete?: never;
         options?: never;
         head?: never;
@@ -861,6 +945,37 @@ export interface components {
              */
             expiresAt: string;
         };
+        /**
+         * AnswersDto
+         * @description The answers to the 7 questions. Every question may be skipped: null or [].
+         */
+        AnswersDto: {
+            /** Availability */
+            availability?: ("matin" | "apres_midi" | "soir" | "nuit" | "week_end")[];
+            /** Digitalequipment */
+            digitalEquipment?: ("smartphone" | "ordinateur" | "internet_maison" | "email" | "rien")[];
+            /**
+             * Experiencetext
+             * @default null
+             */
+            experienceText: string | null;
+            /** Experiences */
+            experiences?: ("agriculture" | "peche" | "artisanat" | "garde_enfants" | "aide_personne" | "menage" | "batiment" | "cuisine" | "vente" | "benevolat" | "aucune")[];
+            /** Languages */
+            languages?: ("fr" | "gcr" | "ht" | "pt" | "es" | "en" | "nenge" | "autre")[];
+            /** Needs */
+            needs?: ("trajet" | "vehicule_adapte" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "aucun")[];
+            /**
+             * Project
+             * @default null
+             */
+            project: ("travail_vite" | "formation" | "creer" | "ne_sait_pas") | null;
+            /**
+             * Situation
+             * @default null
+             */
+            situation: ("sans_emploi" | "petits_boulots" | "en_emploi" | "en_formation" | "reprise") | null;
+        };
         /** AvailabilityBody */
         AvailabilityBody: {
             /** Isavailable */
@@ -893,6 +1008,11 @@ export interface components {
              * @default null
              */
             scheduledAt: string | null;
+        };
+        /** CallbackBody */
+        CallbackBody: {
+            /** Phone */
+            phone: string;
         };
         /** CommuneDto */
         CommuneDto: {
@@ -1195,6 +1315,40 @@ export interface components {
             /** Search */
             search: string;
         };
+        /**
+         * PlanDto
+         * @description The rider's current plan, with the answers it comes from ("Modifier mes réponses").
+         */
+        PlanDto: {
+            answers: components["schemas"]["AnswersDto"];
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Steps */
+            steps: components["schemas"]["PlanStepDto"][];
+        };
+        /**
+         * PlanPreviewDto
+         * @description A plan computed without an account: nothing is kept.
+         */
+        PlanPreviewDto: {
+            /** Steps */
+            steps: components["schemas"]["PlanStepDto"][];
+        };
+        /** PlanStepDto */
+        PlanStepDto: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "offres" | "formation" | "creer" | "conseiller" | "trajet" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "francais_auto" | "numerique_auto" | "entretien";
+            /** Doneat */
+            doneAt: string | null;
+            /** Position */
+            position: number;
+        };
         /** PracticalGuideDto */
         PracticalGuideDto: {
             /**
@@ -1399,6 +1553,11 @@ export interface components {
             model: string;
             /** Plate */
             plate: string;
+        };
+        /** StepDoneBody */
+        StepDoneBody: {
+            /** Done */
+            done: boolean;
         };
         /**
          * StopBody
@@ -2635,6 +2794,55 @@ export interface operations {
             };
         };
     };
+    requestCallback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CallbackBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     listHelpServices: {
         parameters: {
             query?: never;
@@ -2756,6 +2964,206 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    currentPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    previewPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AnswersDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanPreviewDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    markPlanStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                position: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StepDoneBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    saveQuestionnaire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AnswersDto"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

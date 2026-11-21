@@ -11,6 +11,7 @@ import { AdminNewAccountPage } from '../pages/AdminNewAccountPage';
 import { BookingConfirmPage } from '../pages/BookingConfirmPage';
 import { BookingPlacePage } from '../pages/BookingPlacePage';
 import { BookingTimePage } from '../pages/BookingTimePage';
+import { CallbackPage } from '../pages/CallbackPage';
 import { DiagnosticPage } from '../pages/DiagnosticPage';
 import { DriverEarningsPage } from '../pages/DriverEarningsPage';
 import { DriverRidePage } from '../pages/DriverRidePage';
@@ -27,6 +28,10 @@ import { JobsPage } from '../pages/JobsPage';
 import { TrainingsPage } from '../pages/TrainingsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { OrientationIntroPage } from '../pages/OrientationIntroPage';
+import { OrientationKeepPage } from '../pages/OrientationKeepPage';
+import { OrientationPlanPage } from '../pages/OrientationPlanPage';
+import { OrientationQuestionPage } from '../pages/OrientationQuestionPage';
 import { PasswordResetPage } from '../pages/PasswordResetPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
@@ -45,6 +50,7 @@ export function AppRoutes() {
         <Route path="a-propos" element={<AboutPage />} />
         <Route path="aide" element={<HelpPage />} />
         <Route path="aide/questions" element={<FaqPage />} />
+        <Route path="aide/rappel" element={<CallbackPage />} />
         <Route path="aide/services" element={<HelpServicesPage />} />
         <Route path="aide/services/:id" element={<HelpServicePage />} />
         <Route path="aide/fiches" element={<PracticalGuidesPage />} />
@@ -52,6 +58,11 @@ export function AppRoutes() {
         <Route path="emplois" element={<JobsPage />} />
         <Route path="emplois/:id" element={<JobPage />} />
         <Route path="formations" element={<TrainingsPage />} />
+        {/* Public: anyone may answer; only a rider's plan is kept. */}
+        <Route path="orientation" element={<OrientationIntroPage />} />
+        <Route path="orientation/questions/:number" element={<OrientationQuestionPage />} />
+        <Route path="orientation/plan" element={<OrientationPlanPage />} />
+        <Route path="orientation/garder" element={<OrientationKeepPage />} />
         <Route element={<VisitorRoutes />}>
           <Route path="connexion" element={<LoginPage />} />
           <Route path="inscription" element={<RegisterPage />} />

@@ -133,6 +133,24 @@ def _account() -> SessionAccount:
     return _check_account(g.user_id, get_jwt().get(_SESSION_VERSION_CLAIM))
 
 
+def optional_user_id() -> int | None:
+    """For a route open to visitors that also links what it records to the
+    caller's account: the id of a logged-in caller, None for a visitor.
+
+    A token that is present but expired or no longer valid still answers 401:
+    the front-end renews the session and sends again, rather than recording
+    the request without the account.
+    """
+    verify_jwt_in_request(optional=True)
+    identity = get_jwt_identity()
+    if identity is None:
+        return None
+    g.user_id = int(identity)
+    account = _account()
+    g.user_role = account.role
+    return account.id
+
+
 def current_user_id() -> int:
     """Id of the caller, inside a route protected by @require_login."""
     return g.user_id

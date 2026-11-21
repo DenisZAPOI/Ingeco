@@ -1,5 +1,6 @@
 // Account access, for a visitor.
 export const LOGIN_PATH = '/connexion';
+export const REGISTER_PATH = '/inscription';
 
 /** The page a visitor was sent to log in from. Only a path of this app: a
  *  value from elsewhere ("//site.example") never leads out of it. */
@@ -86,3 +87,16 @@ export const TRAININGS_PATH = '/formations';
 export function jobPath(id: number): string {
   return `/emplois/${id}`;
 }
+
+// Orientation (module M1), public: anyone may answer; only a rider's plan is kept.
+export const ORIENTATION_PATH = '/orientation';
+export const ORIENTATION_PLAN_PATH = '/orientation/plan';
+export const ORIENTATION_KEEP_PATH = '/orientation/garder';
+
+/** Question 1 to 7 of the questionnaire: one path each, so the phone's Back button goes to the previous one. */
+export function orientationQuestionPath(number: number): string {
+  return `/orientation/questions/${number}`;
+}
+
+/** « Être rappelé » (cahier des charges §6), public. */
+export const CALLBACK_PATH = '/aide/rappel';
