@@ -512,19 +512,34 @@ Un bon (`GET /vouchers/7`), vu par le référent :
 Par Socket.IO. **Rien de plus à stocker** : ces événements rediffusent des données déjà
 enregistrées par les routes ci-dessus.
 
-Deux sortes de salons : un par course (`ride:{id}`, suivi par l'usager et le chauffeur de la
-course) et un par chauffeur (`driver:{id}`, pour lui proposer des courses).
+Révisé le 21/11/2026 ([ADR 014](adr/014-socket-io.md)) : les événements sont des **signaux**.
+Ils disent ce qui a changé, pas son contenu ; l'écran relit par HTTP, ce qui garde à un seul
+endroit ce que chacun peut voir. Les événements `ride:offer` et `ride:offer-closed` de la
+version 2 sont remplacés par `offers:changed`.
 
-| Événement | Salon | Contenu |
+La connexion porte le cookie de session, comme une requête HTTP : sans session valide, elle est
+refusée. Deux sortes de salons, rejoints à la demande :
+
+| Message du client | Salon rejoint | Accepté pour |
 |---|---|---|
-| `ride:offer` | `driver:{id}` de chaque chauffeur en ligne proche | Une nouvelle course immédiate à prendre (quand elle passe en `pending` : après le paiement, à la réservation si rien à payer, ou après un désistement) |
-| `ride:offer-closed` | Les mêmes | La course n'est plus à prendre (acceptée, annulée ou expirée) |
-| `ride:updated` | `ride:{id}` | La course complète, après chaque changement d'état |
+| `ride:follow { rideId }` | `ride:{id}` | Qui peut lire la course (`GET /rides/{id}`) : son usager, son chauffeur, le personnel, un chauffeur à qui elle est proposée |
+| `offers:follow` | `drivers` | Un chauffeur |
+
+Chaque abonnement répond `{ accepted }` (booléen). `ride:unfollow { rideId }` et
+`offers:unfollow` quittent le salon. Le compte est relu à chaque abonnement : un compte suspendu
+ou déconnecté ailleurs ne suit plus rien.
+
+| Événement | Salon | Contenu | Quand |
+|---|---|---|---|
+| `ride:updated` | `ride:{id}` | `{ rideId, status }` | Après chaque changement d'état de la course |
+| `offers:changed` | `drivers` | Rien | Une course entre dans l'attente d'un chauffeur (`pending` : après le paiement, à la réservation si rien à payer, après un désistement) ou en sort (acceptée, annulée, expirée) |
+
+Les événements partent après la validation de la transaction, jamais avant.
 
 Pas d'événement de position du chauffeur : le suivi GPS en temps réel est hors périmètre du
 cahier des charges (§5, décision du 03/11/2026 dans [decisions.md](decisions.md)).
 
-Un événement perdu n'est pas renvoyé. À chaque reconnexion, le front relit l'état par les routes
+Un événement perdu n'est pas renvoyé. À chaque (re)connexion, le front relit l'état par les routes
 HTTP (`GET /rides/{id}`, `GET /drivers/me/ride-offers`) : le temps réel accélère l'affichage, il
 n'est jamais la seule source.
 

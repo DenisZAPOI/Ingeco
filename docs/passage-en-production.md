@@ -39,7 +39,7 @@ Territoires) avant la remise.
 | SMS (codes, alertes) | **Simulés** : une ligne dans les journaux, rien n'est envoyé. Codes fixes en démo (`123456`, `12345678`) | **À brancher** sur un vrai prestataire (4.4) |
 | Paiement | **Simulé** : un bouton « payer » sans carte | Selon le modèle choisi (2 et 4.5) |
 | Adresses et distances | OpenRouteService si une clé est fournie, sinon une douzaine de lieux fictifs | Clé au nom de la structure, quotas à vérifier (4.6) |
-| Temps réel | Absent : boutons « Actualiser » | Prévu (Socket.IO), à finir et sécuriser (4.7) |
+| Temps réel | Statut du trajet et offres des chauffeurs en direct (Socket.IO), connexion authentifiée ; « Actualiser » en secours | Un seul processus d'API ; au-delà, un serveur de messages (4.7) |
 | Langues | Français, anglais, portugais du Brésil complets ; deux créoles **vides** (s'affichent en français) | Faire écrire et relire les créoles (5.5) |
 | Installation | Une commande (`docker compose up`), **en mode démo uniquement** | Configuration de production à écrire (4.2) |
 | Hébergement | Aucun : la démo tourne sur un ordinateur | À choisir (4.2) |
@@ -199,9 +199,12 @@ ou installer son propre serveur OpenRouteService (gratuit mais demande un serveu
 
 ### 4.7 Le temps réel — moyen, utile surtout au chemin B
 
-Prévu avec Socket.IO ([ADR 014](adr/014-socket-io.md)) : l'écran du trajet se met à jour seul.
-**Avant de l'activer**, vérifier l'identité à la connexion (point F20 de
-l'[audit de sécurité](audit-securite-2026-11-02.md)).
+En place avec Socket.IO ([ADR 014](adr/014-socket-io.md)) : le statut du trajet et la liste des
+offres des chauffeurs se mettent à jour seuls. La connexion est authentifiée par le cookie de
+session et chaque abonnement vérifie les droits (point F20 de
+l'[audit de sécurité](audit-securite-2026-11-02.md), partie Socket.IO). Reste, pour plusieurs
+processus d'API : un serveur de messages (Redis) entre eux, comme pour les verrous en mémoire
+([ADR 007](adr/007-etat-en-memoire.md)).
 
 ### 4.8 Sécurité — moyen, obligatoire
 
@@ -211,8 +214,8 @@ faire avant une mise en ligne :
 - **F3** : pouvoir couper toutes les sessions d'un compte (la colonne `version_session` existe en
   base, migration 001 : la brancher).
 - **F15** : fait, verrous en base ([ADR 022](adr/022-verrous-en-base.md)).
-- **F20** : politique de sécurité du contenu (CSP) pour l'interface, Socket.IO authentifié,
-  échappement des recherches `LIKE`.
+- **F20** : politique de sécurité du contenu (CSP) pour l'interface, échappement des
+  recherches `LIKE` (Socket.IO authentifié : fait le 21/11/2026).
 - Un nouvel audit, par quelqu'un d'extérieur, avant l'ouverture au public.
 
 ### 4.9 Sauvegardes et supervision — petit, obligatoire

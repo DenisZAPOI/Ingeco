@@ -94,7 +94,7 @@ def create_app(config: type[Config] = Config) -> Flask:
     auth_service.configure(demo_codes=config.LOAD_DEMO_DATA)
 
     # Registers the real-time event handlers.
-    from . import sockets  # noqa: F401
+    from .sockets import handlers  # noqa: F401
 
     # Request logging first, so that requests refused later are logged too.
     request_logs.install(app)

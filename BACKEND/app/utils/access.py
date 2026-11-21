@@ -1,5 +1,5 @@
 """
-Session and access control, on the HTTP side.
+Session and access control, on the HTTP side and on the real-time channel.
 
 The JWTs live in HttpOnly cookies set by Flask-JWT-Extended. This module is
 the only one to handle them: controllers open and close a session with
@@ -12,6 +12,7 @@ protects nothing.
 import hmac
 import logging
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import wraps
 from typing import Protocol
 
@@ -27,6 +28,8 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
     verify_jwt_in_request,
 )
+from flask_jwt_extended.exceptions import JWTExtendedException
+from jwt.exceptions import PyJWTError
 
 from .errors import Forbidden, Unauthorized
 
@@ -149,6 +152,46 @@ def optional_user_id() -> int | None:
     account = _account()
     g.user_role = account.role
     return account.id
+
+
+@dataclass(frozen=True)
+class SocketCaller:
+    """Who opened a real-time connection, as written in their access token."""
+
+    user_id: int
+    session_version: int | None
+
+
+def socket_caller() -> SocketCaller | None:
+    """At the opening of a real-time connection: who sends the access cookie.
+
+    The same checks as @require_login (valid token, account still allowed).
+    None without a valid session: the connection is then refused.
+    """
+    try:
+        verify_jwt_in_request()
+    except (JWTExtendedException, PyJWTError) as error:
+        logger.info("Real-time connection refused", extra={"context": {"reason": type(error).__name__}})
+        return None
+    caller = SocketCaller(user_id=int(get_jwt_identity()), session_version=get_jwt().get(_SESSION_VERSION_CLAIM))
+    if socket_account(caller) is None:
+        return None
+    return caller
+
+
+def socket_account(caller: SocketCaller) -> SessionAccount | None:
+    """The account of a connected caller, read again now. None if it may no longer use the app.
+
+    A connection outlives the 15-minute token: like @require_login at every
+    request, the account is checked again at every subscription, so a
+    suspension or a new password stops it at once.
+    """
+    if _check_account is None:
+        raise RuntimeError("access.configure(...) must be called at startup.")
+    try:
+        return _check_account(caller.user_id, caller.session_version)
+    except Unauthorized:
+        return None
 
 
 def current_user_id() -> int:

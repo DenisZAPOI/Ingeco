@@ -6,6 +6,7 @@ import { DriverRideActions } from '../components/driver/DriverRideActions';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
+import { useRideUpdates } from '../hooks/useRealtime';
 import { useRide } from '../hooks/useRides';
 import { t } from '../i18n';
 import { driverStatusHeadline } from '../lib/driver';
@@ -18,6 +19,8 @@ export function DriverRidePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const ride = useRide(id, rideFromState(location.state, id));
+  // A cancellation by the rider, or the offer taken by another driver, shows at once.
+  useRideUpdates(id, ride.reloadQuietly);
 
   // The new state also replaces the one kept in the history (see RidePage).
   function update(changed: Ride) {
@@ -69,7 +72,7 @@ function DriverRide({ ride, onRefresh, onChange }: DriverRideProps) {
         price={{ totalCents: ride.priceCents, riderCents: ride.priceCents }}
       />
       {!isOver(ride) && (
-        // No real time yet (step 4): the rider may have cancelled meanwhile.
+        // The status updates by itself; kept in case the real-time connection is blocked.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
           {t('driver.refresh')}
         </button>

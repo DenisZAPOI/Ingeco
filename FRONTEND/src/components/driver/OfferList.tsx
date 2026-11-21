@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import type { Offer, OfferType } from '../../api/drivers';
 import { useOffers } from '../../hooks/useDriver';
+import { useOfferUpdates } from '../../hooks/useRealtime';
 import { t } from '../../i18n';
 import { formatDateTime, formatDistance, formatPrice } from '../../lib/format';
 import { driverRidePath } from '../../lib/paths';
@@ -12,9 +13,11 @@ function emptyMessage(type: OfferType): string {
   return type === 'immediate' ? t('driver.noOfferNow') : t('driver.noOfferLater');
 }
 
-/** Rides the driver could take. No real time yet (step 4): "Actualiser" reads them again. */
+/** Rides the driver could take, updated by themselves (real time);
+ *  "Actualiser" stays in case the real-time connection is blocked. */
 export function OfferList({ type }: { type: OfferType }) {
   const offers = useOffers(type);
+  useOfferUpdates(offers.reloadQuietly);
   const items = offers.data?.items ?? [];
 
   return (

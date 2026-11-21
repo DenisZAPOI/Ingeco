@@ -16,6 +16,7 @@ import logging
 
 from ..repository import ride_repository, sms_repository
 from ..repository.ride_repository import Step
+from ..sockets import broadcast
 from ..utils import database
 from . import ride_rules
 from .ride_rules import AWAITING_PAYMENT, EXPIRED, PAYMENT_PAID, PAYMENT_REFUNDED, PENDING
@@ -43,6 +44,7 @@ def expire_due_rides() -> int:
             if not ride_repository.update_if_status(session, ride, previous_status, steps):
                 # Accepted, paid or cancelled in between: it is no longer due.
                 continue
+            broadcast.ride_changed(session, ride, previous_status)
             expired += 1
             no_driver = previous_status == PENDING
             logger.info(

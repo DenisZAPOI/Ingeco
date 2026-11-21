@@ -8,6 +8,7 @@ import { DriverCard } from '../components/rides/DriverCard';
 import { RatingForm, RatingSummary } from '../components/rides/RatingForm';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
+import { useRideUpdates } from '../hooks/useRealtime';
 import { useRide } from '../hooks/useRides';
 import { t } from '../i18n';
 import { formatPrice } from '../lib/format';
@@ -16,12 +17,13 @@ import { canCancel, canRate, canStillPay, expiryReason, isOver, rideDate, rideFr
 import { draftFromRide, saveBookingDraft } from '../lib/bookingDraft';
 
 /** Where the trip stands, what can still be done (pay, cancel, rate).
- *  The map and the driver come with step 4 (real time). */
+ *  The status updates by itself (real time), without a map: no GPS tracking. */
 export function RidePage() {
   const id = Number(useParams().id);
   const location = useLocation();
   const navigate = useNavigate();
   const ride = useRide(id, rideFromState(location.state, id));
+  useRideUpdates(id, ride.reloadQuietly);
 
   // The new state also replaces the one kept in the history: coming back
   // here later shows the trip as it is now, not as it was.
@@ -78,7 +80,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
       )}
       {ride.driver && UNDER_WAY.includes(ride.status) && <DriverCard driver={ride.driver} photoUrl={driverPhotoUrl(ride)} />}
       {UNDER_WAY.includes(ride.status) && (
-        // No real time yet (step 4): the driver may have started meanwhile.
+        // The status updates by itself; kept in case the real-time connection is blocked.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>
           {t('ride.refresh')}
         </button>
