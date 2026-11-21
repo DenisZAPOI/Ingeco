@@ -415,6 +415,20 @@ Le paiement par lien se fait sur deux routes publiques, protégées par le jeton
 | `GET /admin/rides` | `admin` | Toutes les courses, filtrables par statut, date, commune, état du paiement | L : courses |
 | `GET /admin/stats` | `admin` | Statistiques sur une période | L : agrégats, voir [6.4](#64-statistiques-et-suivi-de-consommation) |
 
+### 4.6 bis Orientation et « Être rappelé »
+
+*Ajoutées le 21/11/2026* (module M1, cahier des charges §7.1 ; tables de la migration 017 et `demande_aide` de la migration 027). Les réponses sont des **codes** (`sans_emploi`, `trajet`…), ceux de la migration 017 : la base les garde tels quels, l'interface affiche leurs libellés dans la langue choisie. Chaque question peut être passée (`null` ou `[]`) ; « Rien de tout ça » ne se coche jamais avec une autre réponse (`400`).
+
+| Route | Rôle | Ce qu'elle fait | En base |
+|---|---|---|---|
+| `POST /orientation/plan` | tous, sans compte | Calcule le plan d'action (3 à 5 codes d'étape) pour ces réponses. Ne garde rien (minimisation, §2) | – |
+| `POST /orientation/questionnaires` | `rider` | Garde les réponses et leur plan, qui devient le plan courant (`201`). Les remplissages précédents restent ; le plus récent compte | E : `questionnaire`, `reponse_questionnaire` (texte libre des expériences en `experiences`/`autre`), `plan_action`, `etape_plan` |
+| `GET /orientation/plan` | `rider` | Le plan courant, avec les réponses dont il vient (« Modifier mes réponses »). `404` avant tout questionnaire | L : le dernier questionnaire (`idx_questionnaire_usager`) et son plan |
+| `PUT /orientation/plan/steps/{ordre}` | `rider` | « C'est fait » : `{ done }`. Envoyé deux fois, même résultat ; la première date est gardée. `404` sans plan ou sans étape à cet ordre | E : `etape_plan.faite_le` |
+| `POST /help-requests/callback` | tous | « Être rappelé » : `{ phone }`, `204`. Liée au compte si la personne est connectée. `429` au-delà de 5 demandes en une heure par adresse réseau | E : `demande_aide` (type `rappel`) |
+
+Une étape ne désigne jamais une offre ni un service précis (`id_offre` et `id_service` restent `NULL`) : elle mène à une liste que la personne filtre elle-même. Règles du plan : `BACKEND/app/services/orientation_rules.py`, reprises de la maquette validée ; un plan qui n'aurait que 2 étapes (questionnaire passé) reçoit « Regarder les offres » en troisième.
+
 ### 4.7 Exemples
 
 Une réservation (`POST /rides`). Le prix n'est pas envoyé : l'API le calcule.

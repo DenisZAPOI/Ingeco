@@ -372,6 +372,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/help-requests/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * « Être rappelé » : someone of the structure calls this number back.
+         * @description Open to visitors; a logged-in caller's request is linked to the account.
+         *     401 only if a session cookie is sent but no longer valid. 429 beyond
+         *     5 requests in an hour from one network address.
+         */
+        post: operations["requestCallback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/help-services": {
         parameters: {
             query?: never;
@@ -446,6 +468,68 @@ export interface paths {
         get: operations["getJob"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The rider's current plan and the answers it comes from. 404 before any questionnaire. */
+        get: operations["currentPlan"];
+        put?: never;
+        /**
+         * The action plan for these answers, for anyone, without an account. Keeps nothing.
+         * @description 400 if an answer is unknown, or if "nothing of all that" is ticked with
+         *     another answer.
+         */
+        post: operations["previewPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/plan/steps/{position}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * « C'est fait » on a step of the current plan, or taken back. Sent twice, same result.
+         * @description 404 if the rider has no plan, or no step at this position.
+         */
+        put: operations["markPlanStep"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orientation/questionnaires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keeps the rider's answers and their plan, which becomes the current plan.
+         * @description Answering again keeps the earlier fillings; the most recent one counts.
+         */
+        post: operations["saveQuestionnaire"];
         delete?: never;
         options?: never;
         head?: never;
@@ -771,35 +855,8 @@ export interface components {
          * @description An account seen by an administrator: the user, and where its access stands.
          */
         AccountDto: {
-            /** Activationcodeexpiresat */
-            activationCodeExpiresAt: string | null;
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
-            /** Email */
-            email: string | null;
-            /** Firstname */
-            firstName: string;
             /** Id */
             id: number;
-            /** Isactivated */
-            isActivated: boolean;
-            /** Isavailable */
-            isAvailable: boolean | null;
-            /** Ispriority */
-            isPriority: boolean | null;
-            /** Lastname */
-            lastName: string;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean | null;
-            /** Partnerid */
-            partnerId: number | null;
-            /** Phone */
-            phone: string;
-            /** Photoupdatedat */
-            photoUpdatedAt: string | null;
             /**
              * Role
              * @enum {string}
@@ -810,7 +867,34 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "suspended";
+            /** Firstname */
+            firstName: string;
+            /** Lastname */
+            lastName: string;
+            /** Phone */
+            phone: string;
+            /** Email */
+            email: string | null;
+            /** Ispriority */
+            isPriority: boolean | null;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean | null;
             vehicle: components["schemas"]["VehicleDto"] | null;
+            /** Isavailable */
+            isAvailable: boolean | null;
+            /** Partnerid */
+            partnerId: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Isactivated */
+            isActivated: boolean;
+            /** Activationcodeexpiresat */
+            activationCodeExpiresAt: string | null;
+            /** Photoupdatedat */
+            photoUpdatedAt: string | null;
         };
         /** AccountListDto */
         AccountListDto: {
@@ -822,34 +906,34 @@ export interface components {
         /** AccountListQuery */
         AccountListQuery: {
             /**
-             * Cursor
+             * Search
              * @default null
              */
-            cursor: string | null;
+            search: string | null;
             /**
              * Role
              * @default null
              */
             role: ("rider" | "driver" | "partner" | "operator" | "admin") | null;
             /**
-             * Search
-             * @default null
-             */
-            search: string | null;
-            /**
              * Status
              * @default null
              */
             status: ("active" | "suspended") | null;
+            /**
+             * Cursor
+             * @default null
+             */
+            cursor: string | null;
         };
         /** ActivateBody */
         ActivateBody: {
+            /** Phone */
+            phone: string;
             /** Code */
             code: string;
             /** Password */
             password: string;
-            /** Phone */
-            phone: string;
         };
         /** ActivationCodeDto */
         ActivationCodeDto: {
@@ -860,6 +944,37 @@ export interface components {
              * Format: date-time
              */
             expiresAt: string;
+        };
+        /**
+         * AnswersDto
+         * @description The answers to the 7 questions. Every question may be skipped: null or [].
+         */
+        AnswersDto: {
+            /**
+             * Situation
+             * @default null
+             */
+            situation: ("sans_emploi" | "petits_boulots" | "en_emploi" | "en_formation" | "reprise") | null;
+            /**
+             * Project
+             * @default null
+             */
+            project: ("travail_vite" | "formation" | "creer" | "ne_sait_pas") | null;
+            /** Experiences */
+            experiences?: ("agriculture" | "peche" | "artisanat" | "garde_enfants" | "aide_personne" | "menage" | "batiment" | "cuisine" | "vente" | "benevolat" | "aucune")[];
+            /**
+             * Experiencetext
+             * @default null
+             */
+            experienceText: string | null;
+            /** Availability */
+            availability?: ("matin" | "apres_midi" | "soir" | "nuit" | "week_end")[];
+            /** Needs */
+            needs?: ("trajet" | "vehicule_adapte" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "aucun")[];
+            /** Languages */
+            languages?: ("fr" | "gcr" | "ht" | "pt" | "es" | "en" | "nenge" | "autre")[];
+            /** Digitalequipment */
+            digitalEquipment?: ("smartphone" | "ordinateur" | "internet_maison" | "email" | "rien")[];
         };
         /** AvailabilityBody */
         AvailabilityBody: {
@@ -881,18 +996,23 @@ export interface components {
              * Format: uuid
              */
             clientRequestId: string;
-            dropoff: components["schemas"]["StopBody"];
-            pickup: components["schemas"]["StopBody"];
             /**
              * Purpose
              * @enum {string}
              */
             purpose: "employment" | "training" | "health" | "administrative" | "other";
+            pickup: components["schemas"]["StopBody"];
+            dropoff: components["schemas"]["StopBody"];
             /**
              * Scheduledat
              * @default null
              */
             scheduledAt: string | null;
+        };
+        /** CallbackBody */
+        CallbackBody: {
+            /** Phone */
+            phone: string;
         };
         /** CommuneDto */
         CommuneDto: {
@@ -908,18 +1028,18 @@ export interface components {
         };
         /** ConfirmRegistrationBody */
         ConfirmRegistrationBody: {
-            /** Code */
-            code: string;
             /** Phone */
             phone: string;
+            /** Code */
+            code: string;
         };
         /** CreateAccountBody */
         CreateAccountBody: {
             /**
-             * Email
-             * @default null
+             * Role
+             * @enum {string}
              */
-            email: string | null;
+            role: "driver" | "operator" | "admin";
             /** Firstname */
             firstName: string;
             /** Lastname */
@@ -927,10 +1047,10 @@ export interface components {
             /** Phone */
             phone: string;
             /**
-             * Role
-             * @enum {string}
+             * Email
+             * @default null
              */
-            role: "driver" | "operator" | "admin";
+            email: string | null;
             /** @default null */
             vehicle: components["schemas"]["VehicleBody"] | null;
         };
@@ -941,13 +1061,13 @@ export interface components {
         };
         /** DatabaseStateDto */
         DatabaseStateDto: {
+            /** Reachable */
+            reachable: boolean;
             /**
              * Dialect
              * @default null
              */
             dialect: string | null;
-            /** Reachable */
-            reachable: boolean;
         };
         /** DayEarningsDto */
         DayEarningsDto: {
@@ -963,12 +1083,12 @@ export interface components {
         };
         /** EarningsDto */
         EarningsDto: {
-            /** Days */
-            days: components["schemas"]["DayEarningsDto"][];
-            /** Ridecount */
-            rideCount: number;
             /** Totalcents */
             totalCents: number;
+            /** Ridecount */
+            rideCount: number;
+            /** Days */
+            days: components["schemas"]["DayEarningsDto"][];
         };
         /**
          * EarningsQuery
@@ -992,18 +1112,18 @@ export interface components {
          *     the documentation then lists all its errors, and so do the front types.
          */
         ErrorDto: {
+            /** Error */
+            error: string;
             /**
              * Detail
              * @default null
              */
             detail: unknown;
-            /** Error */
-            error: string;
         };
         /** EstimateBody */
         EstimateBody: {
-            dropoff: components["schemas"]["StopBody"];
             pickup: components["schemas"]["StopBody"];
+            dropoff: components["schemas"]["StopBody"];
         };
         /** EstimateDto */
         EstimateDto: {
@@ -1011,10 +1131,10 @@ export interface components {
             distanceKm: number;
             /** Pricecents */
             priceCents: number;
-            /** Rideramountcents */
-            riderAmountCents: number;
             /** Voucheramountcents */
             voucherAmountCents: number;
+            /** Rideramountcents */
+            riderAmountCents: number;
         };
         /**
          * GuideSourceDto
@@ -1028,35 +1148,35 @@ export interface components {
         };
         /** HealthDto */
         HealthDto: {
-            database: components["schemas"]["DatabaseStateDto"];
             /**
              * Status
              * @enum {string}
              */
             status: "ok" | "degraded";
+            database: components["schemas"]["DatabaseStateDto"];
         };
         /** HelpServiceDto */
         HelpServiceDto: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
             /**
              * Category
              * @enum {string}
              */
             category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
-            /** Communename */
-            communeName: string;
             /** Description */
             description: string;
             /** Hours */
             hours: string;
-            /** Id */
-            id: number;
-            /** Language */
-            language: string;
-            /** Name */
-            name: string;
+            place: components["schemas"]["StopDto"];
+            /** Communename */
+            communeName: string;
             /** Phone */
             phone: string | null;
-            place: components["schemas"]["StopDto"];
+            /** Wheelchairaccessible */
+            wheelchairAccessible: boolean;
             /** Spokenlanguages */
             spokenLanguages: ("fr" | "gcr" | "ht" | "pt-BR" | "en")[];
             /**
@@ -1064,8 +1184,8 @@ export interface components {
              * Format: date
              */
             updatedOn: string;
-            /** Wheelchairaccessible */
-            wheelchairAccessible: boolean;
+            /** Language */
+            language: string;
         };
         /** HelpServiceListDto */
         HelpServiceListDto: {
@@ -1074,40 +1194,40 @@ export interface components {
         };
         /** JobOfferDto */
         JobOfferDto: {
-            /** Beginnerwelcome */
-            beginnerWelcome: boolean;
-            /** Communename */
-            communeName: string;
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Employer */
+            employer: string;
+            /** Description */
+            description: string;
             /**
              * Contracttype
              * @enum {string}
              */
             contractType: "permanent" | "fixed_term" | "temp" | "apprenticeship" | "seasonal";
-            /** Description */
-            description: string;
-            /** Employer */
-            employer: string;
-            /** Id */
-            id: number;
-            /** Language */
-            language: string;
-            /** Nodiplomarequired */
-            noDiplomaRequired: boolean;
-            /** Parttime */
-            partTime: boolean;
-            place: components["schemas"]["StopDto"];
-            /**
-             * Publishedat
-             * Format: date-time
-             */
-            publishedAt: string;
             /**
              * Schedule
              * @enum {string}
              */
             schedule: "day" | "shifted" | "night";
-            /** Title */
-            title: string;
+            /** Parttime */
+            partTime: boolean;
+            /** Beginnerwelcome */
+            beginnerWelcome: boolean;
+            /** Nodiplomarequired */
+            noDiplomaRequired: boolean;
+            place: components["schemas"]["StopDto"];
+            /** Communename */
+            communeName: string;
+            /**
+             * Publishedat
+             * Format: date-time
+             */
+            publishedAt: string;
+            /** Language */
+            language: string;
         };
         /** JobOfferListDto */
         JobOfferListDto: {
@@ -1123,16 +1243,16 @@ export interface components {
         };
         /** LoginBody */
         LoginBody: {
-            /** Password */
-            password: string;
             /** Phone */
             phone: string;
+            /** Password */
+            password: string;
         };
         /** OfferDto */
         OfferDto: {
+            ride: components["schemas"]["RideDto"];
             /** Distancetopickupkm */
             distanceToPickupKm: number | null;
-            ride: components["schemas"]["RideDto"];
         };
         /** OfferListDto */
         OfferListDto: {
@@ -1172,14 +1292,14 @@ export interface components {
         };
         /** PlaceDto */
         PlaceDto: {
-            /** Communeid */
-            communeId: number;
             /** Label */
             label: string;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
+            /** Communeid */
+            communeId: number;
             /** Token */
             token: string;
         };
@@ -1190,36 +1310,70 @@ export interface components {
         };
         /** PlaceQuery */
         PlaceQuery: {
-            /** Communeid */
-            communeId: number;
             /** Search */
             search: string;
+            /** Communeid */
+            communeId: number;
+        };
+        /**
+         * PlanDto
+         * @description The rider's current plan, with the answers it comes from ("Modifier mes réponses").
+         */
+        PlanDto: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Steps */
+            steps: components["schemas"]["PlanStepDto"][];
+            answers: components["schemas"]["AnswersDto"];
+        };
+        /**
+         * PlanPreviewDto
+         * @description A plan computed without an account: nothing is kept.
+         */
+        PlanPreviewDto: {
+            /** Steps */
+            steps: components["schemas"]["PlanStepDto"][];
+        };
+        /** PlanStepDto */
+        PlanStepDto: {
+            /** Position */
+            position: number;
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "offres" | "formation" | "creer" | "conseiller" | "trajet" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "francais_auto" | "numerique_auto" | "entretien";
+            /** Doneat */
+            doneAt: string | null;
         };
         /** PracticalGuideDto */
         PracticalGuideDto: {
+            /** Id */
+            id: number;
             /**
              * Category
              * @enum {string}
              */
             category: "childcare" | "housing" | "rights" | "health" | "food" | "digital" | "paperwork" | "equipment";
-            /** Id */
-            id: number;
-            /** Intro */
-            intro: string;
-            /** Language */
-            language: string;
-            source: components["schemas"]["GuideSourceDto"] | null;
-            /** Steps */
-            steps: string[];
             /** Title */
             title: string;
+            /** Intro */
+            intro: string;
+            /** Steps */
+            steps: string[];
             /** Tobring */
             toBring: string[];
+            source: components["schemas"]["GuideSourceDto"] | null;
             /**
              * Updatedon
              * Format: date
              */
             updatedOn: string;
+            /** Language */
+            language: string;
         };
         /** PracticalGuideListDto */
         PracticalGuideListDto: {
@@ -1228,16 +1382,18 @@ export interface components {
         };
         /** RateRideBody */
         RateRideBody: {
+            /** Score */
+            score: number;
             /**
              * Comment
              * @default null
              */
             comment: string | null;
-            /** Score */
-            score: number;
         };
         /** RatingDto */
         RatingDto: {
+            /** Score */
+            score: number;
             /** Comment */
             comment: string | null;
             /**
@@ -1245,29 +1401,27 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
-            /** Score */
-            score: number;
         };
         /** RegisterBody */
         RegisterBody: {
+            /** Phone */
+            phone: string;
+            /** Firstname */
+            firstName: string;
+            /** Lastname */
+            lastName: string;
+            /** Password */
+            password: string;
             /**
              * Email
              * @default null
              */
             email: string | null;
-            /** Firstname */
-            firstName: string;
-            /** Lastname */
-            lastName: string;
             /**
              * Needsaccessiblevehicle
              * @default false
              */
             needsAccessibleVehicle: boolean;
-            /** Password */
-            password: string;
-            /** Phone */
-            phone: string;
         };
         /**
          * RegistrationCodeDto
@@ -1285,81 +1439,81 @@ export interface components {
          * @description The driver, for the rider and the staff. Phone only while the ride is under way.
          */
         RideDriverDto: {
-            /** Averagescore */
-            averageScore: number | null;
-            /** Firstname */
-            firstName: string;
             /** Id */
             id: number;
+            /** Firstname */
+            firstName: string;
             /** Phone */
             phone: string | null;
+            /** Averagescore */
+            averageScore: number | null;
+            vehicle: components["schemas"]["RideVehicleDto"];
             /** Photoupdatedat */
             photoUpdatedAt: string | null;
-            vehicle: components["schemas"]["RideVehicleDto"];
         };
         /** RideDto */
         RideDto: {
-            /** Acceptedat */
-            acceptedAt: string | null;
-            /** Cancelledat */
-            cancelledAt: string | null;
-            /**
-             * Channel
-             * @enum {string}
-             */
-            channel: "app" | "phone";
-            /** Completedat */
-            completedAt: string | null;
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
-            /** Distancekm */
-            distanceKm: number;
-            driver: components["schemas"]["RideDriverDto"] | null;
-            dropoff: components["schemas"]["StopDto"];
-            /** Expiredat */
-            expiredAt: string | null;
-            /**
-             * Expiresat
-             * Format: date-time
-             */
-            expiresAt: string;
             /** Id */
             id: number;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean;
-            /** Paidat */
-            paidAt: string | null;
-            /**
-             * Paymentstatus
-             * @enum {string}
-             */
-            paymentStatus: "not_required" | "pending" | "paid" | "refunded";
-            pickup: components["schemas"]["StopDto"];
-            /** Pricecents */
-            priceCents: number;
-            /**
-             * Purpose
-             * @enum {string}
-             */
-            purpose: "employment" | "training" | "health" | "administrative" | "other";
-            rating: components["schemas"]["RatingDto"] | null;
-            rider: components["schemas"]["RideRiderDto"] | null;
-            /** Rideramountcents */
-            riderAmountCents: number;
-            /** Scheduledat */
-            scheduledAt: string | null;
-            /** Startedat */
-            startedAt: string | null;
             /**
              * Status
              * @enum {string}
              */
             status: "awaiting_payment" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled" | "expired";
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "app" | "phone";
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            pickup: components["schemas"]["StopDto"];
+            dropoff: components["schemas"]["StopDto"];
+            /** Scheduledat */
+            scheduledAt: string | null;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean;
+            /** Distancekm */
+            distanceKm: number;
+            /** Pricecents */
+            priceCents: number;
             /** Voucheramountcents */
             voucherAmountCents: number;
+            /** Rideramountcents */
+            riderAmountCents: number;
+            /**
+             * Paymentstatus
+             * @enum {string}
+             */
+            paymentStatus: "not_required" | "pending" | "paid" | "refunded";
+            rating: components["schemas"]["RatingDto"] | null;
+            driver: components["schemas"]["RideDriverDto"] | null;
+            rider: components["schemas"]["RideRiderDto"] | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Paidat */
+            paidAt: string | null;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /** Acceptedat */
+            acceptedAt: string | null;
+            /** Startedat */
+            startedAt: string | null;
+            /** Completedat */
+            completedAt: string | null;
+            /** Cancelledat */
+            cancelledAt: string | null;
+            /** Expiredat */
+            expiredAt: string | null;
         };
         /** RideListDto */
         RideListDto: {
@@ -1371,15 +1525,15 @@ export interface components {
         /** RideListQuery */
         RideListQuery: {
             /**
-             * Cursor
-             * @default null
-             */
-            cursor: string | null;
-            /**
              * When
              * @enum {string}
              */
             when: "upcoming" | "past";
+            /**
+             * Cursor
+             * @default null
+             */
+            cursor: string | null;
         };
         /**
          * RideRiderDto
@@ -1393,12 +1547,17 @@ export interface components {
         };
         /** RideVehicleDto */
         RideVehicleDto: {
-            /** Isaccessible */
-            isAccessible: boolean;
-            /** Model */
-            model: string;
             /** Plate */
             plate: string;
+            /** Model */
+            model: string;
+            /** Isaccessible */
+            isAccessible: boolean;
+        };
+        /** StepDoneBody */
+        StepDoneBody: {
+            /** Done */
+            done: boolean;
         };
         /**
          * StopBody
@@ -1407,12 +1566,12 @@ export interface components {
         StopBody: {
             /** Address */
             address: string;
-            /** Communeid */
-            communeId: number;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
+            /** Communeid */
+            communeId: number;
             /** Token */
             token: string;
         };
@@ -1420,12 +1579,12 @@ export interface components {
         StopDto: {
             /** Address */
             address: string;
-            /** Communeid */
-            communeId: number;
             /** Lat */
             lat: number;
             /** Lng */
             lng: number;
+            /** Communeid */
+            communeId: number;
             /** Token */
             token: string;
         };
@@ -1435,15 +1594,15 @@ export interface components {
          */
         UpdateAccountBody: {
             /**
-             * Ispriority
-             * @default null
-             */
-            isPriority: boolean | null;
-            /**
              * Status
              * @default null
              */
             status: ("active" | "suspended") | null;
+            /**
+             * Ispriority
+             * @default null
+             */
+            isPriority: boolean | null;
             /** @default null */
             vehicle: components["schemas"]["VehicleBody"] | null;
         };
@@ -1452,16 +1611,6 @@ export interface components {
          * @description Only the fields sent are changed. email: null removes the address.
          */
         UpdateProfileBody: {
-            /**
-             * Currentpassword
-             * @default null
-             */
-            currentPassword: string | null;
-            /**
-             * Email
-             * @default null
-             */
-            email: string | null;
             /**
              * Firstname
              * @default null
@@ -1473,10 +1622,20 @@ export interface components {
              */
             lastName: string | null;
             /**
+             * Email
+             * @default null
+             */
+            email: string | null;
+            /**
              * Needsaccessiblevehicle
              * @default null
              */
             needsAccessibleVehicle: boolean | null;
+            /**
+             * Currentpassword
+             * @default null
+             */
+            currentPassword: string | null;
             /**
              * Newpassword
              * @default null
@@ -1488,29 +1647,8 @@ export interface components {
          * @description The logged-in account. Fields of another role are null.
          */
         UserDto: {
-            /**
-             * Createdat
-             * Format: date-time
-             */
-            createdAt: string;
-            /** Email */
-            email: string | null;
-            /** Firstname */
-            firstName: string;
             /** Id */
             id: number;
-            /** Isavailable */
-            isAvailable: boolean | null;
-            /** Ispriority */
-            isPriority: boolean | null;
-            /** Lastname */
-            lastName: string;
-            /** Needsaccessiblevehicle */
-            needsAccessibleVehicle: boolean | null;
-            /** Partnerid */
-            partnerId: number | null;
-            /** Phone */
-            phone: string;
             /**
              * Role
              * @enum {string}
@@ -1521,29 +1659,50 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "suspended";
+            /** Firstname */
+            firstName: string;
+            /** Lastname */
+            lastName: string;
+            /** Phone */
+            phone: string;
+            /** Email */
+            email: string | null;
+            /** Ispriority */
+            isPriority: boolean | null;
+            /** Needsaccessiblevehicle */
+            needsAccessibleVehicle: boolean | null;
             vehicle: components["schemas"]["VehicleDto"] | null;
+            /** Isavailable */
+            isAvailable: boolean | null;
+            /** Partnerid */
+            partnerId: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
         };
         /** VehicleBody */
         VehicleBody: {
-            /** Isaccessible */
-            isAccessible: boolean;
-            /** Model */
-            model: string;
             /** Plate */
             plate: string;
+            /** Model */
+            model: string;
             /** Seats */
             seats: number;
+            /** Isaccessible */
+            isAccessible: boolean;
         };
         /** VehicleDto */
         VehicleDto: {
-            /** Isaccessible */
-            isAccessible: boolean;
-            /** Model */
-            model: string;
             /** Plate */
             plate: string;
+            /** Model */
+            model: string;
             /** Seats */
             seats: number;
+            /** Isaccessible */
+            isAccessible: boolean;
         };
     };
     responses: never;
@@ -2635,6 +2794,55 @@ export interface operations {
             };
         };
     };
+    requestCallback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CallbackBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     listHelpServices: {
         parameters: {
             query?: never;
@@ -2756,6 +2964,206 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    currentPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    previewPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AnswersDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanPreviewDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    markPlanStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                position: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StepDoneBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    saveQuestionnaire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AnswersDto"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

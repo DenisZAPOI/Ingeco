@@ -3,11 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { JobFilters } from '../components/jobs/JobFilters';
 import { JobList } from '../components/jobs/JobCard';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { ArrowRightIcon, BookIcon } from '../components/ui/icons';
+import { ArrowRightIcon, BookIcon, QuestionIcon } from '../components/ui/icons';
 import { RequestState } from '../components/ui/RequestState';
 import { useJobOffers } from '../hooks/useJobOffers';
 import { t, tn } from '../i18n';
-import { TRAININGS_PATH } from '../lib/paths';
+import { ORIENTATION_PATH, TRAININGS_PATH } from '../lib/paths';
 import { NO_FILTER, filterJobOffers, filtersFromParams, filtersToParams, offerCommunes, type JobFilters as Filters } from '../lib/jobs';
 
 /** The job offers (module M2), public. One call for the whole list, then the
@@ -30,6 +30,17 @@ export function JobsPage() {
         <p className="hero-lead">{t('jobs.lead')}</p>
       </PageHero>
       <PageSheet>
+        {/* The start of scenario A (§8): someone who does not know what to look for. */}
+        <Link to={ORIENTATION_PATH} className="action-card action-card-primary">
+          <span className="icon-chip icon-chip-sun">
+            <QuestionIcon />
+          </span>
+          <span className="action-card-text">
+            <span className="action-card-title">{t('orientation.entry')}</span>
+            <span className="action-card-hint">{t('orientation.entryHint')}</span>
+          </span>
+          <ArrowRightIcon className="action-card-arrow" />
+        </Link>
         <RequestState loading={offers.loading && !offers.data} error={offers.error} onRetry={offers.retry}>
           <JobFilters communes={offerCommunes(all)} value={filters} onChange={change} />
           <p aria-live="polite" className="note">

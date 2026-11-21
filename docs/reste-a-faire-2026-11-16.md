@@ -8,7 +8,7 @@ Les tables de l'équipe BD sont livrées (migrations 009 à 027, PR #85 et #86) 
 
 | # | Quoi | Pourquoi | Version minimale | Tables |
 |---|---|---|---|---|
-| 1 | **Questionnaire et plan d'action (M1)** | Début du scénario A, et seul morceau du fil rouge qui n'existe pas : sans lui, la démo commence au milieu | 5 ou 6 questions à choix, règles simples, plan de 3 étapes (une offre, un service d'aide, un trajet). Pas d'écran de reprise : la colonne existe en base, on le dit à l'oral | 017 |
+| 1 | ~~**Questionnaire et plan d'action (M1)**~~ (fait le 21/11, avec « Être rappelé ») | Début du scénario A, et seul morceau du fil rouge qui n'existe pas : sans lui, la démo commence au milieu | 5 ou 6 questions à choix, règles simples, plan de 3 étapes (une offre, un service d'aide, un trajet). Pas d'écran de reprise : la colonne existe en base, on le dit à l'oral | 017 |
 | 2 | **Trajets dans MySQL** | Un redémarrage de l'API efface aujourd'hui tous les trajets : risqué en démo. La base est notée dans le rendu : l'API doit se servir du travail de l'équipe BD | Lire et écrire `course` et `evaluation` avec les colonnes existantes, sans les nouveaux états | `course`, `evaluation` |
 | 3 | **Offres, services d'aide et fiches dans MySQL** | Rapide (tables et données prêtes, mêmes identifiants), et complète la preuve que tout passe par la base | Remplacer les trois repository en mémoire | 011 à 016 |
 | 4 | **Statut du trajet en direct** | « Suivi en temps réel » cité par la SAÉ ; deux écrans côte à côte (usager, chauffeur) qui se mettent à jour seuls | Un événement `ride:updated` qui recharge la page du trajet ; `ride:offer` côté chauffeur si le temps le permet | – |
@@ -20,7 +20,7 @@ Les tables de l'équipe BD sont livrées (migrations 009 à 027, PR #85 et #86) 
 
 | Quoi | Effort | Ce qu'on dit à l'oral s'il n'est pas fait | Tables |
 |---|---|---|---|
-| « Être rappelé » | Petit | Prévu et utile au public visé, table prête | `demande_aide` (027) |
+| ~~« Être rappelé »~~ (fait le 21/11) | Petit | Prévu et utile au public visé, table prête | `demande_aide` (027) |
 | « Chauffeur arrivé » | Petit | État prêt en base, bouton non fait | `course` (020) |
 | Réglages de l'administrateur : zones, horaires, tarifs | Moyen | Réglables en base, écran non fait ; valeurs provisoires en attente de la cliente | 010, 018, `tarif` |
 | Passager absent, incident, paiement échoué, journal des étapes | Moyen | Schéma prêt (migrations 020 et 023), pas d'écran | 020, 023 |

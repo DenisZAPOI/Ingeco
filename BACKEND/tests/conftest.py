@@ -37,7 +37,7 @@ from app.dtos.base import InputModel  # noqa: E402
 from app.extensions import spec  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.repository import registration_repository, user_repository  # noqa: E402
-from app.services import auth_service, place_service, ride_rules, user_service  # noqa: E402
+from app.services import auth_service, place_service, ride_rules, support_service, user_service  # noqa: E402
 from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
 from app.utils import database  # noqa: E402
@@ -118,6 +118,7 @@ def fresh_state(test_database):
     auth_service.login_attempts_by_address.clear()
     auth_service.activation_attempts_by_address.clear()
     user_service.current_password_attempts.clear()
+    support_service.callbacks_by_address.clear()
     place_service.lookups.clear()
     registration_repository.reset()
     # Registrations get the fixed demo code: the tests type it.
