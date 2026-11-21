@@ -75,12 +75,7 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
   try {
     return await send<T>(method, path, body);
   } catch (error) {
-    if (
-      !(error instanceof ApiError) ||
-      error.status !== UNAUTHORIZED ||
-      NO_RENEWAL_PATHS.has(path) ||
-      storedSession() === 'none'
-    ) {
+    if (!isRenewable(error, path)) {
       throw error;
     }
     // The access token lasts 15 minutes: renew it once, then replay the call.
@@ -90,6 +85,13 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
     }
     return send<T>(method, path, body);
   }
+}
+
+/** A 401 that a renewed session may fix: a session exists, and the path is not one of those
+ *  where 401 means a wrong password or an ended session. */
+function isRenewable(error: unknown, path: string): boolean {
+  const isUnauthorized = error instanceof ApiError && error.status === UNAUTHORIZED;
+  return isUnauthorized && !NO_RENEWAL_PATHS.has(path) && storedSession() !== 'none';
 }
 
 // Several calls failing at the same moment share one renewal.

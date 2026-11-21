@@ -175,4 +175,5 @@ def logout():
 @spec.validate(resp=Response(HTTP_200=UserDto, HTTP_401=ErrorDto), tags=_TAGS)
 def me():
     """The logged-in account."""
-    return jsonify(user_to_dto(auth_service.session_user(current_user_id())).to_json()), 200
+    user = auth_service.session_user(current_user_id())
+    return jsonify(user_to_dto(user).to_json()), 200

@@ -31,4 +31,5 @@ def list_jobs():
 @spec.validate(resp=Response(HTTP_200=JobOfferDto, HTTP_404=ErrorDto), tags=_TAGS)
 def get_job(offer_id: int):
     """One offer. 404 if it does not exist or is no longer online."""
-    return jsonify(job_offer_to_dto(job_service.get_offer(offer_id, request_language())).to_json()), 200
+    offer = job_service.get_offer(offer_id, request_language())
+    return jsonify(job_offer_to_dto(offer).to_json()), 200

@@ -8,7 +8,6 @@ utils/access.py and the controller.
 """
 
 import logging
-import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
@@ -17,7 +16,7 @@ from ..repository.registration_repository import PendingRegistration
 from ..repository.user_repository import DuplicateValue, User
 from ..utils import database
 from ..utils.errors import Conflict, Forbidden, TooManyRequests, Unauthorized, UnprocessableEntity
-from ..utils.passwords import hash_secret, verify_or_waste_time
+from ..utils.passwords import hash_secret, random_digits, verify_or_waste_time
 from ..utils.rate_limit import AttemptLimiter
 from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVE, ADMIN, REGISTRATION_CODE_LENGTH, RIDER, SUSPENDED
 
@@ -112,7 +111,7 @@ def start_registration(
     """
     _count_attempt(registration_codes_by_phone, phone, registration_codes_by_address, client_address, TOO_MANY_CODES)
 
-    code = DEMO_REGISTRATION_CODE if _demo_codes else _random_code()
+    code = DEMO_REGISTRATION_CODE if _demo_codes else random_digits(REGISTRATION_CODE_LENGTH)
     now = datetime.now(timezone.utc)
     registration = PendingRegistration(
         phone=phone,
@@ -187,7 +186,7 @@ def start_password_reset(phone: str, client_address: str | None) -> CodeSent:
         password_reset_codes_by_phone, phone, password_reset_codes_by_address, client_address, TOO_MANY_CODES
     )
 
-    code = DEMO_PASSWORD_RESET_CODE if _demo_codes else _random_code(ACTIVATION_CODE_LENGTH)
+    code = DEMO_PASSWORD_RESET_CODE if _demo_codes else random_digits(ACTIVATION_CODE_LENGTH)
     code_hash = hash_secret(code)  # always computed: the answer time says nothing
     expires_at = datetime.now(timezone.utc) + PASSWORD_RESET_CODE_VALIDITY
     with database.session() as session:
@@ -199,10 +198,6 @@ def start_password_reset(phone: str, client_address: str | None) -> CodeSent:
             sms_repository.send_to_number(session, phone=phone, kind=sms_repository.PASSWORD_RESET_CODE, code=code)
             logger.info("Password reset code sent", extra={"context": {"userId": user.id}})
     return CodeSent(expires_at=expires_at)
-
-
-def _random_code(length: int = REGISTRATION_CODE_LENGTH) -> str:
-    return "".join(secrets.choice("0123456789") for _ in range(length))
 
 
 def _count_attempt(

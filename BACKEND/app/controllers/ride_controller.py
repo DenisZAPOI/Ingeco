@@ -154,7 +154,8 @@ def pay(ride_id: int):
     Paying a ride already paid returns it as it is. 409 once the 15 minutes
     to pay are over, or if the ride no longer awaits payment.
     """
-    return jsonify(ride_to_dto(ride_service.pay_ride(rider_id=current_user_id(), ride_id=ride_id)).to_json()), 200
+    ride = ride_service.pay_ride(rider_id=current_user_id(), ride_id=ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200
 
 
 @ride_bp.post("/<int:ride_id>/cancel")
@@ -204,7 +205,8 @@ def accept(ride_id: int):
     409 if already taken, no longer offered, needing an accessible vehicle,
     or less than an hour from a ride the driver already holds.
     """
-    return jsonify(ride_to_dto(driver_service.accept_ride(current_user_id(), ride_id)).to_json()), 200
+    ride = driver_service.accept_ride(current_user_id(), ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200
 
 
 @ride_bp.post("/<int:ride_id>/release")
@@ -218,7 +220,8 @@ def release(ride_id: int):
 
     It is offered again to the other drivers; the rider pays nothing more.
     """
-    return jsonify(ride_to_dto(driver_service.release_ride(current_user_id(), ride_id)).to_json()), 200
+    ride = driver_service.release_ride(current_user_id(), ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200
 
 
 @ride_bp.post("/<int:ride_id>/start")
@@ -232,7 +235,8 @@ def start(ride_id: int):
 
     A scheduled ride starts at the earliest one hour before its time.
     """
-    return jsonify(ride_to_dto(driver_service.start_ride(current_user_id(), ride_id)).to_json()), 200
+    ride = driver_service.start_ride(current_user_id(), ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200
 
 
 @ride_bp.post("/<int:ride_id>/complete")
@@ -243,4 +247,5 @@ def start(ride_id: int):
 )
 def complete(ride_id: int):
     """Arrived: the rider is asked to rate the ride. Completing again returns it."""
-    return jsonify(ride_to_dto(driver_service.complete_ride(current_user_id(), ride_id)).to_json()), 200
+    ride = driver_service.complete_ride(current_user_id(), ride_id)
+    return jsonify(ride_to_dto(ride).to_json()), 200

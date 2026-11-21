@@ -58,7 +58,8 @@ def list_users():
 )
 def get_user(user_id: int):
     """An account."""
-    return jsonify(account_to_dto(admin_service.get_account(user_id)).to_json()), 200
+    account = admin_service.get_account(user_id)
+    return jsonify(account_to_dto(account).to_json()), 200
 
 
 @admin_bp.post("/users")

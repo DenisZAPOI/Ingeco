@@ -154,9 +154,7 @@ def build_plan(answers: Answers) -> list[str]:
     """The codes of the 3 to 5 steps, in order (table of the validated mockup)."""
     steps: list[str] = []
 
-    first = _PROJECT_STEPS.get(answers.project) if answers.project else None
-    if first is None and answers.project is None and answers.situation == "sans_emploi":
-        first = STEP_OFFERS
+    first = _first_step(answers)
     if first:
         steps.append(first)
 
@@ -164,15 +162,9 @@ def build_plan(answers: Answers) -> list[str]:
         steps.append(STEP_RIDE)
     steps.extend(need for need in _NEEDS_WITH_A_STEP if need in answers.needs)
 
-    # French not among the languages spoken: French lessons, even unasked.
-    if "francais" not in answers.needs and answers.languages and _FRENCH not in answers.languages:
+    if _needs_french_lessons(answers):
         steps.append(STEP_FRENCH_LESSONS)
-    # Neither a phone with internet nor a computer: access to internet, even unasked.
-    if (
-        "numerique" not in answers.needs
-        and answers.digital_equipment
-        and not any(device in answers.digital_equipment for device in _CONNECTED_DEVICES)
-    ):
+    if _needs_internet_access(answers):
         steps.append(STEP_INTERNET_ACCESS)
 
     for filler in _FILLERS:
@@ -181,6 +173,29 @@ def build_plan(answers: Answers) -> list[str]:
         if filler not in steps:
             steps.append(filler)
     return steps[:MAX_STEPS]
+
+
+def _first_step(answers: Answers) -> str | None:
+    """From the project; without one, the job offers for someone out of work."""
+    if answers.project is not None:
+        return _PROJECT_STEPS.get(answers.project)
+    if answers.situation == "sans_emploi":
+        return STEP_OFFERS
+    return None
+
+
+def _needs_french_lessons(answers: Answers) -> bool:
+    """French not among the languages spoken: French lessons, even unasked."""
+    already_asked = "francais" in answers.needs
+    speaks_french = _FRENCH in answers.languages
+    return not already_asked and bool(answers.languages) and not speaks_french
+
+
+def _needs_internet_access(answers: Answers) -> bool:
+    """Neither a phone with internet nor a computer: access to internet, even unasked."""
+    already_asked = "numerique" in answers.needs
+    has_connected_device = any(device in answers.digital_equipment for device in _CONNECTED_DEVICES)
+    return not already_asked and bool(answers.digital_equipment) and not has_connected_device
 
 
 def to_rows(answers: Answers) -> list[tuple[str, str, str | None]]:
