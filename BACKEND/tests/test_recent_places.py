@@ -39,7 +39,9 @@ def test_the_last_distinct_places_come_first(client):
 
 def test_a_recent_place_can_be_booked_again_as_is(client):
     login(client)
-    pickup, dropoff = recent_places(client)[0], recent_places(client)[2]
+    # The first and the third (mairie de Cayenne) have the same position in
+    # demo-data.sql: the estimate would refuse them as the same place.
+    pickup, dropoff, _ = recent_places(client)
 
     response = client.post(
         "/rides/estimate", json={"pickup": as_stop(pickup), "dropoff": as_stop(dropoff)}, headers=csrf_headers(client)
