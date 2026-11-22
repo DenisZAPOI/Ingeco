@@ -1,5 +1,8 @@
 # Ce qui reste à faire (état au 16/11/2026)
 
+> **Remplacé par [reste-a-faire-2026-11-22.md](reste-a-faire-2026-11-22.md).** Gardé pour
+> l'historique : toute la partie 1 (« Indispensable ») est faite depuis.
+
 Le code s'arrête vers le **30/11** ; ensuite, tout le temps va à la présentation. On ne finit donc pas tout le palier P1 : on fait ce qui sert la démo du scénario A et ce que la SAÉ note, et on présente le reste comme une limitation.
 
 Les tables de l'équipe BD sont livrées (migrations 009 à 027, PR #85 et #86) : ce qui manque, c'est l'API et les écrans.
