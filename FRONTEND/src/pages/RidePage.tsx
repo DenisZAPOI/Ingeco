@@ -34,7 +34,8 @@ export function RidePage() {
 
   return (
     <section>
-      <PageHero title={t('ride.title')} />
+      {/* The number to give on the phone (call centre, driver). */}
+      <PageHero title={t('ride.title')} eyebrow={t('ride.number', { id })} />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
           {ride.data && <RideStatus ride={ride.data} onRefresh={ride.retry} onChange={update} />}

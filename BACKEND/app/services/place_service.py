@@ -9,7 +9,7 @@ import hmac
 
 from sqlalchemy.orm import Session
 
-from ..repository import commune_repository, place_repository
+from ..repository import commune_repository, place_repository, ride_repository
 from ..repository.commune_repository import Commune
 from ..repository.place_repository import Place, PlacesUnavailable
 from ..utils import database
@@ -37,6 +37,12 @@ lookups = AttemptLimiter(MAX_LOOKUPS_PER_ACCOUNT, LOOKUP_WINDOW_SECONDS)
 # with it: the label shown to the driver is the one of that position, never a
 # text typed apart from it ("Aéroport" placed next door, to pay less).
 PLACE_NOT_PROPOSED = "Choisissez l'adresse dans la liste proposée."
+
+# "Vos derniers lieux" at the top of a booking step: a few, to stay a short
+# list on a phone. Ten rides are read to find them: trips often repeat
+# (home, work), so fewer could give only one or two different places.
+MAX_RECENT_PLACES = 3
+RECENT_RIDES_READ = 10
 _SIGNING_PURPOSE = b"places"
 _signing_key: bytes | None = None
 
@@ -83,6 +89,29 @@ def search_places(text: str, commune_id: int, *, user_id: int) -> list[Place]:
             return place_repository.search(session, text, commune.id, commune.name)
         except PlacesUnavailable:
             raise ServiceUnavailable(SEARCH_UNAVAILABLE) from None
+
+
+def recent_places(rider_id: int) -> list[Place]:
+    """The last places a rider went from or to, to book the same trip again in one tap.
+
+    Read from their rides, without calling OpenRouteService. A place of a
+    commune no longer served is left out: it could not be booked.
+    """
+    with database.session() as session:
+        stops = ride_repository.find_recent_stops(session, rider_id, RECENT_RIDES_READ)
+        served_ids = {commune.id for commune in commune_repository.list_communes(session, served_only=True)}
+
+    places: list[Place] = []
+    seen_addresses: set[str] = set()
+    for stop in stops:
+        is_new = stop.address not in seen_addresses
+        is_served = stop.commune_id in served_ids
+        if is_new and is_served:
+            places.append(Place(label=stop.address, lat=stop.lat, lng=stop.lng, commune_id=stop.commune_id))
+            seen_addresses.add(stop.address)
+        if len(places) == MAX_RECENT_PLACES:
+            break
+    return places
 
 
 def check_served(session: Session, lat: float, lng: float, commune_id: int) -> None:

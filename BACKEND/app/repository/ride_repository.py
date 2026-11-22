@@ -273,6 +273,45 @@ def find_page(
     return [_to_ride(*found) for found in session.execute(query)]
 
 
+def find_recent_stops(session: Session, rider_id: int, ride_limit: int) -> list[Stop]:
+    """Pickups and drop-offs of a rider's last `ride_limit` rides, the most recent first.
+
+    Each ride gives its pickup, then its drop-off. Duplicates are kept: the
+    caller chooses which ones to show. Served by idx_course_usager (…, cree_le).
+    """
+    query = (
+        select(
+            RideRow.pickup_address,
+            RideRow.pickup_lat,
+            RideRow.pickup_lng,
+            RideRow.pickup_commune_id,
+            RideRow.dropoff_address,
+            RideRow.dropoff_lat,
+            RideRow.dropoff_lng,
+            RideRow.dropoff_commune_id,
+        )
+        .where(RideRow.rider_id == rider_id)
+        .order_by(RideRow.created_at.desc(), RideRow.id.desc())
+        .limit(ride_limit)
+    )
+    stops: list[Stop] = []
+    for row in session.execute(query):
+        pickup = Stop(
+            address=row.pickup_address,
+            lat=float(row.pickup_lat),
+            lng=float(row.pickup_lng),
+            commune_id=row.pickup_commune_id,
+        )
+        dropoff = Stop(
+            address=row.dropoff_address,
+            lat=float(row.dropoff_lat),
+            lng=float(row.dropoff_lng),
+            commune_id=row.dropoff_commune_id,
+        )
+        stops.extend([pickup, dropoff])
+    return stops
+
+
 def find_due(session: Session, statuses: tuple[str, ...], now: datetime) -> list[Ride]:
     """Rides still in one of `statuses` whose deadline (expires_at) is past.
 

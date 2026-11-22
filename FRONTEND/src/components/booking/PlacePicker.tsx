@@ -8,14 +8,21 @@ import { ChoiceGroup } from '../form/ChoiceGroup';
 
 type PlacePickerProps = {
   communes: Commune[];
+  /** The rider's last places, offered first: one tap, no commune nor search. */
+  recent: Place[];
   value: Stop | null;
   onChange: (stop: Stop | null) => void;
   /** Shown under the list: no address chosen yet. */
   error?: string;
 };
 
-/** Commune, then a search, then a choice in the results. */
-export function PlacePicker({ communes, value, onChange, error }: PlacePickerProps) {
+function toStop(place: Place): Stop {
+  // The token goes back with the stop: the API only books the places it proposed.
+  return { address: place.label, lat: place.lat, lng: place.lng, communeId: place.communeId, token: place.token };
+}
+
+/** The rider's last places if any, then a commune, a search, and a choice in the results. */
+export function PlacePicker({ communes, recent, value, onChange, error }: PlacePickerProps) {
   const [communeId, setCommuneId] = useState<number | null>(value?.communeId ?? null);
   const [text, setText] = useState('');
   const { places, searching, error: searchError, search, clear } = usePlaceSearch();
@@ -40,12 +47,33 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
     }
   }
 
-  // The address chosen earlier stays listed, so coming back to the step shows it.
+  function chooseRecent(index: string) {
+    // The commune and the search are for another place: they are emptied.
+    setCommuneId(null);
+    clear();
+    onChange(toStop(recent[Number(index)]));
+  }
+
+  const recentIndex = value === null ? -1 : recent.findIndex((place) => place.label === value.address);
+  const isRecentChosen = recentIndex >= 0;
+
+  // The address chosen earlier stays listed, so coming back to the step shows
+  // it; not when it is one of the last places, already ticked above.
+  const keepChosen = value !== null && !isRecentChosen;
   const listed: Place[] =
-    places ?? (value ? [{ label: value.address, lat: value.lat, lng: value.lng, communeId: value.communeId, token: value.token }] : []);
+    places ?? (keepChosen ? [{ label: value.address, lat: value.lat, lng: value.lng, communeId: value.communeId, token: value.token }] : []);
 
   return (
     <>
+      {recent.length > 0 && (
+        <ChoiceGroup
+          legend={t('booking.recentPlaces')}
+          choices={recent.map((place, index) => ({ value: String(index), label: place.label }))}
+          value={isRecentChosen ? String(recentIndex) : null}
+          onChange={chooseRecent}
+        />
+      )}
+
       <ChoiceGroup
         legend={t('booking.commune')}
         choices={communes.map((commune) => ({ value: String(commune.id), label: commune.name }))}
@@ -94,11 +122,7 @@ export function PlacePicker({ communes, value, onChange, error }: PlacePickerPro
           legend={t('booking.pickAddress')}
           choices={listed.map((place, index) => ({ value: String(index), label: place.label }))}
           value={value ? String(listed.findIndex((place) => place.label === value.address)) : null}
-          onChange={(index) => {
-            const place = listed[Number(index)];
-            // The token goes back with the stop: the API only books the places it proposed.
-            onChange({ address: place.label, lat: place.lat, lng: place.lng, communeId: place.communeId, token: place.token });
-          }}
+          onChange={(index) => onChange(toStop(listed[Number(index)]))}
           error={error}
         />
       )}
