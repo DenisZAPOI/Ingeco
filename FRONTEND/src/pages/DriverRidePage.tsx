@@ -30,7 +30,7 @@ export function DriverRidePage() {
 
   return (
     <section>
-      <PageHero title={t('driver.rideTitle')} />
+      <PageHero title={t('driver.rideTitle')} eyebrow={t('driver.rideNumber', { id })} />
       <PageSheet>
         <RequestState loading={ride.loading} error={ride.error} onRetry={ride.retry}>
           {ride.data && <DriverRide ride={ride.data} onRefresh={ride.retry} onChange={update} />}

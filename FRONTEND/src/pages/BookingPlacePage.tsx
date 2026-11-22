@@ -9,6 +9,7 @@ import { Form } from '../components/form/Form';
 import { RequestState } from '../components/ui/RequestState';
 import { useBookingDraft } from '../hooks/useBookingDraft';
 import { useCommunes } from '../hooks/useCommunes';
+import { useRecentPlaces } from '../hooks/useRecentPlaces';
 import { t } from '../i18n';
 import { bookingSteps, NO_GIVEN_DROPOFF, skipsDropoff } from '../lib/bookingDraft';
 import { BOOKING_PATHS } from '../lib/paths';
@@ -23,6 +24,7 @@ const STEPS = {
 export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
   const { draft, update } = useBookingDraft();
   const communes = useCommunes();
+  const lastPlaces = useRecentPlaces();
   const navigate = useNavigate();
   const [chosen, setChosen] = useState<Stop | null>(draft[stop]);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,10 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
   const numbers = bookingSteps(draft);
   // From a job offer or a help service, the drop-off is already known: straight to the time.
   const toGiven = stop === 'pickup' && skipsDropoff(draft);
+
+  // The other end of the trip is not offered here: no trip from a place to itself.
+  const otherStop = stop === 'pickup' ? draft.dropoff : draft.pickup;
+  const recent = lastPlaces.filter((place) => place.label !== otherStop?.address);
 
   if (stop === 'dropoff' && !draft.pickup) {
     return <Navigate to={BOOKING_PATHS.pickup} replace />;
@@ -63,6 +69,7 @@ export function BookingPlacePage({ stop }: { stop: 'pickup' | 'dropoff' }) {
           <Form onSubmit={next} submitLabel={t('booking.continue')} submitting={false} error={error ? t('errors.checkFields') : null}>
             <PlacePicker
               communes={communes.data ?? []}
+              recent={recent}
               value={chosen}
               onChange={(place) => {
                 setChosen(place);

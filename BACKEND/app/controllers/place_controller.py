@@ -40,3 +40,16 @@ def search_places():
     query: PlaceQuery = request.context.query
     places = [place_to_dto(place) for place in place_service.search_places(query.search, query.commune_id, user_id=current_user_id())]
     return jsonify(PlaceListDto(items=places).to_json()), 200
+
+
+@place_bp.get("/places/recent")
+@require_login("rider")
+@spec.validate(resp=Response(HTTP_200=PlaceListDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto), tags=_TAGS)
+def recent_places():
+    """The last places of the rider's own rides (3 at most, the most recent first), signed like a search result.
+
+    Empty for a rider who has never booked. Does not count as an address search.
+    """
+    recent = place_service.recent_places(current_user_id())
+    places = [place_to_dto(place) for place in recent]
+    return jsonify(PlaceListDto(items=places).to_json()), 200

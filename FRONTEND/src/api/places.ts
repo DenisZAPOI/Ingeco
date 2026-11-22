@@ -8,6 +8,11 @@ export async function fetchCommunes(): Promise<Commune[]> {
   return (await request<components['schemas']['CommuneListDto']>('GET', '/communes')).items;
 }
 
+/** The last places of the rider's own rides, to book the same trip again in one tap. */
+export async function fetchRecentPlaces(): Promise<Place[]> {
+  return (await request<components['schemas']['PlaceListDto']>('GET', '/places/recent')).items;
+}
+
 export async function searchPlaces(search: string, communeId: number): Promise<Place[]> {
   const query = new URLSearchParams({ search, communeId: String(communeId) });
   return (await request<components['schemas']['PlaceListDto']>('GET', `/places?${query}`)).items;

@@ -1317,6 +1317,12 @@ a:hover {
   font-weight: var(--font-weight-title);
 }
 
+/* The trip number, after the date: to give on the phone, not to read first. */
+.ride-card-number {
+  font-weight: normal;
+  color: var(--color-muted);
+}
+
 .ride-card-to,
 .ride-card-status {
   color: var(--color-muted);
