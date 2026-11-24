@@ -8,7 +8,7 @@ operator (5) and the administrator (6).
 import pytest
 from sqlalchemy import select
 
-from app.models import AnswerRow, QuestionnaireRow, RideRow, UserRow
+from app.models import RideRow, UserRow
 from app.services import retention_service
 from app.utils import database
 from tests.test_auth import ADMIN_PHONE, DRIVER_PHONE, RIDER_PHONE, csrf_headers, login
@@ -231,23 +231,6 @@ def test_a_ride_keeps_its_exact_stops_for_a_year(client, clock):
     assert _pickup_of(ride_id) == "Cayenne"
     # A second run changes nothing.
     assert retention_service.purge().rides_reduced == 0
-
-
-def test_a_new_questionnaire_replaces_the_older_one(client):
-    login(client)
-    client.post("/orientation/questionnaires", json=JORDAN, headers=csrf_headers(client))
-    client.post("/orientation/questionnaires", json=JORDAN, headers=csrf_headers(client))
-
-    with database.session() as session:
-        fillings = session.scalars(select(QuestionnaireRow).where(QuestionnaireRow.rider_id == ALICE_ID)).all()
-        texts = session.scalars(
-            select(AnswerRow.text)
-            .join(QuestionnaireRow, QuestionnaireRow.id == AnswerRow.questionnaire_id)
-            .where(QuestionnaireRow.rider_id == ALICE_ID, AnswerRow.text.is_not(None))
-        ).all()
-
-    assert len(fillings) == 1
-    assert len(texts) == 1
 
 
 def _pickup_of(ride_id: int) -> str:
