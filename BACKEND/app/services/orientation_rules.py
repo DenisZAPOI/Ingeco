@@ -47,7 +47,10 @@ Need = Literal[
     "equipement",
     "aucun",
 ]
-SpokenLanguage = Literal["fr", "gcr", "ht", "pt", "es", "en", "nenge", "autre"]
+# "Êtes-vous à l'aise en français ?" The languages spoken are not asked: only
+# French counts for the plan, and the others hint at an origin (cahier des
+# charges §12, audit RGPD R6).
+FrenchLevel = Literal["oui", "un_peu", "non"]
 DigitalEquipment = Literal["smartphone", "ordinateur", "internet_maison", "email", "rien"]
 StepCode = Literal[
     "offres",
@@ -71,7 +74,7 @@ PROJECTS: tuple[str, ...] = get_args(Project)
 EXPERIENCES: tuple[str, ...] = get_args(Experience)
 AVAILABILITIES: tuple[str, ...] = get_args(Availability)
 NEEDS: tuple[str, ...] = get_args(Need)
-LANGUAGES: tuple[str, ...] = get_args(SpokenLanguage)
+FRENCH_LEVELS: tuple[str, ...] = get_args(FrenchLevel)
 EQUIPMENT: tuple[str, ...] = get_args(DigitalEquipment)
 STEP_CODES: tuple[str, ...] = get_args(StepCode)
 
@@ -86,7 +89,7 @@ Q_PROJECT = "projet"
 Q_EXPERIENCES = "experiences"
 Q_AVAILABILITY = "disponibilites"
 Q_NEEDS = "besoins"
-Q_LANGUAGES = "langues"
+Q_FRENCH = "francais"
 Q_EQUIPMENT = "equipement_numerique"
 # The free text of the experiences is stored as this answer of Q_EXPERIENCES:
 # the primary key needs an answer code, and the text has no code of its own.
@@ -118,7 +121,8 @@ _PROJECT_STEPS = {
 # Needs that lead to a ride; the others each lead to their own step, in this order.
 _RIDE_NEEDS = ("trajet", "vehicule_adapte")
 _NEEDS_WITH_A_STEP = ("garde", "logement", "demarches", "numerique", "francais", "equipement")
-_FRENCH = "fr"
+# Not at ease in French: French lessons are proposed.
+_FRENCH_LESSONS_LEVELS = ("un_peu", "non")
 _CONNECTED_DEVICES = ("smartphone", "ordinateur")
 # Useful to anyone, never a decision about the person: they fill a plan up to 3 steps.
 # The offers come last: the questionnaire starts from « Je cherche un travail »,
@@ -137,7 +141,7 @@ class Answers:
     experience_text: str | None = None
     availability: tuple[str, ...] = ()
     needs: tuple[str, ...] = ()
-    languages: tuple[str, ...] = ()
+    french: str | None = None
     digital_equipment: tuple[str, ...] = ()
 
 
@@ -185,10 +189,9 @@ def _first_step(answers: Answers) -> str | None:
 
 
 def _needs_french_lessons(answers: Answers) -> bool:
-    """French not among the languages spoken: French lessons, even unasked."""
+    """Not at ease in French: French lessons, even unasked."""
     already_asked = "francais" in answers.needs
-    speaks_french = _FRENCH in answers.languages
-    return not already_asked and bool(answers.languages) and not speaks_french
+    return not already_asked and answers.french in _FRENCH_LESSONS_LEVELS
 
 
 def _needs_internet_access(answers: Answers) -> bool:
@@ -210,7 +213,8 @@ def to_rows(answers: Answers) -> list[tuple[str, str, str | None]]:
         rows.append((Q_EXPERIENCES, FREE_EXPERIENCE, answers.experience_text))
     rows += [(Q_AVAILABILITY, code, None) for code in answers.availability]
     rows += [(Q_NEEDS, code, None) for code in answers.needs]
-    rows += [(Q_LANGUAGES, code, None) for code in answers.languages]
+    if answers.french:
+        rows.append((Q_FRENCH, answers.french, None))
     rows += [(Q_EQUIPMENT, code, None) for code in answers.digital_equipment]
     return rows
 
@@ -240,6 +244,6 @@ def from_rows(rows: list[tuple[str, str, str | None]]) -> Answers:
         experience_text=text,
         availability=ordered(Q_AVAILABILITY, AVAILABILITIES),
         needs=ordered(Q_NEEDS, NEEDS),
-        languages=ordered(Q_LANGUAGES, LANGUAGES),
+        french=single(Q_FRENCH),
         digital_equipment=ordered(Q_EQUIPMENT, EQUIPMENT),
     )

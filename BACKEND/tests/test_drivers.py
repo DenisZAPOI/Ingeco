@@ -12,10 +12,11 @@ from datetime import timedelta
 import pytest
 
 from app.repository import user_repository
+from app.repository.place_repository import straight_distance_km
 from app.services import ride_rules
 from app.utils import database
 from tests.test_auth import DRIVER_PHONE, RIDER_PHONE, csrf_headers, login
-from tests.test_rides import CAYENNE_TOWN_HALL, OPERATOR_PHONE, OTHER_RIDER_PHONE, book, booking, pay
+from tests.test_rides import CAYENNE_TOWN_HALL, MATOURY_TOWN_HALL, OPERATOR_PHONE, OTHER_RIDER_PHONE, book, booking, pay
 
 SECOND_DRIVER_PHONE = "0694 00 00 09"
 INES_ID = 9
@@ -177,8 +178,8 @@ def test_an_offer_hides_the_rider(client):
 
 
 def test_an_offer_hides_the_purpose_of_the_ride(client):
-    # "health" with an address tells about the rider's health (RGPD art. 9).
-    ride_id = waiting_ride(client, purpose="health")
+    # A purpose with an address may tell about the rider's life (audit RGPD R1).
+    ride_id = waiting_ride(client, purpose="training")
     go_online(client)
 
     offered = offers(client).get_json()["items"][0]["ride"]
@@ -188,32 +189,93 @@ def test_an_offer_hides_the_purpose_of_the_ride(client):
     assert detail["purpose"] is None
 
 
-def test_the_driver_sees_the_purpose_once_the_ride_is_theirs(client):
-    ride_id = waiting_ride(client, purpose="health")
+def test_the_driver_never_sees_the_purpose_even_on_their_ride(client):
+    ride_id = waiting_ride(client, purpose="training")
     go_online(client)
 
     accepted = act(client, ride_id, "accept").get_json()
 
-    assert accepted["purpose"] == "health"
-    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+    assert accepted["purpose"] is None
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] is None
 
 
-def test_a_released_ride_hides_its_purpose_again(client):
-    ride_id = waiting_ride(client, purpose="health")
+def test_the_rider_and_the_staff_always_see_the_purpose(client):
+    ride_id = waiting_ride(client, purpose="training")
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "training"
+
+    login(client, phone=OPERATOR_PHONE)
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "training"
+
+
+# --- Exact addresses (audit RGPD R5) ------------------------------------------
+
+def test_an_offer_shows_only_the_communes(client):
+    ride_id = waiting_ride(client)
+    go_online(client)
+    send_position(client)
+
+    offer = offers(client).get_json()["items"][0]
+    detail = client.get(f"/rides/{ride_id}").get_json()
+
+    for ride in (offer["ride"], detail):
+        assert ride["exactStopsHidden"] is True
+        assert ride["pickup"]["address"] == "Cayenne"
+        assert ride["dropoff"]["address"] == "Matoury"
+        assert ride["pickup"]["lat"] == round(CAYENNE_TOWN_HALL["lat"], ride_rules.COMMUNE_ONLY_DECIMALS)
+        assert ride["pickup"]["token"] is None
+    # Measured from the exact pickup, not from the rounded one.
+    exact = straight_distance_km(NEAR_CAYENNE["lat"], NEAR_CAYENNE["lng"], CAYENNE_TOWN_HALL["lat"], CAYENNE_TOWN_HALL["lng"])
+    assert offer["distanceToPickupKm"] == round(exact, 1)
+
+
+def test_the_driver_sees_the_exact_addresses_while_the_ride_is_theirs(client):
+    ride_id = waiting_ride(client)
+    go_online(client)
+
+    accepted = act(client, ride_id, "accept").get_json()
+
+    assert accepted["exactStopsHidden"] is False
+    assert accepted["pickup"]["address"] == CAYENNE_TOWN_HALL["address"]
+    assert accepted["dropoff"]["lat"] == MATOURY_TOWN_HALL["lat"]
+
+
+def test_a_finished_ride_shows_the_driver_only_the_communes(client):
+    ride_id = waiting_ride(client)
+    go_online(client)
+    act(client, ride_id, "accept")
+    act(client, ride_id, "start")
+
+    completed = act(client, ride_id, "complete").get_json()
+    past = client.get("/rides", query_string={"when": "past"}).get_json()["items"]
+
+    assert completed["exactStopsHidden"] is True
+    assert completed["pickup"]["address"] == "Cayenne"
+    assert all(ride["exactStopsHidden"] for ride in past)
+
+
+def test_a_released_ride_hides_the_exact_addresses_again(client):
+    ride_id = waiting_ride(client)
     go_online(client)
     act(client, ride_id, "accept")
 
     released = act(client, ride_id, "release").get_json()
 
-    assert released["purpose"] is None
+    assert released["exactStopsHidden"] is True
 
 
-def test_the_rider_and_the_staff_always_see_the_purpose(client):
-    ride_id = waiting_ride(client, purpose="health")
-    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+def test_the_rider_always_sees_the_exact_addresses(client):
+    ride_id = waiting_ride(client)
+    go_online(client)
+    act(client, ride_id, "accept")
+    act(client, ride_id, "start")
+    act(client, ride_id, "complete")
 
-    login(client, phone=OPERATOR_PHONE)
-    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+    login(client)
+    ride = client.get(f"/rides/{ride_id}").get_json()
+
+    assert ride["exactStopsHidden"] is False
+    assert ride["pickup"]["address"] == CAYENNE_TOWN_HALL["address"]
+    assert ride["pickup"]["token"] is not None
 
 
 def test_a_ride_not_paid_or_past_its_time_is_not_offered(client, clock):

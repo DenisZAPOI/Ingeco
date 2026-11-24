@@ -35,6 +35,14 @@ def find_by_id(session: Session, commune_id: int) -> Commune | None:
     return _to_commune(row) if row else None
 
 
+def names_by_ids(session: Session, commune_ids: set[int]) -> dict[int, str]:
+    """The name of each commune, by id."""
+    if not commune_ids:
+        return {}
+    rows = session.execute(select(CommuneRow.id, CommuneRow.name).where(CommuneRow.id.in_(commune_ids)))
+    return {commune_id: name for commune_id, name in rows}
+
+
 def set_served(session: Session, served_ids: set[int]) -> None:
     """These communes receive rides, the others no longer do.
 

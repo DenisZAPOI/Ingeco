@@ -28,13 +28,16 @@ export function OfferList({ type }: { type: OfferType }) {
       {items.length === 0 ? (
         <p>{emptyMessage(type)}</p>
       ) : (
-        <ul className="ride-list">
-          {items.map((offer) => (
-            <li key={offer.ride.id}>
-              <OfferCard offer={offer} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="note">{t('driver.communesUntilAccepted')}</p>
+          <ul className="ride-list">
+            {items.map((offer) => (
+              <li key={offer.ride.id}>
+                <OfferCard offer={offer} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <button type="button" className="button button-block button-secondary" onClick={offers.retry}>
         {t('driver.refresh')}

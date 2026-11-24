@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { fetchSession, logout as logoutRequest, type User } from '../api/auth';
 import { ApiError, onSessionExpired } from '../api/client';
+import { saveBookingDraft } from '../lib/bookingDraft';
 import { errorMessage } from '../lib/errorMessage';
+import { saveDraft } from '../lib/orientation';
 import { readSessionHint, saveSessionHint, type SessionHint } from '../lib/sessionHint';
 import { SessionContext, type Session, type SessionStatus } from './sessionContext';
 
@@ -75,6 +77,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // account must stay visible, or it would come back at the next opening
     // while the user (on a shared phone) thinks they are logged out.
     await logoutRequest();
+    // A shared phone: the next person must not find the addresses, purpose
+    // or answers being typed (audit RGPD R7). Only at logout: a visitor's
+    // answers must survive their login ("Garder mon plan").
+    saveBookingDraft(null);
+    saveDraft(null);
     setUser(null);
   }, [setUser]);
 

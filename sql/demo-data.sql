@@ -126,7 +126,7 @@ INSERT INTO course (
  @course_1 + INTERVAL 2 MINUTE, @course_1 + INTERVAL 10 MINUTE, @course_1 + INTERVAL 35 MINUTE,
  NULL, NULL, NULL),
 -- 2. Programmée, réservée par téléphone (Emma), payée, en attente d'un chauffeur
-(2, '00000000-0000-4000-8000-000000000002', 2, NULL, 5, 'telephone', 'en_attente', 'sante',
+(2, '00000000-0000-4000-8000-000000000002', 2, NULL, 5, 'telephone', 'en_attente', 'autre',
  '2 rue Fictive, Matoury', 4.847000, -52.331000, 3,
  'Centre de santé fictif, Cayenne', 4.935000, -52.330000, 1,
  @prevue_2, TRUE, 11.40, 1, 1712,
@@ -154,7 +154,7 @@ INSERT INTO course (
  'rembourse', @course_5 + INTERVAL 15 MINUTE, @course_5, @course_5, NULL, NULL, NULL,
  @course_5 + INTERVAL 5 MINUTE, NULL, 1),
 -- 6. Terminée, pas encore évaluée
-(6, '00000000-0000-4000-8000-000000000006', 1, 3, 1, 'application', 'terminee', 'sante',
+(6, '00000000-0000-4000-8000-000000000006', 1, 3, 1, 'application', 'terminee', 'emploi',
  'Mairie de Cayenne', 4.937200, -52.326000, 1,
  'Mairie de Matoury', 4.847000, -52.331000, 3,
  NULL, FALSE, 13.10, 1, 1848,

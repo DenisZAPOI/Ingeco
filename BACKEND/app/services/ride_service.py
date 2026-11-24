@@ -18,7 +18,13 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from ..repository import ride_repository, service_hours_repository, tariff_repository, user_repository
+from ..repository import (
+    commune_repository,
+    ride_repository,
+    service_hours_repository,
+    tariff_repository,
+    user_repository,
+)
 from ..repository.place_repository import PlacesUnavailable, road_distance_km
 from ..repository.ride_repository import (
     AlreadyRated,
@@ -243,9 +249,12 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
     rider's first name and phone, only while the ride is under way: never on
     an offer.
 
-    The purpose is hidden from a driver until the ride is theirs: "health"
-    with an address tells about the rider's health (RGPD art. 9, cahier des
-    charges §7.4 and §12), and every available driver sees the offers.
+    A driver never sees the purpose: it does not help to drive, and with an
+    address it may tell about the rider's life (audit RGPD R1). They see the
+    exact addresses only on their own ride while it is under way; on an offer
+    and once the ride is over, only the communes (audit RGPD R5): every
+    available driver sees the offers, and a driver's history would otherwise
+    keep the homes of all their past riders.
     """
     driver_ids = {ride.driver_id for ride in rides if ride.driver_id is not None}
     rider_ids = {ride.rider_id for ride in rides}
@@ -257,11 +266,11 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
         caller_is_rider = user_id == ride.rider_id
         caller_is_driver = user_id == ride.driver_id
 
-        # CHANGER_SELON_DECISION (F10, docs/decisions.md): the
-        # client may say the driver needs it earlier, or never.
-        purpose_hidden = not (is_staff or caller_is_rider or caller_is_driver)
-        if purpose_hidden:
+        sees_why = is_staff or caller_is_rider
+        if not sees_why:
             ride.purpose = None
+        sees_exact_stops = sees_why or (caller_is_driver and under_way)
+        ride.exact_stops_hidden = not sees_exact_stops
 
         if ride.driver_id is not None and (is_staff or caller_is_rider):
             driver = people[ride.driver_id]
@@ -282,7 +291,27 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
         if is_staff or (under_way and caller_is_driver):
             rider = people[ride.rider_id]
             ride.rider = Contact(first_name=rider.first_name, phone=rider.phone)
+    _hide_exact_stops(session, [ride for ride in rides if ride.exact_stops_hidden])
     return rides
+
+
+def _hide_exact_stops(session: Session, rides: list[Ride]) -> None:
+    """Replaces each stop of `rides` by its commune: its name, and its
+    position rounded to about 1 km (enough for a distance)."""
+    commune_ids = {stop.commune_id for ride in rides for stop in (ride.pickup, ride.dropoff)}
+    names = commune_repository.names_by_ids(session, commune_ids)
+    for ride in rides:
+        ride.pickup = _commune_only(ride.pickup, names[ride.pickup.commune_id])
+        ride.dropoff = _commune_only(ride.dropoff, names[ride.dropoff.commune_id])
+
+
+def _commune_only(stop: Stop, commune_name: str) -> Stop:
+    return Stop(
+        address=commune_name,
+        lat=round(stop.lat, ride_rules.COMMUNE_ONLY_DECIMALS),
+        lng=round(stop.lng, ride_rules.COMMUNE_ONLY_DECIMALS),
+        commune_id=stop.commune_id,
+    )
 
 
 def _may_see(session: Session, ride: Ride, user_id: int, role: str) -> bool:

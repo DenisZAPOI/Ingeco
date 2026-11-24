@@ -28,7 +28,7 @@ JORDAN = {
     "experienceText": "J'aide mon oncle à l'abattis le week-end",
     "availability": ["matin", "apres_midi"],
     "needs": ["trajet"],
-    "languages": ["fr", "gcr"],
+    "french": "oui",
     "digitalEquipment": ["smartphone"],
 }
 
@@ -45,7 +45,7 @@ def mark(client, position, done=True):
 
 
 def test_jordans_plan_offers_jobs_then_a_ride_then_a_human():
-    plan = build_plan(Answers(situation="sans_emploi", project="travail_vite", needs=("trajet",), languages=("fr",)))
+    plan = build_plan(Answers(situation="sans_emploi", project="travail_vite", needs=("trajet",), french="oui"))
 
     assert plan == ["offres", "trajet", "entretien"]
 
@@ -72,11 +72,21 @@ def test_an_adapted_vehicle_is_a_ride_step_once():
     assert build_plan(Answers(needs=("trajet", "vehicule_adapte"))).count("trajet") == 1
 
 
-def test_someone_who_does_not_speak_french_is_offered_french_lessons():
-    assert "francais_auto" in build_plan(Answers(languages=("ht",)))
-    assert "francais_auto" not in build_plan(Answers(languages=("ht", "fr")))
+def test_someone_not_at_ease_in_french_is_offered_french_lessons():
+    assert "francais_auto" in build_plan(Answers(french="non"))
+    assert "francais_auto" in build_plan(Answers(french="un_peu"))
+    assert "francais_auto" not in build_plan(Answers(french="oui"))
+    # Question skipped: nothing is assumed.
+    assert "francais_auto" not in build_plan(Answers())
     # Asked for already: not twice.
-    assert "francais_auto" not in build_plan(Answers(languages=("ht",), needs=("francais",)))
+    assert "francais_auto" not in build_plan(Answers(french="non", needs=("francais",)))
+
+
+def test_the_languages_spoken_are_not_accepted(client):
+    # They hint at an origin (cahier des charges §12, audit RGPD R6).
+    response = client.post("/orientation/plan", json=JORDAN | {"languages": ["ht"]})
+
+    assert response.status_code == 400
 
 
 def test_someone_without_a_connected_device_is_offered_internet_access():
@@ -98,7 +108,7 @@ def test_a_plan_never_has_more_than_five_steps():
 
 
 def test_every_step_produced_is_a_known_code():
-    plan = build_plan(Answers(project="creer", needs=("equipement",), languages=("es",), digital_equipment=("email",)))
+    plan = build_plan(Answers(project="creer", needs=("equipement",), french="non", digital_equipment=("email",)))
 
     assert set(plan) <= set(STEP_CODES)
 
@@ -111,7 +121,7 @@ def test_answers_survive_their_rows():
         experience_text="Je répare les scooters",
         availability=("soir",),
         needs=("garde",),
-        languages=("pt",),
+        french="un_peu",
         digital_equipment=("smartphone", "email"),
     )
 

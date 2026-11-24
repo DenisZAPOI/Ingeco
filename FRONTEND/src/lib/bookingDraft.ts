@@ -58,8 +58,12 @@ export function readBookingDraft(): BookingDraft {
   return EMPTY_DRAFT;
 }
 
-function signedOrNull(stop: Stop | null): Stop | null {
-  return stop && typeof stop.token === 'string' ? stop : null;
+/** A stop as a ride or the storage gives it, with a token if it has one. */
+type MaybeSignedStop = Omit<Stop, 'token'> & { token?: string | null };
+
+function signedOrNull(stop: MaybeSignedStop | null): Stop | null {
+  if (stop === null || typeof stop.token !== 'string') return null;
+  return { ...stop, token: stop.token };
 }
 
 export function saveBookingDraft(draft: BookingDraft | null): void {
@@ -77,7 +81,9 @@ export function saveBookingDraft(draft: BookingDraft | null): void {
 /** A new booking of the same trip (an expired one): same places and purpose,
  *  the time still to choose. A new request id: it is another booking. */
 export function draftFromRide(ride: Ride): BookingDraft {
-  return { ...EMPTY_DRAFT, pickup: ride.pickup, dropoff: ride.dropoff, purpose: ride.purpose };
+  // The rider always gets signed stops; a stop without its token (only a
+  // commune, audit RGPD R5) is chosen again.
+  return { ...EMPTY_DRAFT, pickup: signedOrNull(ride.pickup), dropoff: signedOrNull(ride.dropoff), purpose: ride.purpose };
 }
 
 /** "Comment y aller ?" on a job offer: the trip to the job, for work. Only

@@ -1043,8 +1043,11 @@ export interface components {
             experienceText: string | null;
             /** Experiences */
             experiences?: ("agriculture" | "peche" | "artisanat" | "garde_enfants" | "aide_personne" | "menage" | "batiment" | "cuisine" | "vente" | "benevolat" | "aucune")[];
-            /** Languages */
-            languages?: ("fr" | "gcr" | "ht" | "pt" | "es" | "en" | "nenge" | "autre")[];
+            /**
+             * French
+             * @default null
+             */
+            french: ("oui" | "un_peu" | "non") | null;
             /** Needs */
             needs?: ("trajet" | "vehicule_adapte" | "garde" | "logement" | "demarches" | "numerique" | "francais" | "equipement" | "aucun")[];
             /**
@@ -1084,7 +1087,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            purpose: "employment" | "training" | "administrative" | "other";
             /**
              * Scheduledat
              * @default null
@@ -1577,7 +1580,9 @@ export interface components {
             /** Distancekm */
             distanceKm: number;
             driver: components["schemas"]["RideDriverDto"] | null;
-            dropoff: components["schemas"]["StopDto"];
+            dropoff: components["schemas"]["RideStopDto"];
+            /** Exactstopshidden */
+            exactStopsHidden: boolean;
             /** Expiredat */
             expiredAt: string | null;
             /**
@@ -1596,11 +1601,11 @@ export interface components {
              * @enum {string}
              */
             paymentStatus: "not_required" | "pending" | "paid" | "refunded";
-            pickup: components["schemas"]["StopDto"];
+            pickup: components["schemas"]["RideStopDto"];
             /** Pricecents */
             priceCents: number;
             /** Purpose */
-            purpose: ("employment" | "training" | "health" | "administrative" | "other") | null;
+            purpose: ("employment" | "training" | "administrative" | "other") | null;
             rating: components["schemas"]["RatingDto"] | null;
             rider: components["schemas"]["RideRiderDto"] | null;
             /** Rideramountcents */
@@ -1647,6 +1652,23 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /**
+         * RideStopDto
+         * @description A stop of a ride: the exact place, or only its commune when the ride's
+         *     exactStopsHidden is true (audit RGPD R5).
+         */
+        RideStopDto: {
+            /** Address */
+            address: string;
+            /** Communeid */
+            communeId: number;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Token */
+            token: string | null;
+        };
         /** RideVehicleDto */
         RideVehicleDto: {
             /** Isaccessible */
@@ -1677,7 +1699,10 @@ export interface components {
             /** Token */
             token: string;
         };
-        /** StopDto */
+        /**
+         * StopDto
+         * @description An exact place: a job offer's, a help service's, or a ride's when shown in full.
+         */
         StopDto: {
             /** Address */
             address: string;

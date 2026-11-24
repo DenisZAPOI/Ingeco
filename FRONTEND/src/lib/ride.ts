@@ -5,7 +5,8 @@ import { guyanaDateTime } from './format';
 // Words of the rider (charter, part 7): "trajet", never "course".
 
 /** In the order of the choices on screen. */
-export const PURPOSES: readonly Purpose[] = ['employment', 'training', 'health', 'administrative', 'other'];
+// No "health": a trip to care, tied to a person, is a health data (RGPD art. 9, audit R1).
+export const PURPOSES: readonly Purpose[] = ['employment', 'training', 'administrative', 'other'];
 
 export function purposeLabel(purpose: Purpose): string {
   return t(`ride.purposes.${purpose}`);

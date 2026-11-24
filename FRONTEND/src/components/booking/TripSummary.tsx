@@ -6,7 +6,7 @@ import { purposeLabel } from '../../lib/ride';
 type TripSummaryProps = {
   pickup: string;
   dropoff: string;
-  /** null: hidden from a driver until they accept the ride (RGPD art. 9). */
+  /** null: never shown to a driver (audit RGPD R1). */
   purpose: Purpose | null;
   /** ISO date the trip leaves (scheduled, or past); null to leave as soon as possible. */
   scheduledAt: string | null;
