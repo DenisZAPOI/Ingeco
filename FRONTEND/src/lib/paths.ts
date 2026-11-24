@@ -12,6 +12,11 @@ export function returnPathFromState(state: unknown): string | null {
     : null;
 }
 export const PROFILE_PATH = '/profil';
+// The person's data (audit RGPD): what is kept and why (public), and their own data.
+export const PRIVACY_PATH = '/vos-donnees';
+export const MY_DATA_PATH = '/profil/mes-donnees';
+// Operator and administrator: callbacks to make, accounts to delete.
+export const STAFF_REQUESTS_PATH = '/demandes';
 export const ACTIVATION_PATH = '/activation';
 export const PASSWORD_RESET_PATH = '/mot-de-passe-oublie';
 

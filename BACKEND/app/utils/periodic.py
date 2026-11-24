@@ -18,12 +18,24 @@ from flask_socketio import SocketIO
 logger = logging.getLogger(__name__)
 
 
-def start(socketio: SocketIO, name: str, interval_seconds: int, task: Callable[[], object]) -> None:
-    """Runs `task` every `interval_seconds`, for as long as the process lives."""
+def start(
+    socketio: SocketIO,
+    name: str,
+    interval_seconds: int,
+    task: Callable[[], object],
+    first_delay_seconds: int | None = None,
+) -> None:
+    """Runs `task` every `interval_seconds`, for as long as the process lives.
+
+    The first run waits `first_delay_seconds` (by default, the interval): a
+    daily task must not wait a day after each restart of the API.
+    """
 
     def loop() -> None:
+        delay = interval_seconds if first_delay_seconds is None else first_delay_seconds
         while True:
-            socketio.sleep(interval_seconds)
+            socketio.sleep(delay)
+            delay = interval_seconds
             try:
                 task()
             except Exception:

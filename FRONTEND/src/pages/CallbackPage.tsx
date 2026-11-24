@@ -5,6 +5,7 @@ import { requestCallback } from '../api/support';
 import { Form } from '../components/form/Form';
 import { TextField } from '../components/form/TextField';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { PrivacyNote } from '../components/ui/PrivacyNote';
 import { useSession } from '../hooks/useSession';
 import { useSubmit } from '../hooks/useSubmit';
 import { t } from '../i18n';
@@ -65,6 +66,7 @@ export function CallbackPage() {
             <p className="note">{t('callback.notice')}</p>
           </Form>
         )}
+        <PrivacyNote />
         <div className="stack">{back}</div>
       </PageSheet>
     </section>

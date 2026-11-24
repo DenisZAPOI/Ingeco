@@ -17,8 +17,9 @@ from ..dtos.admin_dto import (
     activation_to_dto,
 )
 from ..dtos.base import ErrorDto
+from ..dtos.privacy_dto import DeletionRequestListDto, deletion_requests_to_dto
 from ..extensions import spec
-from ..services import admin_service
+from ..services import admin_service, deletion_service
 from ..services.admin_service import AccountChanges
 from ..utils.access import current_user_id, require_login
 
@@ -161,3 +162,31 @@ def new_activation_code(user_id: int):
     """
     activation = admin_service.new_activation_code(admin_id=current_user_id(), user_id=user_id)
     return jsonify(activation_to_dto(activation).to_json()), 201
+
+
+# --- Requests to delete an account (audit RGPD R3) --------------------------------
+
+@admin_bp.get("/deletion-requests")
+@require_login(_ADMIN)
+@spec.validate(resp=Response(HTTP_200=DeletionRequestListDto, HTTP_401=ErrorDto, HTTP_403=ErrorDto), tags=_TAGS)
+def list_deletion_requests():
+    """The requests to delete an account not handled yet, the oldest first."""
+    requests = deletion_service.list_requests()
+    return jsonify(deletion_requests_to_dto(requests).to_json()), 200
+
+
+@admin_bp.post("/users/<int:user_id>/anonymise")
+@require_login(_ADMIN)
+@spec.validate(
+    resp=Response(HTTP_204=None, HTTP_401=ErrorDto, HTTP_403=ErrorDto, HTTP_404=ErrorDto, HTTP_409=ErrorDto),
+    tags=_TAGS,
+)
+def anonymise_user(user_id: int):
+    """Handles the account's deletion request: names, contact, password, photo,
+    free texts and exact addresses go; the rides stay for the statistics.
+
+    409 without an open request, or while a driver holds one of its rides.
+    A rider's rides not taken yet are cancelled and refunded.
+    """
+    deletion_service.anonymise(admin_id=current_user_id(), user_id=user_id)
+    return "", 204

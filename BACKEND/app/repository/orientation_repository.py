@@ -2,8 +2,8 @@
 Orientation (module M1): tables questionnaire, reponse_questionnaire,
 plan_action and etape_plan of the DB team (migration 017, issue #50).
 
-Every filling is kept; the most recent one counts (index
-idx_questionnaire_usager). A step never names an offer nor a service here:
+Only the most recent filling is kept: a new one deletes the older ones and
+their plans (audit RGPD R4, minimisation). A step never names an offer nor a service here:
 the plan leads to lists the person filters herself, so id_offre and
 id_service stay NULL.
 """
@@ -11,7 +11,7 @@ id_service stay NULL.
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from ..models import ActionPlanRow, AnswerRow, PlanStepRow, QuestionnaireRow
@@ -40,7 +40,8 @@ def save(
     steps: list[str],
     now: datetime,
 ) -> int:
-    """Writes one filling and its plan; returns the id of the plan."""
+    """Writes one filling and its plan, in place of the older ones; returns the id of the plan."""
+    _delete_fillings_of(session, rider_id)
     questionnaire = QuestionnaireRow(rider_id=rider_id, filled_at=now)
     session.add(questionnaire)
     session.flush()
@@ -87,3 +88,21 @@ def set_step_done(session: Session, plan_id: int, position: int, done_at: dateti
         .where(PlanStepRow.plan_id == plan_id, PlanStepRow.position == position)
         .values(done_at=done_at)
     )
+
+
+def erase_texts_of(session: Session, rider_id: int) -> None:
+    """A deleted account: the free answers go, the codes stay for the statistics (migration 025)."""
+    of_rider = select(QuestionnaireRow.id).where(QuestionnaireRow.rider_id == rider_id)
+    session.execute(update(AnswerRow).where(AnswerRow.questionnaire_id.in_(of_rider)).values(text=None))
+
+
+def _delete_fillings_of(session: Session, rider_id: int) -> None:
+    """The rider's questionnaires, answers, plans and steps, children first (foreign keys)."""
+    questionnaire_ids = list(session.scalars(select(QuestionnaireRow.id).where(QuestionnaireRow.rider_id == rider_id)))
+    if not questionnaire_ids:
+        return
+    plan_ids = select(ActionPlanRow.id).where(ActionPlanRow.questionnaire_id.in_(questionnaire_ids))
+    session.execute(delete(PlanStepRow).where(PlanStepRow.plan_id.in_(plan_ids)))
+    session.execute(delete(ActionPlanRow).where(ActionPlanRow.questionnaire_id.in_(questionnaire_ids)))
+    session.execute(delete(AnswerRow).where(AnswerRow.questionnaire_id.in_(questionnaire_ids)))
+    session.execute(delete(QuestionnaireRow).where(QuestionnaireRow.id.in_(questionnaire_ids)))

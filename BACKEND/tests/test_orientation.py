@@ -191,7 +191,8 @@ def test_a_rider_finds_the_plan_again(client):
     assert response.get_json()["answers"]["needs"] == ["trajet"]
 
 
-def test_answering_again_keeps_the_earlier_filling_but_the_last_one_counts(client):
+def test_answering_again_replaces_the_earlier_filling(client):
+    # Minimisation (audit RGPD R4): only the last filling is kept.
     login(client)
     save(client)
     save(client, {"project": "formation"})
@@ -199,7 +200,7 @@ def test_answering_again_keeps_the_earlier_filling_but_the_last_one_counts(clien
     plan = client.get("/orientation/plan").get_json()
 
     assert plan["steps"][0]["code"] == "formation"
-    assert len(in_session(lambda session: session.scalars(select(QuestionnaireRow)).all())) == 2
+    assert len(in_session(lambda session: session.scalars(select(QuestionnaireRow)).all())) == 1
 
 
 def test_a_rider_ticks_a_step_and_ticking_again_keeps_its_date(client):

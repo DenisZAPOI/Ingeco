@@ -21,7 +21,12 @@ from sqlalchemy.orm import Session
 from ..models import DriverRow, RiderRow, UserRow, VehicleRow
 
 # The values of utilisateur.statut, in French in the rows (models/__init__.py).
-_STATUS_TO_ROW = {"active": "actif", "suspended": "suspendu"}
+# "deleted": anonymised at the person's request (migration 025, anonymise()).
+_STATUS_TO_ROW = {"active": "actif", "suspended": "suspendu", "deleted": "supprime"}
+_DELETED = "deleted"
+# Phone of a deleted account: +000 then its id on 9 digits (migration 025).
+_DELETED_PHONE_PREFIX = "+000"
+_DELETED_PHONE_DIGITS = 9
 _STATUS_FROM_ROW = {row: status for status, row in _STATUS_TO_ROW.items()}
 
 _RIDER = "rider"
@@ -197,7 +202,8 @@ def find_page(
     utf8mb4_unicode_ci collation ignores case and accents. `phone_prefix`:
     the start of the stored number. Filters served by idx_utilisateur_role.
     """
-    query = select(UserRow)
+    # A deleted account leaves the lists (migration 025): nothing left to manage.
+    query = select(UserRow).where(UserRow.status != _STATUS_TO_ROW[_DELETED])
     if role is not None:
         query = query.where(UserRow.role == role)
     if status is not None:
@@ -211,6 +217,40 @@ def find_page(
         query = query.where(tuple_(UserRow.created_at, UserRow.id) < tuple_(after.created_at, after.user_id))
     query = query.order_by(UserRow.created_at.desc(), UserRow.id.desc()).limit(limit)
     return _to_users(session, session.scalars(query).all())
+
+
+def anonymise(session: Session, user_id: int) -> None:
+    """The account keeps its id for the statistics of its rides, nothing else
+    (migration 025, decision of 03/11): names emptied, no e-mail, password nor
+    code, phone +000 then the id, sessions ended. A driver also loses their
+    photo and position, and goes offline."""
+    session.execute(
+        update(UserRow)
+        .where(UserRow.id == user_id)
+        .values(
+            status=_STATUS_TO_ROW[_DELETED],
+            first_name="",
+            last_name="",
+            email=None,
+            phone=f"{_DELETED_PHONE_PREFIX}{user_id:0{_DELETED_PHONE_DIGITS}d}",
+            password_hash=None,
+            activation_code_hash=None,
+            activation_code_expires_at=None,
+            session_version=UserRow.session_version + 1,
+        )
+    )
+    session.execute(
+        update(DriverRow)
+        .where(DriverRow.user_id == user_id)
+        .values(
+            photo=None,
+            photo_updated_at=None,
+            is_available=False,
+            last_lat=None,
+            last_lng=None,
+            last_location_at=None,
+        )
+    )
 
 
 def save_photo(session: Session, driver_id: int, image: bytes, at: datetime) -> None:

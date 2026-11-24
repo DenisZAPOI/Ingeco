@@ -7,6 +7,7 @@ import { CheckboxField } from '../components/form/CheckboxField';
 import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
+import { PrivacyNote } from '../components/ui/PrivacyNote';
 import { useAskRegistrationCode, useConfirmRegistration } from '../hooks/useAuthForms';
 import { t } from '../i18n';
 
@@ -76,6 +77,7 @@ export function RegisterPage() {
             error={errors.needsAccessibleVehicle}
           />
         </Form>
+        <PrivacyNote />
         <p className="note">
           {t('auth.hasAccount')} <Link to="/connexion">{t('auth.loginTitle')}</Link>
         </p>

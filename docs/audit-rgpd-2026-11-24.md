@@ -39,7 +39,14 @@ Tous les constats R1 à R7, R9 et R10 sont à corriger avant l'arrêt du code (3
 | R7 | Brouillons vidés à la déconnexion |
 | R9 | Lien `geo:` (application GPS choisie par le chauffeur sur Android), repli vers OpenStreetMap |
 
-Découpage : `fix/rgpd-minimisation` (R1, R5, R6, R7, R9), puis `feature/vos-donnees` (R2, R3, R4, R10).
+Découpage : `fix/rgpd-minimisation` (R1, R5, R6, R7, R9, PR #103), puis `feature/vos-donnees` (R2, R3, R4, R10).
+
+Choix de la deuxième PR (24/11) : partir de `fix/rgpd-minimisation` ; une seule page
+« Demandes » pour le personnel (rappels pour l'opérateur et l'administrateur, suppressions pour
+l'administrateur) ; à l'anonymisation, les trajets pas encore pris sont annulés et remboursés, un
+trajet accepté ou en cours la bloque ; la personne peut annuler sa demande tant qu'elle n'est
+pas traitée. Seuls l'usager et le chauffeur demandent eux-mêmes la suppression ; les comptes du
+personnel sont gérés par l'administrateur.
 
 ## Ce qui est déjà conforme
 
