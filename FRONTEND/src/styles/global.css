@@ -100,6 +100,12 @@
   /* Above the cards and fields that follow a drop-down list. */
   --z-dropdown: 10;
   --content-width: 40rem;
+  /* A list page on a large screen (offers, services, trips): cards side by side. */
+  --content-width-wide: 64rem;
+  /* The longest comfortable line of text, inside a wide sheet. */
+  --reading-width: 40rem;
+  /* The narrowest card of a list before it goes to a new line. */
+  --card-min-width: 18rem;
   --icon-size: 1.5rem;
   --icon-chip-size: 2.75rem;
   /* How far the sheet climbs over the green band. */
@@ -1857,4 +1863,64 @@ a:hover {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* --- List pages, wider on a large screen ---------------------------------------
+   Offers, help services, guides and trips: the sheet takes up to 64rem and the
+   cards sit side by side, so a large screen is not mostly empty. Forms and
+   detail pages keep the reading width (--content-width). */
+
+.hero-wide,
+.sheet-wide {
+  --content-width: var(--content-width-wide);
+}
+
+/* Sentences keep a comfortable length, even in a wide sheet. */
+.sheet-wide > p,
+.sheet-wide .tabs {
+  max-width: var(--reading-width);
+}
+
+@media (min-width: 48rem) {
+  .sheet-wide .ride-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
+  }
+
+  .sheet-wide .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--card-min-width), 1fr));
+    column-gap: var(--space-l);
+    align-items: end;
+  }
+
+  /* The title of the filters (a floated legend) and "Voir toutes les offres" on a line of their own. */
+  .sheet-wide .filters legend,
+  .sheet-wide .filters .link-button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Pages of a list ------------------------------------------------------------ */
+
+/* "Page 2 sur 4" on its own line, the two buttons below it, each in its half:
+   on the first or last page, the missing button keeps its place. */
+.pagination {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-s);
+  max-width: var(--reading-width);
+  margin: 0 auto var(--space-l);
+}
+
+.pagination-status {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: var(--font-weight-strong);
+  text-align: center;
+}
+
+.pagination .button:disabled {
+  visibility: hidden;
 }

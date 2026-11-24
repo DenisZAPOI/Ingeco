@@ -47,10 +47,10 @@ export function HelpServicesPage() {
 function NeedChoice() {
   return (
     <section>
-      <PageHero title={t('helpServices.title')}>
+      <PageHero title={t('helpServices.title')} wide>
         <p className="hero-lead">{t('helpServices.lead')}</p>
       </PageHero>
-      <PageSheet>
+      <PageSheet wide>
         <nav aria-label={t('helpServices.needsLabel')}>
           <ul className="category-grid">
             {HELP_CATEGORIES.map((category) => (
@@ -95,10 +95,10 @@ function ServicesOfNeed({ category, filters, onChange }: ServicesOfNeedProps) {
 
   return (
     <section>
-      <PageHero title={categoryLabel(category)} eyebrow={t('helpServices.title')}>
+      <PageHero title={categoryLabel(category)} eyebrow={t('helpServices.title')} wide>
         <p className="hero-lead">{t(`helpServices.categories.${category}.hint`)}</p>
       </PageHero>
-      <PageSheet>
+      <PageSheet wide>
         <RequestState loading={services.loading && !services.data} error={services.error} onRetry={services.retry}>
           {ofNeed.length > 1 && (
             <SelectField

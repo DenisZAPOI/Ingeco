@@ -26,8 +26,8 @@ export function DriverRidesPage() {
 
   return (
     <section>
-      <PageHero title={t('driver.rides')} />
-      <PageSheet>
+      <PageHero title={t('driver.rides')} wide />
+      <PageSheet wide>
         <div className="tabs" role="tablist" aria-label={t('driver.rides')}>
           {TABS.map((entry) => (
             <button

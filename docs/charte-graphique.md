@@ -185,6 +185,16 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
   liens secondaires.
 - Sur ordinateur, l'en-tête et le titre occupent toute la largeur (à droite de la navigation
   s'il y en a une) ; leur contenu et la feuille restent alignés sur 720 px au centre.
+- **Pages de liste** (offres, services d'aide, fiches, mes trajets, courses du chauffeur) :
+  `PageHero wide` et `PageSheet wide`. Sur grand écran, la feuille va jusqu'à 1 152 px
+  (`--content-width-wide`) et les cartes se rangent côte à côte (2 ou 3 colonnes, 324 px au moins
+  chacune, `--card-min-width`), les filtres aussi. Les phrases restent à 720 px au plus
+  (`--reading-width`). Formulaires et pages de détail gardent la largeur de lecture.
+- **Pagination** (`Pagination`, `lib/pagination.ts`) : une liste déjà chargée sur le téléphone
+  (offres d'emploi) se découpe en pages de 10, sans appel au serveur. « Page 2 sur 4 » sur une
+  ligne, puis « Précédente » et « Suivante » côte à côte ; la page est dans l'adresse
+  (`?page=2`) et un nouveau filtre ramène à la première. Changer de page remonte en haut de la
+  liste.
 - Jamais de défilement horizontal. Vérifier chaque écran à 360 px de large.
 
 ---

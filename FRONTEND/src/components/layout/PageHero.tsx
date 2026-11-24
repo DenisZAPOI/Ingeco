@@ -8,13 +8,15 @@ type PageHeroProps = {
   children?: ReactNode;
   /** Language of the title when it is a content, not an interface text. */
   lang?: string;
+  /** A list page: wider on a large screen, like its <PageSheet wide>. */
+  wide?: boolean;
 };
 
 /** The title at the top of every screen, on the page color, under the
  *  header. The page content follows in a <PageSheet>. */
-export function PageHero({ title, eyebrow, children, lang }: PageHeroProps) {
+export function PageHero({ title, eyebrow, children, lang, wide = false }: PageHeroProps) {
   return (
-    <div className="hero">
+    <div className={wide ? 'hero hero-wide' : 'hero'}>
       <RoadMotif />
       {eyebrow && <p className="hero-eyebrow">{eyebrow}</p>}
       <h1 className="hero-title" lang={lang}>
@@ -25,9 +27,16 @@ export function PageHero({ title, eyebrow, children, lang }: PageHeroProps) {
   );
 }
 
+type PageSheetProps = {
+  children: ReactNode;
+  /** A list page (offers, services, trips): wider on a large screen, its
+   *  cards side by side. Forms and detail pages keep the reading width. */
+  wide?: boolean;
+};
+
 /** The white sheet holding the content of a screen. */
-export function PageSheet({ children }: { children: ReactNode }) {
-  return <div className="sheet">{children}</div>;
+export function PageSheet({ children, wide = false }: PageSheetProps) {
+  return <div className={wide ? 'sheet sheet-wide' : 'sheet'}>{children}</div>;
 }
 
 /** The road of the logo, large and faint: decoration only, inline (no file to download). */

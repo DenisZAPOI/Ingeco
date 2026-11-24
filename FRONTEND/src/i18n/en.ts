@@ -111,6 +111,12 @@ export const en: Texts = {
     driverRides: 'Rides',
     earnings: 'Earnings',
   },
+  pagination: {
+    label: 'Pages',
+    previous: 'Previous',
+    next: 'Next',
+    status: 'Page {page} of {total}',
+  },
   needs: {
     label: 'Your needs',
     work: "I'm looking for a job",

@@ -110,6 +110,12 @@ export const ptBR: Texts = {
     driverRides: 'Corridas',
     earnings: 'Ganhos',
   },
+  pagination: {
+    label: 'Páginas',
+    previous: 'Anterior',
+    next: 'Próxima',
+    status: 'Página {page} de {total}',
+  },
   needs: {
     label: 'Suas necessidades',
     work: 'Procuro um emprego',

@@ -114,6 +114,12 @@ export const fr = {
     driverRides: 'Courses',
     earnings: 'Revenus',
   },
+  pagination: {
+    label: 'Pages',
+    previous: 'Précédente',
+    next: 'Suivante',
+    status: 'Page {page} sur {total}',
+  },
   needs: {
     label: 'Vos besoins',
     work: 'Je cherche un travail',

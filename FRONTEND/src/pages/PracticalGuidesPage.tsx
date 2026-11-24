@@ -13,10 +13,10 @@ export function PracticalGuidesPage() {
 
   return (
     <section>
-      <PageHero title={t('guides.title')}>
+      <PageHero title={t('guides.title')} wide>
         <p className="hero-lead">{t('guides.lead')}</p>
       </PageHero>
-      <PageSheet>
+      <PageSheet wide>
         <RequestState loading={guides.loading && !guides.data} error={guides.error} onRetry={guides.retry}>
           <GuideList guides={guides.data ?? []} />
         </RequestState>

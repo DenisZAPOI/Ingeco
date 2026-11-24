@@ -25,8 +25,8 @@ export function RidesPage() {
 
   return (
     <section>
-      <PageHero title={t('rides.title')} />
-      <PageSheet>
+      <PageHero title={t('rides.title')} wide />
+      <PageSheet wide>
         <div className="tabs" role="tablist" aria-label={t('rides.title')}>
           <Tab label={t('rides.upcoming')} selected={!showPast} onSelect={() => show(false)} />
           <Tab label={t('rides.past')} selected={showPast} onSelect={() => show(true)} />
