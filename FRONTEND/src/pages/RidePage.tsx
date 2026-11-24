@@ -6,6 +6,7 @@ import { TripSummary } from '../components/booking/TripSummary';
 import { CancelRide } from '../components/rides/CancelRide';
 import { DriverCard } from '../components/rides/DriverCard';
 import { RatingForm, RatingSummary } from '../components/rides/RatingForm';
+import { RideProgress } from '../components/rides/RideProgress';
 import { RequestState } from '../components/ui/RequestState';
 import { CarIcon } from '../components/ui/icons';
 import { useRideUpdates } from '../hooks/useRealtime';
@@ -66,6 +67,7 @@ function RideStatus({ ride, onRefresh, onChange }: RideStatusProps) {
         </span>
         {statusHeadline(ride.status)}
       </p>
+      <RideProgress status={ride.status} />
       {canStillPay(ride) && (
         <Link to={paymentPath(ride.id)} state={{ ride }} className="button button-block">
           {t('ride.pay', { amount: formatPrice(ride.riderAmountCents) })}

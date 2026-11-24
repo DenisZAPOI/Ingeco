@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { HomeIllustration } from '../components/home/HomeIllustration';
 import { NeedCards } from '../components/home/NeedCards';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { CarIcon, TicketIcon, WheelchairIcon } from '../components/ui/icons';
@@ -18,7 +17,7 @@ const BENEFITS = [
 export function WelcomePage() {
   return (
     <section>
-      <PageHero title={t('welcome.title')} art={<HomeIllustration />}>
+      <PageHero title={t('welcome.title')}>
         <p className="hero-lead">{t('welcome.lead')}</p>
       </PageHero>
       <PageSheet>

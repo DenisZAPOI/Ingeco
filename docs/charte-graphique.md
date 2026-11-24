@@ -33,9 +33,9 @@ un réseau faible. Chaque choix en découle.
 2. **Gros, lisible, contrasté.** Texte de base à 18 px, cibles tactiles de 58 px de haut, contrastes
    bien au-dessus du minimum légal.
 3. **Des mots simples.** Le texte dit ce qui se passe et quoi faire, sans jargon.
-4. **Léger.** Police du téléphone, aucune image lourde, aucune bibliothèque d'interface. La
-   profondeur vient des formes, des ombres douces et d'un motif SVG intégré : quelques centaines
-   d'octets de CSS, rien à télécharger en plus.
+4. **Léger.** Une seule police web de 18 Ko jamais attendue, aucune image lourde, aucune
+   bibliothèque d'interface. La profondeur vient des formes, des ombres douces et de dessins SVG
+   intégrés : quelques centaines d'octets chacun, rien à télécharger en plus.
 5. **Pareil partout.** Un bouton, un champ, un message d'erreur ont toujours la même forme et la
    même place.
 
@@ -55,25 +55,29 @@ s'y ajoute pour le troisième besoin de l'accueil, « J'ai besoin d'aide » (ent
 | `--color-primary-hover` | `#08452c` | Survol du vert | 11,06:1 sur blanc |
 | `--color-primary-soft` | `#e3efe9` | Fond léger vert (survol du bouton secondaire, message de réussite) | Texte vert dessus : 6,73:1 |
 | `--color-on-primary` | `#ffffff` | Texte et bordures posés sur le vert | 7,95:1 |
-| `--color-on-primary-muted` | `#cfe3da` | Texte secondaire sur le bandeau vert (« Étape 2 sur 4 », phrase d'introduction) | 5,92:1 sur le vert |
-| `--color-accent` | `#f2b705` | Anneau de focus sur le vert, barre de progression, trait du motif | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
+| `--color-on-primary-muted` | `#cfe3da` | Texte secondaire sur le vert (explication d'une carte d'action principale) | 5,92:1 sur le vert |
+| `--color-accent` | `#f2b705` | Trait du motif, éléments des dessins | **Jamais sur fond blanc** (1,82:1) ; 4,37:1 sur le vert ; texte foncé dessus : 9,57:1 |
 | `--color-accent-soft` | `#fdf1c7` | Pastille « soleil » derrière une icône (action principale, état d'un trajet) | |
 | `--color-on-accent-soft` | `#6b4f00` | Icône ou texte sur `accent-soft` | 6,77:1 |
 | `--color-help` | `#1d5f99` | Bordure de la carte « J'ai besoin d'aide » au survol | 6,67:1 sur blanc |
 | `--color-help-soft` | `#e1edf8` | Fond de la carte « J'ai besoin d'aide » | Texte gris dessus : 6,27:1 |
 | `--color-on-help-soft` | `#124a7a` | Icône sur `help-soft` | 7,73:1 |
-| `--color-art-coral`, `--color-art-sky` | `#f4a07f`, `#9fcbef` | **Seulement dans l'illustration de l'accueil**, sur le vert : décor, jamais de texte | |
+| `--color-work-tile`, `--color-on-work-tile` | `#d9ecdf`, `#0a3d27` | Tuile « Je cherche un travail » de l'accueil, et pastille de la page courante dans la navigation | Texte : 9,95:1 ; vert `primary` dessus : 6,44:1 |
+| `--color-ride-tile`, `--color-on-ride-tile` | `#fbe8a6`, `#3d2d00` | Tuile « J'ai besoin d'un trajet » | Texte : 10,93:1 |
+| `--color-help-tile`, `--color-on-help-tile` | `#dbe8f5`, `#0f3d63` | Tuile « J'ai besoin d'aide » | Texte : 9,03:1 |
+| `--color-art-work`, `-ride`, `-help`, `-coral`, `-sky` | | **Seulement dans les dessins des besoins** : décor, jamais de texte | |
 | `--color-text` | `#1a1a1a` | Texte courant | 17,4:1 sur blanc, 15,51:1 sur `page` |
 | `--color-muted` | `#555555` | Texte secondaire (aide, note) | 7,46:1 sur blanc, 6,81:1 sur `surface` |
 | `--color-background` | `#ffffff` | Fond des feuilles, des cartes et des champs | |
-| `--color-page` | `#eef3f0` | Fond de page, derrière les feuilles blanches | Texte gris dessus : 6,64:1 |
-| `--color-surface` | `#f3f5f4` | Fond d'un encadré (`.panel`) | |
+| `--color-page` | `#f7f7f2` | Fond de page, derrière les feuilles blanches ; fond de l'en-tête et du titre | Texte : 16,2:1 ; texte gris : 6,94:1 |
+| `--color-surface` | `#f1f2ec` | Fond d'un encadré (`.panel`) | Texte gris dessus : 6,62:1 |
+| `--color-line` | `#e3e4db` | Filets de séparation (bord de la feuille, des cartes, de la navigation) : décor seulement | |
 | `--color-border` | `#7d8581` | Bordure des champs et des choix (verte au survol) | 3,79:1 sur blanc |
 | `--color-error` | `#b3261e` | Erreur : texte, bordure du champ fautif | 6,54:1 sur blanc, 5,62:1 sur `error-soft` |
 | `--color-error-soft` | `#fbeaea` | Fond d'un message d'erreur | |
 | `--color-success` | `#0b5d3b` | Réussite (même vert) | |
 | `--color-success-soft` | `#e3efe9` | Fond d'un message de réussite | |
-| `--color-focus` | `#1a1a1a` | Anneau de focus (jaune sur le vert de l'en-tête et du bandeau) | 17,4:1 sur blanc |
+| `--color-focus` | `#1a1a1a` | Anneau de focus, partout | 17,4:1 sur blanc |
 
 Règles :
 
@@ -87,8 +91,11 @@ Règles :
 
 ## 3. Typographie
 
-**Police du système** (`--font-family`) : Roboto sur Android, San Francisco sur iPhone, Segoe UI
-sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur connaît déjà.
+**Lexend** (`--font-family`), ronde et conçue pour la lecture, réduite à 18 Ko et hébergée par
+l'application ([fiche 023](adr/023-police-lexend.md)). Elle n'est **jamais attendue**
+(`font-display: optional`) : à la première visite sur un réseau lent, le texte s'affiche dans la
+police du téléphone (Roboto sur Android, San Francisco sur iPhone, Segoe UI sur Windows) ; dès la
+visite suivante, Lexend vient du cache. Un écran doit donc rester correct avec les deux.
 
 | Élément | Taille | Graisse | Variable |
 |---|---|---|---|
@@ -119,7 +126,8 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--space-l` | 27 px | Entre deux blocs |
 | `--space-xl` | 36 px | Avant un titre de partie |
 | `--radius` | 13,5 px | Coins de tout ce qui est cliquable ou encadré |
-| `--radius-large` | 27 px | Coins de la feuille et des cartes d'action (le bas du bandeau est droit) |
+| `--radius-large` | 24,75 px | Coins de la feuille, des cartes d'action et des tuiles des besoins |
+| `--radius-pill` | 999 px | Bouton « Se déconnecter », pastille de la page courante dans la navigation |
 | `--border-width` | 2 px | Bordures de champ et de bouton |
 | `--focus-width` | 3 px | Anneau de focus |
 | `--touch-target` | 58,5 px | **Hauteur minimale** de tout ce qui se touche (le minimum recommandé est 48 px) |
@@ -127,17 +135,20 @@ sur Windows. Zéro octet à télécharger, et des caractères que l'utilisateur 
 | `--content-width` | 720 px | Largeur maximale du contenu |
 | `--icon-size` | 27 px | Icône dans un bouton ou une pastille ; logo de l'en-tête |
 | `--icon-chip-size` | 49,5 px | Pastille arrondie autour d'une icône (`icon-chip`) |
-| `--sheet-gap` | 18 px | Espace entre le bas du bandeau et la feuille (ils ne se chevauchent pas) |
+| `--sheet-gap` | 18 px | Espace entre le titre et la feuille |
 | `--progress-height` | 6,75 px | Épaisseur de la barre de progression d'une réservation |
 | `--star-size` | 58,5 px | Une étoile de la note : aussi grande qu'une cible tactile |
 | `--textarea-height` | 126 px | Hauteur de départ d'une zone de texte (commentaire) |
 | `--status-dot-size` | 15,75 px | Voyant « disponible » du chauffeur |
+| `--nav-bar-height` | 85,5 px | Hauteur de la barre de navigation du bas (téléphone) : place gardée sous le pied de page |
+| `--sidebar-width` | 270 px | Largeur de la colonne de navigation (grand écran) |
+| `--need-tile-height`, `--need-art-size` | 108 px, 94,5 px | Hauteur d'une tuile de besoin, taille de son dessin |
 
-Ombres, douces et teintées de vert, jamais noires et dures :
+Ombres, très douces, jamais noires et dures :
 
 | Variable | Usage |
 |---|---|
-| `--shadow-sheet` | La feuille blanche, sous le bandeau |
+| `--shadow-sheet` | La feuille blanche, sous le titre |
 | `--shadow-card` | Une carte d'action secondaire (« Mon profil ») |
 | `--shadow-button` | Le bouton principal et la carte d'action principale |
 
@@ -150,22 +161,30 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
 - **Pensée pour le téléphone d'abord** (largeur de référence : 360 à 400 px), puis centrée sur
   ordinateur, à 720 px de large au plus.
 - **Une seule colonne.** Un champ par ligne, en pleine largeur.
-- **En-tête** vert : le logo et le nom de l'application (retour à l'accueil) à gauche,
-  « Se déconnecter » à droite pour un utilisateur connecté. Rien d'autre. Les messages de toute
-  l'application (pas de réseau, session illisible) s'affichent juste en dessous, sur le vert.
-- **Bandeau** (`PageHero`) : il prolonge l'en-tête, en vert, avec le bas arrondi et le motif de
-  la route en filigrane à droite. Il porte le `h1` de l'écran, et au besoin une ligne au-dessus
-  (« Étape 2 sur 4 »), une phrase en dessous (`hero-lead`) ou la barre de progression.
-- **Feuille** (`PageSheet`) : le contenu de l'écran, sur une feuille blanche aux coins arrondis
-  qui commence juste sous le bandeau, sans le chevaucher (`--sheet-gap`), avec une ombre douce. Derrière, le fond de page `page`.
+- **En-tête** clair, sur le fond de page : le logo et le nom de l'application (retour à
+  l'accueil) à gauche, « Se déconnecter » à droite pour un utilisateur connecté. Rien d'autre.
+  Les messages de toute l'application (pas de réseau, session illisible) s'affichent juste en
+  dessous.
+- **Titre** (`PageHero`) : sur le fond de page, avec le motif de la route en filigrane à droite.
+  Il porte le `h1` de l'écran, et au besoin une ligne au-dessus (« Étape 2 sur 4 »), une phrase
+  en dessous (`hero-lead`) ou la barre de progression.
+- **Feuille** (`PageSheet`) : le contenu de l'écran, sur une feuille blanche aux coins arrondis,
+  bordée d'un filet (`line`) et d'une ombre douce, sous le titre (`--sheet-gap`).
+- **Navigation** (`AppNav`, usager et chauffeur seulement) : quatre entrées, chacune une icône et
+  son mot. Usager : Accueil, Mes trajets, Mon plan, Profil. Chauffeur : Accueil, Courses,
+  Revenus, Profil. **Téléphone** (moins de 60rem) : barre fixe en bas de l'écran, à portée de
+  pouce ; **grand écran** : colonne fixe à gauche, le reste de la page à côté. La page courante
+  est dite par le gras et une pastille vert pâle, pas par la couleur seule (`aria-current`). Ce
+  ne sont pas les actions principales de l'écran : elles restent dans la feuille. Le visiteur,
+  l'administrateur, l'opérateur et le partenaire n'ont pas de navigation.
 - **Pied de page** (`footer`, dans `Layout.tsx` et recopié dans `index.html`) : « Projet
   étudiant — démonstrateur · À propos », centré, en petit texte gris, sous la feuille de chaque
   écran. Exigé par le cahier des charges (§14) : ne jamais le retirer. Rien d'autre n'y va.
-- **Ordre d'un écran** : bandeau avec le titre, puis dans la feuille : une phrase d'explication si
+- **Ordre d'un écran** : le titre, puis dans la feuille : une phrase d'explication si
   besoin, le contenu, le bouton principal **en bas, en pleine largeur** (`button-block`), puis les
   liens secondaires.
-- Sur ordinateur, l'en-tête et le bandeau occupent toute la largeur ; leur contenu et la feuille
-  restent alignés sur 720 px au centre.
+- Sur ordinateur, l'en-tête et le titre occupent toute la largeur (à droite de la navigation
+  s'il y en a une) ; leur contenu et la feuille restent alignés sur 720 px au centre.
 - Jamais de défilement horizontal. Vérifier chaque écran à 360 px de large.
 
 ---
@@ -203,12 +222,16 @@ d'explication si besoin, et une flèche à droite.
 | Classe | Rendu | Quand |
 |---|---|---|
 | `action-card action-card-primary` | Fond vert, pastille jaune pâle (`icon-chip-sun`), texte blanc | La destination principale (« Réserver un trajet »), une seule par écran |
-| `action-card` | Fond blanc, bordure vert pâle, ombre légère | Les autres destinations (« Mon profil ») |
-| `action-card need-card need-work` / `need-ride` / `need-help` | Carte remplie de la teinte pâle de son besoin (vert `primary-soft`, jaune `accent-soft`, bleu `help-soft`), bordure de la même teinte (la couleur forte au survol), pastille blanche, texte foncé | Les trois besoins de l'accueil (`NeedCards`), visiteur et usager |
+| `action-card` | Fond blanc, filet `line`, ombre légère | Les autres destinations (« Mes revenus ») |
+| `action-card need-card need-work` / `need-ride` / `need-help` | Tuile remplie de la teinte de son besoin (`work-tile`, `ride-tile`, `help-tile`), texte foncé de la même famille, dessin du besoin à droite (`NeedArt`), bordure foncée au survol | Les trois besoins de l'accueil (`NeedCards`), visiteur et usager |
 
-Les trois besoins sont de même importance : aucun n'est en `action-card-primary`. Leur couleur
-décore, le titre dit le besoin. Sous eux, les pages de l'usager (« Mes trajets », « Mon profil »)
-sont des liens `link-action` avec une icône (`quick-links`), plus discrets que les cartes.
+Les trois besoins sont de même importance : aucun n'est en `action-card-primary`. Leur couleur et
+leur dessin décorent, le titre dit le besoin. Sous eux, chez l'usager, l'avancement du plan
+d'action en lien discret (`quick-links`) ; ses autres pages sont dans la navigation.
+
+Une carte, un bouton ou une entrée de navigation répond au doigt : il s'enfonce légèrement
+(`scale(0.98)`) et change de bordure en 120 ms. Rien ne bouge si le téléphone demande moins
+d'animations (`prefers-reduced-motion`).
 
 ### Choix
 
@@ -238,8 +261,8 @@ choix de la langue, dans le pied de page, reste un `<select>` du navigateur.
 
 ### Réservation
 
-- `StepHeader` : le bandeau d'une étape, avec « Étape 2 sur 4 », la question de l'étape et une
-  barre en quatre segments, jaune jusqu'à l'étape en cours (décorative : le texte dit déjà où l'on
+- `StepHeader` : le titre d'une étape, avec « Étape 2 sur 4 », la question de l'étape et une
+  barre en quatre segments, verte jusqu'à l'étape en cours (décorative : le texte dit déjà où l'on
   est).
 - `TripSummary` : le récapitulatif d'un trajet, libellé gris au-dessus de sa valeur, dans un
   `panel`.
@@ -254,6 +277,12 @@ choix de la langue, dans le pied de page, reste un `<select>` du navigateur.
 - `RideCard` (`ride-card`) : un trajet dans une liste, même famille que les cartes d'action. Date
   et heure en gras, puis « départ vers arrivée », puis l'état en gris. Une pastille jaune pâle
   (`badge`) signale ce qui attend l'usager (« À noter »). Toute la carte est le lien.
+- `RideProgress` (`ride-progress`) : où en est le trajet, sous l'état de la page du trajet et sous
+  le prochain trajet de l'accueil. Une barre en quatre segments (demande envoyée, chauffeur
+  trouvé, en route, arrivé), remplis en vert jusqu'à l'étape atteinte, puis une ligne en mots
+  (« Étape 2 sur 4 : Chauffeur trouvé ») : la couleur ne porte jamais seule l'information. Un
+  lecteur d'écran lit la liste des étapes. Rien pour un trajet annulé ou expiré : son état suffit.
+  Mise à jour avec l'état, en direct ; aucune position du chauffeur.
 - `CancelRide` : « Annuler ce trajet » (bouton secondaire, en bas de la page du trajet). La
   confirmation s'ouvre **sur place**, sans fenêtre surgissante : la question reçoit le focus, le
   remboursement prévu est annoncé, puis « Oui, annuler » (principal) et « Non, garder le
@@ -338,18 +367,18 @@ Organisé **par besoins**, pas par fonctionnalités (cahier des charges §10) : 
 travail » (`/emplois`), « J'ai besoin d'un trajet » (`/reserver`), « J'ai besoin d'aide »
 (`/aide`), dans cet ordre, en cartes `NeedCards`. Ce sont les trois actions principales.
 
-- **Visiteur** : dans le bandeau, « Bienvenue », une phrase (`hero-lead`) et l'illustration. Dans
+- **Visiteur** : en titre, « Bienvenue » et une phrase (`hero-lead`). Dans
   la feuille : les trois besoins, puis « Créer un compte » (principal) et « J'ai déjà un compte »
   (secondaire), « J'ai reçu un code » en lien, puis « Les trajets solidaires » : trois atouts en
   liste (`benefits`). « J'ai besoin d'un trajet » mène d'abord à la connexion, qui ramène ensuite
   à la réservation ; les offres et l'aide se lisent sans compte.
-- **Usager** : « Bonjour Prénom », « De quoi avez-vous besoin aujourd'hui ? » et l'illustration ;
-  le prochain trajet s'il y en a un, les trois besoins, puis « Mes trajets » et « Mon profil » en
-  liens discrets.
-- Les autres rôles gardent leur accueil (chauffeur, administrateur), sans illustration.
+- **Usager** : « Bonjour Prénom », « De quoi avez-vous besoin aujourd'hui ? » ; le prochain
+  trajet s'il y en a un, avec son avancement, les trois besoins, puis l'avancement du plan
+  d'action. Mes trajets, Mon plan et Profil sont dans la navigation.
+- Les autres rôles gardent leur accueil en cartes d'action (chauffeur, administrateur).
 - L'écran du visiteur est recopié dans `index.html` pour s'afficher avant le JavaScript (voir
   [architecture.md](architecture.md#réseau-faible--objectif-regular-2g)) : modifier les deux,
-  ainsi que la copie de l'en-tête, des icônes et de l'illustration.
+  ainsi que la copie de l'en-tête, des icônes et des dessins des besoins.
 
 ### Page « J'ai besoin d'aide »
 
@@ -454,8 +483,8 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 
 - Contraste : 4,5:1 minimum pour un texte, 3:1 pour une bordure ou une icône (voir
   [Couleurs](#2-couleurs)).
-- **Tout se fait au clavier**, et l'élément actif se voit : anneau de 3 px, foncé sur fond clair,
-  jaune sur le vert de l'en-tête. Ne jamais supprimer `outline`. L'anneau suit
+- **Tout se fait au clavier**, et l'élément actif se voit : anneau foncé de 3 px. Ne jamais
+  supprimer `outline`. L'anneau suit
   `:focus-visible` : il apparaît au clavier, pas au toucher ni au clic. Pour une case à cocher, un
   bouton radio ou une étoile, il entoure toute la zone tactile (`:has(input:focus-visible)`), et
   la case elle-même n'en a pas de second.
@@ -473,13 +502,13 @@ numérique). Objectif : niveau AA du référentiel WCAG.
 
 - **Pas de photo, pas d'illustration décorative en image** : chaque kilo-octet compte sur le
   réseau guyanais. Décor des écrans : le motif de la route du logo, en SVG intégré, en filigrane
-  dans le bandeau (`PageHero`).
-- Exception : l'**illustration de l'accueil** (visiteur et usager), demandée par la cliente le
-  03/11 (inclusion, transport, travail). Un SVG intégré dans le bandeau, à la place du motif
-  (`PageHero` avec `art`, composant `HomeIllustration`) : une route vers un lieu de travail, une
-  voiture, deux personnes dont une en fauteuil, sous le soleil. Quelques centaines d'octets, sans
-  fichier à télécharger, décorative (`aria-hidden`), masquée sous 22rem de large. **Provisoire**
-  (`CHANGER_SELON_DECISION`) : dessin des développeurs, à remplacer par l'illustration définitive.
+  derrière le titre (`PageHero`).
+- Exception : les **dessins des trois besoins** de l'accueil (visiteur et usager), pour un accueil
+  illustré comme le demande la cliente (03/11) : une mallette, une voiture, une bouée, chacun sur
+  un disque de la teinte de son besoin (`NeedArt`). SVG intégrés, moins de 1 Ko chacun, couleurs
+  par des classes (`art-*`), décoratifs (`aria-hidden`). **Provisoires**
+  (`CHANGER_SELON_DECISION`) : faits par les développeurs, à remplacer si la cliente fournit une
+  illustration ou une identité visuelle.
 - Seule exception : la **photo du chauffeur** sur le suivi de course, demandée par la cliente pour
   la sécurité du passager. Petite (de l'ordre de 15 Ko), chargée après le texte, avec un `alt`
   (« Photo de Prénom, votre chauffeur ») et une place réservée pour que l'écran ne saute pas.
@@ -489,8 +518,8 @@ numérique). Objectif : niveau AA du référentiel WCAG.
   (trait de 2 px, couleur du texte `currentColor`, `aria-hidden`). Le logo y prend ses couleurs par
   des classes (`logo-ground`, `logo-road`, `logo-sun`), jamais par des valeurs en dur.
 - Le logo actuel (`public/favicon.svg`) : une route vers l'horizon et un soleil jaune sur un carré
-  vert arrondi. Dans l'en-tête, son carré devient blanc translucide pour se détacher du vert
-  (`brand-mark`). À remplacer si le client fournit le sien.
+  vert arrondi, tel quel dans l'en-tête clair (`brand-mark`). À remplacer si le client fournit le
+  sien.
 - La carte (étape 4) utilise les tuiles OpenStreetMap ; les repères (usager, chauffeur, arrivée)
   suivront les couleurs de la charte.
 
