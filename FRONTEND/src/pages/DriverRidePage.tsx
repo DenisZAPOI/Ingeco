@@ -13,6 +13,11 @@ import { driverStatusHeadline } from '../lib/driver';
 import { DRIVER_RIDES_PATH } from '../lib/paths';
 import { isOver, rideDate, rideFromState } from '../lib/ride';
 
+/** Why only the communes show (audit RGPD R5): before accepting, or once the ride is over. */
+function communesNote(ride: Ride): string {
+  return isOver(ride) ? t('driver.communesAfterRide') : t('driver.communesUntilAccepted');
+}
+
 /** A ride seen by the driver: the offer, then the ride they hold. */
 export function DriverRidePage() {
   const id = Number(useParams().id);
@@ -71,6 +76,7 @@ function DriverRide({ ride, onRefresh, onChange }: DriverRideProps) {
         distanceKm={ride.distanceKm}
         price={{ totalCents: ride.priceCents, riderCents: ride.priceCents }}
       />
+      {ride.exactStopsHidden && <p className="note">{communesNote(ride)}</p>}
       {!isOver(ride) && (
         // The status updates by itself; kept in case the real-time connection is blocked.
         <button type="button" className="button button-block button-secondary" onClick={onRefresh}>

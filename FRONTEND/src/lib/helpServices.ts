@@ -92,9 +92,11 @@ export function formatUpdatedOn(day: string): string {
   return formatDay(`${day}T12:00:00Z`);
 }
 
-/** The purpose of a trip to a service: health care, or a procedure. */
+/** The purpose of a trip to a service. Never "health": a trip to care, tied
+ *  to a person, is a health data (RGPD art. 9, audit R1), so it goes as "other". */
 export function purposeFor(category: HelpCategory): Purpose {
-  return category === 'health' ? 'health' : 'administrative';
+  const isCare = category === 'health';
+  return isCare ? 'other' : 'administrative';
 }
 
 export type Simulator = { id: 'mesDroitsSociaux' | 'unJeuneUneSolution'; url: string };

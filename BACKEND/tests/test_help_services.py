@@ -91,7 +91,7 @@ def test_comment_y_aller_books_a_trip_to_the_place_of_the_service(client):
     service = next(found for found in services_in(client) if found["category"] == "health")
     login(client)
 
-    response = book(client, booking(purpose="health", pickup=MATOURY_TOWN_HALL, dropoff=service["place"]))
+    response = book(client, booking(purpose="other", pickup=MATOURY_TOWN_HALL, dropoff=service["place"]))
 
     assert response.status_code == 201
     assert response.get_json()["dropoff"]["address"] == service["place"]["address"]

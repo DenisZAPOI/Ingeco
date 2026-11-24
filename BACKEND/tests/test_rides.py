@@ -7,9 +7,12 @@ import uuid
 from datetime import datetime, timedelta
 
 import pytest
+from sqlalchemy import update
 
+from app.models import RideRow
 from app.repository.place_repository import PlacesUnavailable
 from app.services import place_service
+from app.utils import database
 from tests.test_auth import DRIVER_PHONE, csrf_headers, login
 
 OTHER_RIDER_PHONE = "0694 00 00 02"  # Bruno, needs an accessible vehicle
@@ -32,7 +35,7 @@ def signed(stop: dict) -> dict:
 def booking(**changes):
     body = {
         "clientRequestId": str(uuid.uuid4()),
-        "purpose": "health",
+        "purpose": "employment",
         "pickup": CAYENNE_TOWN_HALL,
         "dropoff": MATOURY_TOWN_HALL,
         "scheduledAt": None,
@@ -51,6 +54,27 @@ def estimate(client, pickup=CAYENNE_TOWN_HALL, dropoff=MATOURY_TOWN_HALL, schedu
 
 def pay(client, ride_id):
     return client.post(f"/rides/{ride_id}/payment", headers=csrf_headers(client))
+
+
+# --- Purpose -----------------------------------------------------------------
+
+def test_health_is_not_a_purpose(client):
+    # A trip to care, tied to a person, is a health data (RGPD art. 9, audit R1).
+    login(client)
+
+    response = book(client, booking(purpose="health"))
+
+    assert response.status_code == 400
+
+
+def test_a_ride_booked_for_health_before_is_read_as_other(client):
+    # 'sante' stays in the ENUM of the DB team, without use.
+    login(client)
+    ride_id = book(client).get_json()["id"]
+    with database.session() as session:
+        session.execute(update(RideRow).where(RideRow.id == ride_id).values(purpose="sante"))
+
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "other"
 
 
 # --- Estimate ----------------------------------------------------------------

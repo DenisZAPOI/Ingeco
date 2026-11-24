@@ -79,8 +79,8 @@ describe('filters', () => {
 describe('Comment y aller ?', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('goes to a health service for care, to the others for a procedure', () => {
-    expect(purposeFor('health')).toBe('health');
+  it('never tells that a trip goes to care, the others are a procedure', () => {
+    expect(purposeFor('health')).toBe('other');
     expect(purposeFor('housing')).toBe('administrative');
     expect(purposeFor('food')).toBe('administrative');
   });
@@ -89,7 +89,7 @@ describe('Comment y aller ?', () => {
     const draft = draftForHelpService(CAYENNE_HEALTH.id, CAYENNE_HEALTH.place, purposeFor(CAYENNE_HEALTH.category));
 
     expect(draft.dropoff).toEqual(CAYENNE_HEALTH.place);
-    expect(draft.purpose).toBe('health');
+    expect(draft.purpose).toBe('other');
     expect(skipsDropoff(draft)).toBe(true);
     expect(bookingSteps(draft)).toMatchObject({ pickup: 1, time: 2, confirm: 3, total: 3 });
   });

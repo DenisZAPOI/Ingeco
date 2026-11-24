@@ -42,8 +42,9 @@ function QuestionScreen({ number, question }: { number: number; question: Questi
   const picked = chosen(answers, question.field);
   const title = t(`orientation.questions.${question.field}.title`);
   const field = question.field;
-  // The two single-choice questions need no hint under their title.
-  const questionHint = field === 'situation' || field === 'project' ? null : t(`orientation.questions.${field}.hint`);
+  // The single-choice questions need no hint under their title.
+  const isSingleChoice = field === 'situation' || field === 'project' || field === 'french';
+  const questionHint = isSingleChoice ? null : t(`orientation.questions.${field}.hint`);
 
   function change(next: Answers) {
     setAnswers(next);

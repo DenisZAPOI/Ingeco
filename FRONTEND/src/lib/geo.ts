@@ -15,7 +15,17 @@ export function distanceMeters(from: LatLng, to: LatLng): number {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(a));
 }
 
-/** Opens the phone's GPS app (Google Maps on Android and iPhone, its site otherwise). No route is computed here. */
+/** Opens the GPS app the driver chose on their phone (geo: link, Android). No
+ *  route is computed here, and no third party gets the rider's address unless
+ *  the driver's own app is one (audit RGPD R9). */
 export function directionsUrl({ lat, lng }: LatLng): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  return `geo:${lat},${lng}?q=${lat},${lng}`;
 }
+
+/** Without a GPS app answering geo: links (iPhone, computer): the map of OpenStreetMap. */
+export function mapUrl({ lat, lng }: LatLng): string {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${OSM_ZOOM}/${lat}/${lng}`;
+}
+
+// Close enough to see the street.
+const OSM_ZOOM = 17;

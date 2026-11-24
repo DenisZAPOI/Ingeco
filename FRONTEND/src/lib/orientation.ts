@@ -49,7 +49,8 @@ export const QUESTIONS: readonly Question[] = [
     ['trajet', 'vehicule_adapte', 'garde', 'logement', 'demarches', 'numerique', 'francais', 'equipement', 'aucun'],
     'aucun',
   ),
-  question('languages', true, ['fr', 'gcr', 'ht', 'pt', 'es', 'en', 'nenge', 'autre']),
+  // Never the languages spoken: they hint at an origin (cahier des charges §12, audit RGPD R6).
+  question('french', false, ['oui', 'un_peu', 'non']),
   question('digitalEquipment', true, ['smartphone', 'ordinateur', 'internet_maison', 'email', 'rien'], 'rien'),
 ];
 
@@ -63,7 +64,7 @@ export const NO_ANSWER: Answers = {
   experienceText: null,
   availability: [],
   needs: [],
-  languages: [],
+  french: null,
   digitalEquipment: [],
 };
 

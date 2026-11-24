@@ -90,9 +90,13 @@ def list_offers(driver_id: int, *, scheduled: bool) -> Offers:
         # The expiry task runs once a minute (UC60): in between, a ride past its time is not offered.
         now = ride_rules.now()
         rides = [ride for ride in rides if ride.expires_at > now]
-        present(session, rides, user_id=driver_id, role=DRIVER)
+        # Distances from the exact pickups, before present() keeps only their commune.
+        offers = _offers(rides, _recent_position(driver), scheduled=scheduled)
+        present(session, [offer.ride for offer in offers.offers], user_id=driver_id, role=DRIVER)
+    return offers
 
-    position = _recent_position(driver)
+
+def _offers(rides: list[Ride], position: Location | None, *, scheduled: bool) -> Offers:
     if scheduled or position is None:
         without_distance = [Offer(ride=ride, distance_to_pickup_km=None) for ride in rides]
         return Offers(offers=without_distance, located=position is not None)

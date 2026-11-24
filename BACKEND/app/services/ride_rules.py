@@ -9,7 +9,8 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
 # --- Values of the API (contract 3.3) ----------------------------------------
-PURPOSES = ("employment", "training", "health", "administrative", "other")
+# No "health": a ride to care is a health data (RGPD art. 9, audit RGPD R1).
+PURPOSES = ("employment", "training", "administrative", "other")
 
 AWAITING_PAYMENT = "awaiting_payment"
 PENDING = "pending"
@@ -142,6 +143,9 @@ RIDE_SPACING = timedelta(minutes=60)
 START_WINDOW = RIDE_SPACING
 # Rider and driver may call each other only while the ride is under way.
 CONTACT_STATUSES = (ACCEPTED, IN_PROGRESS)
+# A stop shown as its commune only (audit RGPD R5): 2 decimals of a degree,
+# about 1 km in French Guiana.
+COMMUNE_ONLY_DECIMALS = 2
 # What a driver holds: counts for their timetable.
 HELD_STATUSES = (ACCEPTED, IN_PROGRESS)
 

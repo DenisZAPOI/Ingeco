@@ -10,11 +10,11 @@ from ..services.orientation_rules import (
     Answers,
     Availability,
     DigitalEquipment,
+    FrenchLevel,
     Experience,
     Need,
     Project,
     Situation,
-    SpokenLanguage,
     StepCode,
 )
 from .base import ApiModel, InputModel, apply_rule
@@ -33,7 +33,8 @@ class AnswersDto(InputModel):
     )
     availability: list[Availability] = Field(default_factory=list, examples=[["matin", "apres_midi"]])
     needs: list[Need] = Field(default_factory=list, examples=[["trajet"]])
-    languages: list[SpokenLanguage] = Field(default_factory=list, examples=[["fr", "gcr"]])
+    # "Êtes-vous à l'aise en français ?" (never the languages spoken: audit RGPD R6)
+    french: FrenchLevel | None = Field(None, examples=["oui"])
     digital_equipment: list[DigitalEquipment] = Field(default_factory=list, examples=[["smartphone"]])
 
     @field_validator("experience_text")
@@ -56,7 +57,7 @@ class AnswersDto(InputModel):
     def _no_equipment_alone(cls, chosen: list[str]) -> list[str]:
         return apply_rule(lambda value: rules.check_alone(value, rules.NO_EQUIPMENT), chosen)
 
-    @field_validator("availability", "languages")
+    @field_validator("availability")
     @classmethod
     def _no_duplicate(cls, chosen: list[str]) -> list[str]:
         return list(dict.fromkeys(chosen))
@@ -69,7 +70,7 @@ class AnswersDto(InputModel):
             experience_text=self.experience_text,
             availability=tuple(self.availability),
             needs=tuple(self.needs),
-            languages=tuple(self.languages),
+            french=self.french,
             digital_equipment=tuple(self.digital_equipment),
         )
 
@@ -119,7 +120,7 @@ def plan_to_dto(plan: SavedPlan) -> PlanDto:
                 "experience_text": answers.experience_text,
                 "availability": list(answers.availability),
                 "needs": list(answers.needs),
-                "languages": list(answers.languages),
+                "french": answers.french,
                 "digital_equipment": list(answers.digital_equipment),
             }
         ),

@@ -34,7 +34,6 @@ _PAYMENT_TO_ROW = {"not_required": "non_requis", "pending": "en_attente", "paid"
 _PURPOSE_TO_ROW = {
     "employment": "emploi",
     "training": "formation",
-    "health": "sante",
     "administrative": "demarche_administrative",
     "other": "autre",
 }
@@ -63,7 +62,9 @@ def _reverse(mapping: dict[str, str]) -> dict[str, str]:
 
 _STATUS_FROM_ROW = _reverse(_STATUS_TO_ROW)
 _PAYMENT_FROM_ROW = _reverse(_PAYMENT_TO_ROW)
-_PURPOSE_FROM_ROW = _reverse(_PURPOSE_TO_ROW)
+# 'sante' stays in the ENUM of the DB team but is no longer accepted (audit
+# RGPD R1, art. 9): a ride booked before is read as "other".
+_PURPOSE_FROM_ROW = _reverse(_PURPOSE_TO_ROW) | {"sante": "other"}
 _CHANNEL_FROM_ROW = _reverse(_CHANNEL_TO_ROW)
 _STEP_FROM_ROW = _reverse(_STEP_TO_ROW)
 
@@ -119,7 +120,7 @@ class Ride:
     booked_by_id: int
     channel: str
     status: str
-    # None once hidden by ride_service.present(): a driver sees it only on their own ride.
+    # None once hidden by ride_service.present(): a driver never sees it.
     purpose: str | None
     pickup: Stop
     dropoff: Stop
@@ -143,6 +144,9 @@ class Ride:
     # Added by the services for the caller (who may see whom): never stored.
     driver: DriverInfo | None = None
     rider: Contact | None = None
+    # Set by ride_service.present(): pickup and dropoff are only the commune,
+    # about 1 km precise (a driver before accepting, or after the ride).
+    exact_stops_hidden: bool = False
     id: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 

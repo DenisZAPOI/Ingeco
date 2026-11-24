@@ -16,7 +16,8 @@ from .base import ApiModel, InputModel, apply_rule, field_error
 ADDRESS_MAX_LENGTH = 255
 TOKEN_MAX_LENGTH = 100
 
-Purpose = Literal["employment", "training", "health", "administrative", "other"]
+# No "health" (audit RGPD R1, art. 9): a trip to care goes as "other".
+Purpose = Literal["employment", "training", "administrative", "other"]
 RideStatus = Literal["awaiting_payment", "pending", "accepted", "in_progress", "completed", "cancelled", "expired"]
 PaymentStatus = Literal["not_required", "pending", "paid", "refunded"]
 
@@ -117,12 +118,28 @@ class EstimateDto(ApiModel):
 
 
 class StopDto(ApiModel):
+    """An exact place: a job offer's, a help service's, or a ride's when shown in full."""
+
     address: str
     lat: float
     lng: float
     commune_id: int
-    # To book the same trip again with this stop (see StopBody).
+    # To book a trip with this stop (see StopBody).
     token: str
+
+
+class RideStopDto(ApiModel):
+    """A stop of a ride: the exact place, or only its commune when the ride's
+    exactStopsHidden is true (audit RGPD R5)."""
+
+    # The commune's name when hidden.
+    address: str
+    # Rounded to about 1 km when hidden.
+    lat: float
+    lng: float
+    commune_id: int
+    # To book the same trip again with this stop (see StopBody); null when hidden.
+    token: str | None
 
 
 class RatingDto(ApiModel):
@@ -161,10 +178,14 @@ class RideDto(ApiModel):
     id: int
     status: RideStatus
     channel: Literal["app", "phone"]
-    # null for a driver until they accept the ride (RGPD art. 9).
+    # null for a driver: they never see why the rider travels (audit RGPD R1).
     purpose: Purpose | None
-    pickup: StopDto
-    dropoff: StopDto
+    # true: pickup and dropoff are only communes. A driver sees the exact
+    # addresses only from the moment they accept until the end of the ride
+    # (audit RGPD R5).
+    exact_stops_hidden: bool
+    pickup: RideStopDto
+    dropoff: RideStopDto
     scheduled_at: datetime | None
     needs_accessible_vehicle: bool
     distance_km: float
@@ -206,8 +227,9 @@ def ride_to_dto(ride: Ride) -> RideDto:
         status=ride.status,
         channel=ride.channel,
         purpose=ride.purpose,
-        pickup=_stop_to_dto(ride.pickup),
-        dropoff=_stop_to_dto(ride.dropoff),
+        exact_stops_hidden=ride.exact_stops_hidden,
+        pickup=_stop_to_dto(ride.pickup, ride.exact_stops_hidden),
+        dropoff=_stop_to_dto(ride.dropoff, ride.exact_stops_hidden),
         scheduled_at=ride.scheduled_at,
         needs_accessible_vehicle=ride.needs_accessible_vehicle,
         distance_km=float(ride.distance_km),
@@ -258,14 +280,10 @@ def _rating_to_dto(rating: Rating) -> RatingDto:
     return RatingDto(score=rating.score, comment=rating.comment, created_at=rating.created_at)
 
 
-def _stop_to_dto(stop: Stop) -> StopDto:
-    return StopDto(
-        address=stop.address,
-        lat=stop.lat,
-        lng=stop.lng,
-        commune_id=stop.commune_id,
-        token=place_service.place_token(stop.address, stop.lat, stop.lng, stop.commune_id),
-    )
+def _stop_to_dto(stop: Stop, hidden: bool) -> RideStopDto:
+    # A commune is not a place one can book from: no token for it.
+    token = None if hidden else place_service.place_token(stop.address, stop.lat, stop.lng, stop.commune_id)
+    return RideStopDto(address=stop.address, lat=stop.lat, lng=stop.lng, commune_id=stop.commune_id, token=token)
 
 
 def _driver_to_dto(driver: DriverInfo) -> RideDriverDto:
