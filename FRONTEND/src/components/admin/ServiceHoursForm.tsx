@@ -70,13 +70,7 @@ function DayFields({ day, error, onChange }: DayFieldsProps) {
       {!day.closed && (
         <div className="field-pair">
           <TextField type="time" label={t('settings.opensAt')} value={day.opensAt} onChange={(opensAt) => onChange({ opensAt })} />
-          <TextField
-            type="time"
-            label={t('settings.closesAt')}
-            hint={t('settings.closesAtHint')}
-            value={day.closesAt}
-            onChange={(closesAt) => onChange({ closesAt })}
-          />
+          <TextField type="time" label={t('settings.closesAt')} value={day.closesAt} onChange={(closesAt) => onChange({ closesAt })} />
         </div>
       )}
       {error && (

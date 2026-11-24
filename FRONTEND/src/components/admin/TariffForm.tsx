@@ -69,7 +69,7 @@ function TariffFields({ current }: { current: Tariff }) {
       >
         <TextField
           label={t('settings.baseFare')}
-          hint={t('settings.amountHint')}
+          hint={t('settings.baseFareHint')}
           inputMode="decimal"
           value={baseFare}
           onChange={(value) => {
@@ -80,7 +80,7 @@ function TariffFields({ current }: { current: Tariff }) {
         />
         <TextField
           label={t('settings.perKm')}
-          hint={t('settings.amountHint')}
+          hint={t('settings.perKmHint')}
           inputMode="decimal"
           value={perKm}
           onChange={(value) => {
