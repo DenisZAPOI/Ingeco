@@ -3,7 +3,8 @@ import { apiUrl, request } from './client';
 
 export type Ride = components['schemas']['RideDto'];
 export type RideStatus = Ride['status'];
-export type Purpose = Ride['purpose'];
+// Never null when booking; null on a ride only for a driver who has not accepted it.
+export type Purpose = NonNullable<Ride['purpose']>;
 export type Stop = components['schemas']['StopBody'];
 export type Estimate = components['schemas']['EstimateDto'];
 export type Booking = components['schemas']['BookRideBody'];

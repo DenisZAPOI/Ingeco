@@ -195,7 +195,7 @@ valeurs provisoires sur la forme du bon (Q5, Q6) et l'usager sans carte (Q9) son
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
 | F6 | Plafond de courses non terminées par usager | 1 immédiate + 3 programmées | `MAX_OPEN_IMMEDIATE_RIDES`, `MAX_OPEN_SCHEDULED_RIDES`, `services/ride_rules.py` |
-| F10 | Motif du trajet visible du chauffeur sur une offre | Le comportement actuel est gardé jusqu'à la réponse ; le client doit dire si le chauffeur en a besoin (un trajet « santé » est une donnée sensible) | DTO des offres |
+| F10 | Motif du trajet visible du chauffeur sur une offre | **Masqué depuis le 24/11** jusqu'à ce que le chauffeur accepte la course (`purpose` à `null` dans les offres et le détail d'une course en attente), visible ensuite ; l'usager, l'opérateur et l'administrateur le voient toujours. Le client doit dire si le chauffeur en a besoin plus tôt, ou jamais (un trajet « santé » est une donnée sensible, RGPD art. 9) | `ride_service.present()` |
 
 ### Appareils, notifications, abonnement
 

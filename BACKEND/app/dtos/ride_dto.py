@@ -153,7 +153,8 @@ class RideDto(ApiModel):
     id: int
     status: RideStatus
     channel: Literal["app", "phone"]
-    purpose: Purpose
+    # null for a driver until they accept the ride (RGPD art. 9).
+    purpose: Purpose | None
     pickup: StopDto
     dropoff: StopDto
     scheduled_at: datetime | None

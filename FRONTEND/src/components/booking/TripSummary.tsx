@@ -6,7 +6,8 @@ import { purposeLabel } from '../../lib/ride';
 type TripSummaryProps = {
   pickup: string;
   dropoff: string;
-  purpose: Purpose;
+  /** null: hidden from a driver until they accept the ride (RGPD art. 9). */
+  purpose: Purpose | null;
   /** ISO date the trip leaves (scheduled, or past); null to leave as soon as possible. */
   scheduledAt: string | null;
   distanceKm?: number;
@@ -24,8 +25,12 @@ export function TripSummary({ pickup, dropoff, purpose, scheduledAt, distanceKm,
       <dd>{dropoff}</dd>
       <dt>{t('ride.when')}</dt>
       <dd>{scheduledAt ? formatDateTime(scheduledAt) : t('ride.asap')}</dd>
-      <dt>{t('ride.purpose')}</dt>
-      <dd>{purposeLabel(purpose)}</dd>
+      {purpose && (
+        <>
+          <dt>{t('ride.purpose')}</dt>
+          <dd>{purposeLabel(purpose)}</dd>
+        </>
+      )}
       {distanceKm !== undefined && (
         <>
           <dt>{t('ride.distance')}</dt>
