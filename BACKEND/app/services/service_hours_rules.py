@@ -19,8 +19,12 @@ from .ride_rules import GUYANA_TIME
 # 1 = Monday … 7 = Sunday (ISO 8601), as in the table.
 DAY_NAMES = {1: "lundi", 2: "mardi", 3: "mercredi", 4: "jeudi", 5: "vendredi", 6: "samedi", 7: "dimanche"}
 
+WEEKDAYS = tuple(DAY_NAMES)
+
 # The table writes "until midnight" as 23:59:59 (both ends included).
 END_OF_DAY = time(23, 59, 59)
+# The last minute a time field can show (hours and minutes only).
+LAST_MINUTE = time(23, 59)
 
 
 def is_open(slots: list[ServiceSlot], departure: datetime) -> bool:
@@ -42,6 +46,13 @@ def closed_message(slots: list[ServiceSlot], departure: datetime) -> str:
         return f"Le service est fermé le {day_name}. Choisissez un autre jour."
     ranges = " et ".join(f"de {_spoken_time(slot.opens_at)} à {_spoken_time(slot.closes_at)}" for slot in day_slots)
     return f"Le service fonctionne le {day_name} {ranges}. Choisissez une autre heure."
+
+
+def stored_closing(closes_at: time) -> time:
+    """23:59 typed on the screen means "until midnight": 23:59:59, as the table writes it."""
+    if closes_at >= LAST_MINUTE:
+        return END_OF_DAY
+    return closes_at
 
 
 def _local(moment: datetime) -> datetime:

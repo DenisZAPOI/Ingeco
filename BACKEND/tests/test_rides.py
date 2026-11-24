@@ -17,7 +17,8 @@ OPERATOR_PHONE = "0694 00 00 05"
 
 CAYENNE_TOWN_HALL = {"address": "Mairie de Cayenne", "lat": 4.9372, "lng": -52.3260, "communeId": 1}
 MATOURY_TOWN_HALL = {"address": "Mairie de Matoury", "lat": 4.8470, "lng": -52.3310, "communeId": 3}
-KOUROU = {"address": "Kourou", "lat": 5.1600, "lng": -52.6500, "communeId": 1}
+# Belém, in Brazil, sent as Cayenne: outside French Guiana whatever the commune.
+BELEM = {"address": "Belém", "lat": -1.4558, "lng": -48.4902, "communeId": 1}
 
 
 def signed(stop: dict) -> dict:
@@ -70,10 +71,10 @@ def test_a_trip_to_the_same_place_cannot_be_estimated(client):
     assert estimate(client, dropoff=CAYENNE_TOWN_HALL).status_code == 422
 
 
-def test_a_position_far_from_the_pilot_zone_is_refused(client):
+def test_a_position_outside_french_guiana_is_refused(client):
     login(client)
 
-    response = estimate(client, dropoff=KOUROU)
+    response = estimate(client, dropoff=BELEM)
 
     assert response.status_code == 422
     assert "Cayenne, Matoury et Rémire-Montjoly" in response.get_json()["detail"]
