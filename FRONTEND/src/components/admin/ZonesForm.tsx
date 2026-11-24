@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import type { Zone } from '../../api/settings';
 import { useSaveZones, useZones } from '../../hooks/useSettings';
-import { t } from '../../i18n';
+import { t, tn } from '../../i18n';
 import { CheckboxField } from '../form/CheckboxField';
 import { Form } from '../form/Form';
 import { RequestState } from '../ui/RequestState';
@@ -35,6 +35,11 @@ function ZoneFields({ zones }: { zones: Zone[] }) {
   const [servedIds, setServedIds] = useState(() => new Set(zones.filter((zone) => zone.isServed).map((zone) => zone.id)));
   const [saved, setSaved] = useState(false);
   const save = useSaveZones();
+  const servedNames = order.filter((zone) => servedIds.has(zone.id)).map((zone) => zone.name);
+  const summary =
+    servedNames.length === 0
+      ? t('settings.noServedCommune')
+      : tn('settings.servedSummary', servedNames.length, { names: servedNames.join(', ') });
 
   function toggle(id: number, isServed: boolean) {
     setSaved(false);
@@ -64,17 +69,22 @@ function ZoneFields({ zones }: { zones: Zone[] }) {
       error={save.error}
       success={saved ? t('settings.zonesSaved') : null}
     >
-      <fieldset className="field">
-        <legend className="field-label">{t('settings.servedLegend')}</legend>
-        {order.map((zone) => (
-          <CheckboxField
-            key={zone.id}
-            label={zone.name}
-            checked={servedIds.has(zone.id)}
-            onChange={(isServed) => toggle(zone.id, isServed)}
-          />
-        ))}
-      </fieldset>
+      {/* <details> opens with the keyboard and without code, like the FAQ;
+          the summary says what is chosen while it is closed. */}
+      <details className="disclosure">
+        <summary>{summary}</summary>
+        <fieldset className="field disclosure-content">
+          <legend className="visually-hidden">{t('settings.servedLegend')}</legend>
+          {order.map((zone) => (
+            <CheckboxField
+              key={zone.id}
+              label={zone.name}
+              checked={servedIds.has(zone.id)}
+              onChange={(isServed) => toggle(zone.id, isServed)}
+            />
+          ))}
+        </fieldset>
+      </details>
     </Form>
   );
 }

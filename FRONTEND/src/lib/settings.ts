@@ -23,6 +23,17 @@ export const DAY_NAME_KEYS = {
   7: 'settings.sunday',
 } as const satisfies Record<number, TextKey>;
 
+/** Short name on the day buttons: three letters, Monday and Wednesday stay apart. */
+export const DAY_SHORT_KEYS = {
+  1: 'settings.mondayShort',
+  2: 'settings.tuesdayShort',
+  3: 'settings.wednesdayShort',
+  4: 'settings.thursdayShort',
+  5: 'settings.fridayShort',
+  6: 'settings.saturdayShort',
+  7: 'settings.sundayShort',
+} as const satisfies Record<number, TextKey>;
+
 export type Weekday = keyof typeof DAY_NAME_KEYS;
 
 /** One day as the form holds it: text fields, and a "Closed" box. */
@@ -58,6 +69,24 @@ export function weekBody(days: DayForm[]): WeekBody {
       return { weekday: day.weekday, opensAt: day.opensAt || null, closesAt: day.closesAt || null };
     }),
   };
+}
+
+/** The first day open, or null when every day is closed. */
+export function firstOpenDay(days: DayForm[]): DayForm | null {
+  return days.find((day) => !day.closed) ?? null;
+}
+
+/** True when every open day has the same opening and closing: one common slot is enough. */
+export function hasSameHours(days: DayForm[]): boolean {
+  const first = firstOpenDay(days);
+  if (first === null) return true;
+  const openDays = days.filter((day) => !day.closed);
+  return openDays.every((day) => day.opensAt === first.opensAt && day.closesAt === first.closesAt);
+}
+
+/** Every day gets these hours, open or closed: a day opened later starts with them. */
+export function withCommonHours(days: DayForm[], opensAt: string, closesAt: string): DayForm[] {
+  return days.map((day) => ({ ...day, opensAt, closesAt }));
 }
 
 /** '8,50' or '8.5' → 850; null if the text is not an amount in euros. */

@@ -447,13 +447,15 @@ a:hover {
 }
 
 /* Questions of the help page: each one opens with a large touch target. */
-.faq-item {
+.faq-item,
+.disclosure {
   margin: 0 0 var(--space-s);
   border-radius: var(--radius);
   background: var(--color-surface);
 }
 
-.faq-item summary {
+.faq-item summary,
+.disclosure summary {
   display: flex;
   align-items: center;
   min-height: var(--touch-target);
@@ -463,12 +465,14 @@ a:hover {
   list-style: none;
 }
 
-.faq-item summary::-webkit-details-marker {
+.faq-item summary::-webkit-details-marker,
+.disclosure summary::-webkit-details-marker {
   display: none;
 }
 
 /* The arrow says the question opens (flex hid the browser's own marker). */
-.faq-item summary::after {
+.faq-item summary::after,
+.disclosure summary::after {
   content: '';
   flex: none;
   width: 0.6em;
@@ -482,7 +486,8 @@ a:hover {
   background-clip: content-box;
 }
 
-.faq-item[open] summary::after {
+.faq-item[open] summary::after,
+.disclosure[open] summary::after {
   transform: rotate(-135deg);
 }
 
@@ -924,6 +929,98 @@ a:hover {
 .field-hint {
   margin: 0;
   color: var(--color-muted);
+}
+
+/* A drop-down made of <details>: its content under the summary (communes served). */
+.disclosure-content {
+  padding: 0 var(--space) var(--space-s);
+  border: 0;
+}
+
+/* Days of the week as large buttons to tick (service hours): the tick is
+   shown with the colour, never the colour alone. */
+.day-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+}
+
+.day-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-s);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-weight: var(--font-weight-strong);
+  cursor: pointer;
+}
+
+.day-toggle:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.day-toggle:has(input:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* The box stays in the page for the keyboard and screen readers; the button shows its state. */
+.day-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.day-toggle-tick {
+  width: 1em;
+  height: 1em;
+}
+
+/* Service hours day by day: one short line per open day. */
+.day-hours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.day-hours-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-xs) var(--space-s);
+}
+
+/* On a phone, the day's name above its two hours; beside them when there is room. */
+.day-hours-name {
+  grid-column: 1 / -1;
+  font-weight: var(--font-weight-strong);
+}
+
+@media (min-width: 30rem) {
+  .day-hours-row {
+    grid-template-columns: 6rem 1fr auto 1fr;
+  }
+
+  .day-hours-name {
+    grid-column: auto;
+  }
+}
+
+.day-hours-arrow {
+  width: 1em;
+  height: 1em;
+}
+
+.day-hours-error {
+  grid-column: 1 / -1;
 }
 
 /* Two short fields side by side (opening and closing time), one under the

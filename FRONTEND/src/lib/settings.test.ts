@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { dayForms, eurosField, examplePriceCents, parseEuros, timeField, weekBody } from './settings';
+import {
+  dayForms,
+  eurosField,
+  examplePriceCents,
+  firstOpenDay,
+  hasSameHours,
+  parseEuros,
+  timeField,
+  weekBody,
+  withCommonHours,
+} from './settings';
 
 describe('parseEuros', () => {
   it('reads euros written with a comma or a point', () => {
@@ -54,6 +64,32 @@ describe('service hours', () => {
     expect(body.days).toEqual([
       { weekday: 1, opensAt: '06:00', closesAt: null },
       { weekday: 7, opensAt: null, closesAt: null },
+    ]);
+  });
+});
+
+describe('common hours', () => {
+  const monday = { weekday: 1, closed: false, opensAt: '06:00', closesAt: '20:00' } as const;
+  const saturday = { weekday: 6, closed: false, opensAt: '08:00', closesAt: '12:00' } as const;
+  const sunday = { weekday: 7, closed: true, opensAt: '', closesAt: '' } as const;
+
+  it('are enough when every open day has the same hours, closed days aside', () => {
+    expect(hasSameHours([monday, { ...monday, weekday: 2 }, sunday])).toBe(true);
+    expect(hasSameHours([monday, saturday])).toBe(false);
+    expect(hasSameHours([sunday])).toBe(true);
+  });
+
+  it('start from the first open day', () => {
+    expect(firstOpenDay([sunday, saturday])).toEqual(saturday);
+    expect(firstOpenDay([sunday])).toBeNull();
+  });
+
+  it('are given to every day, closed ones included', () => {
+    const days = withCommonHours([saturday, sunday], '07:00', '19:00');
+
+    expect(days.map((day) => [day.opensAt, day.closesAt, day.closed])).toEqual([
+      ['07:00', '19:00', false],
+      ['07:00', '19:00', true],
     ]);
   });
 });
