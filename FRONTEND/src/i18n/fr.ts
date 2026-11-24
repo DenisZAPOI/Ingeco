@@ -655,7 +655,6 @@ export const fr = {
     past: 'Passées',
     nonePast: 'Aucune course passée.',
     more: 'Voir plus de courses',
-    rideTitle: 'Course',
     rideNumber: 'Course n° {id}',
     seeRides: 'Voir les courses',
     needsAccessible: "Le passager a besoin d'un véhicule adapté (fauteuil roulant).",

@@ -1636,7 +1636,8 @@ a:hover {
 .badge {
   display: inline-block;
   padding: 0 var(--space-s);
-  border-radius: var(--radius-pill);
+  /* Rounded, not a pill: a long badge may wrap on a phone. */
+  border-radius: var(--radius);
   font-size: var(--font-size-small);
   line-height: 1.6;
   background: var(--color-accent-soft);

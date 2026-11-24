@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import type { HelpService } from '../../api/helpServices';
 import { t } from '../../i18n';
-import { languageLabel, speaksAppLanguage } from '../../lib/helpServices';
+import { displayHours, languageLabel, speaksAppLanguage } from '../../lib/helpServices';
 import { helpServicePath } from '../../lib/paths';
 import { ArrowRightIcon } from '../ui/icons';
 
@@ -18,7 +18,7 @@ export function HelpServiceCard({ service }: { service: HelpService }) {
         </span>
         <span className="ride-card-to">{service.communeName}</span>
         <span className="ride-card-to" lang={service.language}>
-          {service.hours}
+          {displayHours(service.hours)}
         </span>
         <HelpServiceBadges service={service} />
       </span>

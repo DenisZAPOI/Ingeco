@@ -637,7 +637,6 @@ export const en: Texts = {
     past: 'Past',
     nonePast: 'No past ride.',
     more: 'See more rides',
-    rideTitle: 'Ride',
     rideNumber: 'Ride no. {id}',
     seeRides: 'See the rides',
     needsAccessible: 'The passenger needs an accessible vehicle (wheelchair).',

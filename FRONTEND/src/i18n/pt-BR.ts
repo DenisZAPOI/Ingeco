@@ -637,7 +637,6 @@ export const ptBR: Texts = {
     past: 'Passadas',
     nonePast: 'Nenhuma corrida passada.',
     more: 'Ver mais corridas',
-    rideTitle: 'Corrida',
     rideNumber: 'Corrida nº {id}',
     seeRides: 'Ver as corridas',
     needsAccessible: 'O passageiro precisa de um veículo adaptado (cadeira de rodas).',

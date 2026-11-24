@@ -8,7 +8,7 @@ import { RequestState } from '../components/ui/RequestState';
 import { useHelpService } from '../hooks/useHelpServices';
 import { t } from '../i18n';
 import { draftForHelpService, saveBookingDraft } from '../lib/bookingDraft';
-import { categoryLabel, filtersToParams, formatUpdatedOn, languageLabel, purposeFor, serviceFromState } from '../lib/helpServices';
+import { categoryLabel, displayHours, filtersToParams, formatUpdatedOn, languageLabel, purposeFor, serviceFromState } from '../lib/helpServices';
 import { BOOKING_PATHS, HELP_SERVICES_PATH } from '../lib/paths';
 import { displayPhone } from '../lib/phone';
 
@@ -70,7 +70,7 @@ function ServiceDetail({ service }: { service: HelpService }) {
           {service.place.address} ({service.communeName})
         </dd>
         <dt>{t('helpServices.hours')}</dt>
-        <dd lang={service.language}>{service.hours}</dd>
+        <dd lang={service.language}>{displayHours(service.hours)}</dd>
         <dt>{t('helpServices.languages')}</dt>
         <dd>{service.spokenLanguages.map(languageLabel).join(', ')}</dd>
         <dt>{t('helpServices.accessibility')}</dt>
