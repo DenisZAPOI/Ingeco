@@ -195,7 +195,18 @@ valeurs provisoires sur la forme du bon (Q5, Q6) et l'usager sans carte (Q9) son
 | # | Sujet | Valeur provisoire | Où |
 |---|---|---|---|
 | F6 | Plafond de courses non terminées par usager | 1 immédiate + 3 programmées | `MAX_OPEN_IMMEDIATE_RIDES`, `MAX_OPEN_SCHEDULED_RIDES`, `services/ride_rules.py` |
-| F10 | Motif du trajet visible du chauffeur sur une offre | **Masqué depuis le 24/11** jusqu'à ce que le chauffeur accepte la course (`purpose` à `null` dans les offres et le détail d'une course en attente), visible ensuite ; l'usager, l'opérateur et l'administrateur le voient toujours. Le client doit dire si le chauffeur en a besoin plus tôt, ou jamais (un trajet « santé » est une donnée sensible, RGPD art. 9) | `ride_service.present()` |
+| F10 | Motif du trajet visible du chauffeur sur une offre | **Tranché par l'audit RGPD du 24/11** ([audit-rgpd-2026-11-24.md](audit-rgpd-2026-11-24.md), R1) : le chauffeur ne voit **jamais** le motif, et le motif « santé » n'existe plus | `ride_service.present()` |
+
+### Suites de l'audit RGPD (24/11/2026)
+
+Durées de conservation (R4), à faire valider par la cliente :
+
+| Donnée | Valeur provisoire | Où |
+|---|---|---|
+| Ancien questionnaire et son plan | Supprimé dès qu'un nouveau est rempli | `orientation_repository.save()` |
+| Demande d'aide (rappel, signalement) | Supprimée 3 mois après son traitement | `HELP_REQUEST_RETENTION`, `services/retention_service.py` |
+| Adresses exactes et repères d'une course, commentaire d'évaluation | 1 an après la fin de la course, puis la commune seulement, position arrondie à ~1 km | `RIDE_STOPS_RETENTION`, `services/retention_service.py` |
+| Responsable de traitement sur la page « Vos données » | « L'association porteuse du projet », en attendant l'accord pour le nom d'Ingeco | `privacy` dans `FRONTEND/src/i18n/fr.ts` |
 
 ### Appareils, notifications, abonnement
 

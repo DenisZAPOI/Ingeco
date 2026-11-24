@@ -13,6 +13,8 @@ RIDER = "rider"
 DRIVER = "driver"
 ACTIVE = "active"
 SUSPENDED = "suspended"
+# Anonymised at the person's request (deletion_service): out of every list.
+DELETED = "deleted"
 
 # --- Phone number ------------------------------------------------------------
 # Users type the number as they know it: "0694 12 34 56". Stored in the

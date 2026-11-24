@@ -28,17 +28,20 @@ import { JobPage } from '../pages/JobPage';
 import { JobsPage } from '../pages/JobsPage';
 import { TrainingsPage } from '../pages/TrainingsPage';
 import { LoginPage } from '../pages/LoginPage';
+import { MyDataPage } from '../pages/MyDataPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { OrientationIntroPage } from '../pages/OrientationIntroPage';
 import { OrientationKeepPage } from '../pages/OrientationKeepPage';
 import { OrientationPlanPage } from '../pages/OrientationPlanPage';
 import { OrientationQuestionPage } from '../pages/OrientationQuestionPage';
 import { PasswordResetPage } from '../pages/PasswordResetPage';
+import { PrivacyPage } from '../pages/PrivacyPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RidePage } from '../pages/RidePage';
 import { RidePaymentPage } from '../pages/RidePaymentPage';
 import { RidesPage } from '../pages/RidesPage';
+import { StaffRequestsPage } from '../pages/StaffRequestsPage';
 import { LoggedInRoutes, VisitorRoutes } from './AccessRoutes';
 
 // Paths in French: users see them in the address bar.
@@ -49,6 +52,7 @@ export function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="diagnostic" element={<DiagnosticPage />} />
         <Route path="a-propos" element={<AboutPage />} />
+        <Route path="vos-donnees" element={<PrivacyPage />} />
         <Route path="aide" element={<HelpPage />} />
         <Route path="aide/questions" element={<FaqPage />} />
         <Route path="aide/rappel" element={<CallbackPage />} />
@@ -72,6 +76,8 @@ export function AppRoutes() {
         </Route>
         <Route element={<LoggedInRoutes />}>
           <Route path="profil" element={<ProfilePage />} />
+          <Route path="profil/mes-donnees" element={<MyDataPage />} />
+          <Route path="demandes" element={<StaffRequestsPage />} />
           {/* The steps of a booking share its draft. */}
           <Route
             path="reserver"

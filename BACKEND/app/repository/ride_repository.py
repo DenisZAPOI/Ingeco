@@ -15,11 +15,11 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone, tzinfo
 from decimal import Decimal
 
-from sqlalchemy import Select, false, func, or_, select, tuple_, update
+from sqlalchemy import Select, case, false, func, or_, select, tuple_, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
-from ..models import RatingRow, RideRow, RideStepRow
+from ..models import Commune, RatingRow, RideRow, RideStepRow
 
 _STATUS_TO_ROW = {
     "awaiting_payment": "attente_paiement",
@@ -425,6 +425,80 @@ def find_steps(session: Session, ride_id: int) -> list[LoggedStep]:
         )
         for row in session.scalars(query)
     ]
+
+
+def find_all_of(session: Session, *, rider_id: int | None, driver_id: int | None) -> list[Ride]:
+    """Every ride of a rider (or of a driver), the most recently booked first (« Mes données »)."""
+    query = _with_rating().where(_belongs(rider_id, driver_id)).order_by(RideRow.created_at.desc(), RideRow.id.desc())
+    return [_to_ride(*found) for found in session.execute(query)]
+
+
+# Rows of a ride that is over, whatever the way ('passager_absent': migration 020).
+_FINAL_ROW_STATUSES = ("terminee", "annulee", "expiree", "passager_absent")
+
+
+def keep_only_communes(
+    session: Session, *, decimals: int, finished_before: datetime | None = None, rider_id: int | None = None
+) -> int:
+    """Replaces the exact stops of finished rides by their communes: the
+    commune's name as address, no landmark, a position rounded to `decimals`.
+    The rating's comment goes too: it may name someone. Returns how many rides
+    changed (audit RGPD R4: a year after the end; and every ride of a deleted
+    rider).
+
+    Only rides not reduced yet are changed, so running it every day costs little.
+    """
+    pickup_commune = aliased(Commune)
+    dropoff_commune = aliased(Commune)
+    finished_at = func.coalesce(RideRow.completed_at, RideRow.cancelled_at, RideRow.expired_at, RideRow.absent_at)
+    not_reduced_yet = or_(
+        RideRow.pickup_address != pickup_commune.name,
+        RideRow.dropoff_address != dropoff_commune.name,
+        RideRow.pickup_landmark.is_not(None),
+        RideRow.dropoff_landmark.is_not(None),
+    )
+    query = (
+        select(RideRow, pickup_commune.name, dropoff_commune.name)
+        .join(pickup_commune, pickup_commune.id == RideRow.pickup_commune_id)
+        .join(dropoff_commune, dropoff_commune.id == RideRow.dropoff_commune_id)
+        .where(RideRow.status.in_(_FINAL_ROW_STATUSES), not_reduced_yet)
+    )
+    if finished_before is not None:
+        query = query.where(finished_at < finished_before)
+    if rider_id is not None:
+        query = query.where(RideRow.rider_id == rider_id)
+
+    reduced_ids = []
+    for row, pickup_name, dropoff_name in session.execute(query):
+        row.pickup_address = pickup_name
+        row.pickup_landmark = None
+        row.pickup_lat = round(row.pickup_lat, decimals)
+        row.pickup_lng = round(row.pickup_lng, decimals)
+        row.dropoff_address = dropoff_name
+        row.dropoff_landmark = None
+        row.dropoff_lat = round(row.dropoff_lat, decimals)
+        row.dropoff_lng = round(row.dropoff_lng, decimals)
+        reduced_ids.append(row.id)
+    if reduced_ids:
+        session.execute(update(RatingRow).where(RatingRow.ride_id.in_(reduced_ids)).values(comment=None))
+    session.flush()
+    return len(reduced_ids)
+
+
+def erase_comments_of(session: Session, user_id: int) -> None:
+    """A deleted account (migration 025): the comments of the ratings of its
+    rides, and those it wrote in the logs (an incident keeps one: CHECK)."""
+    rides_of_user = select(RideRow.id).where(or_(RideRow.rider_id == user_id, RideRow.driver_id == user_id))
+    session.execute(update(RatingRow).where(RatingRow.ride_id.in_(rides_of_user)).values(comment=None))
+    session.execute(
+        update(RideStepRow)
+        .where(RideStepRow.author_id == user_id, RideStepRow.comment.is_not(None))
+        .values(comment=case((RideStepRow.kind == _STEP_TO_ROW["incident"], _ERASED_COMMENT), else_=None))
+    )
+
+
+# What an incident keeps as comment once its author's account is deleted (migration 025).
+_ERASED_COMMENT = "(effacé)"
 
 
 def _log(session: Session, ride_id: int, step: Step) -> None:

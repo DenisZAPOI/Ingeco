@@ -250,13 +250,19 @@ valider par des personnes compétentes (juriste, délégué à la protection des
 
 ### 5.1 Données personnelles (RGPD)
 
-- **Registre des traitements** et **mentions d'information** pour les usagers et les
-  chauffeurs.
-- **Analyse d'impact (AIPD)** très probablement nécessaire : public vulnérable, position des
-  chauffeurs, et le motif « santé » d'un trajet révèle une information sensible. À confirmer
-  avec un délégué à la protection des données.
-- **Durées de conservation** des comptes, trajets et journaux, et la suppression de compte
-  (décidée le 03/11/2026, voir [decisions.md](decisions.md)).
+Voir l'[audit RGPD du 24/11/2026](audit-rgpd-2026-11-24.md). Fait dans le code : motif
+« santé » retiré, adresses exactes masquées aux chauffeurs hors de leur course, page « Vos
+données », « Mes données » (page et fichier), demande de suppression traitée par
+l'administrateur, purge quotidienne des données anciennes. Reste :
+
+- **Registre des traitements**, et le nom du responsable sur la page « Vos données ».
+- **Analyse d'impact (AIPD)** préalable obligatoire : public vulnérable, situation sociale et
+  professionnelle, position des chauffeurs, croisement de données. À faire avec un délégué à
+  la protection des données.
+- **Durées de conservation** provisoires à faire valider ([decisions.md](decisions.md)), plus
+  celle des journaux chez l'hébergeur (6 mois à 1 an) et celle des comptes inactifs.
+- L'immatriculation d'un chauffeur supprimé reste en base (colonne unique de l'équipe BD) :
+  à anonymiser avec elle.
 - Contrat de sous-traitance avec l'hébergeur et le prestataire de SMS.
 
 ### 5.2 Le cadre légal du transport

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { User } from '../api/auth';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
@@ -6,11 +7,16 @@ import { CheckboxField } from '../components/form/CheckboxField';
 import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
+import { AccountDeletion } from '../components/profile/AccountDeletion';
 import { LoadingMessage } from '../components/ui/LoadingMessage';
 import { useUpdateProfile } from '../hooks/useAuthForms';
 import { useSession } from '../hooks/useSession';
 import { t } from '../i18n';
+import { MY_DATA_PATH } from '../lib/paths';
 import { formatPhone } from '../lib/phone';
+
+// The staff accounts are deleted by an administrator, not from their own profile.
+const MAY_ASK_DELETION: readonly User['role'][] = ['rider', 'driver'];
 
 export function ProfilePage() {
   const { user } = useSession();
@@ -37,6 +43,11 @@ function Profile({ user }: { user: User }) {
       </p>
       <IdentityForm user={user} />
       <PasswordForm />
+      <h2>{t('myData.title')}</h2>
+      <Link to={MY_DATA_PATH} className="link-action">
+        {t('profile.seeMyData')}
+      </Link>
+      {MAY_ASK_DELETION.includes(user.role) && <AccountDeletion />}
     </>
   );
 }

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { CheckIcon, ClockIcon, QuestionIcon } from '../components/ui/icons';
+import { PrivacyNote } from '../components/ui/PrivacyNote';
 import { t } from '../i18n';
 import { NO_ANSWER, saveDraft } from '../lib/orientation';
 import { orientationQuestionPath } from '../lib/paths';
@@ -36,6 +37,7 @@ export function OrientationIntroPage() {
           </li>
         </ul>
         <p className="note">{t('orientation.introPrivacy')}</p>
+        <PrivacyNote />
         <button type="button" className="button button-block" onClick={start}>
           {t('orientation.start')}
         </button>

@@ -27,7 +27,7 @@ from .controllers.support_controller import support_bp
 from .controllers.user_controller import user_bp
 from .extensions import jwt, socketio, spec
 from .repository import place_repository
-from .services import auth_service, expiry_service, place_service
+from .services import auth_service, expiry_service, place_service, retention_service
 from .utils import access, database, errors, logs, periodic, request_logs, security_headers
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,8 @@ MAX_BODY_SIZE_BYTES = 1024 * 1024
 CORS_PREFLIGHT_MAX_AGE_SECONDS = 2 * 60 * 60
 # Rides expire within a minute of their deadline (contract 6.8).
 EXPIRY_INTERVAL_SECONDS = 60
+# The daily purge (audit RGPD R4) runs a minute after the start, then every day.
+PURGE_FIRST_DELAY_SECONDS = 60
 
 
 def check_safety(config: type[Config]) -> None:
@@ -123,6 +125,13 @@ def create_app(config: type[Config] = Config) -> Flask:
 
     if config.PERIODIC_TASKS_ENABLED:
         periodic.start(socketio, "expire_rides", EXPIRY_INTERVAL_SECONDS, expiry_service.expire_due_rides)
+        periodic.start(
+            socketio,
+            "purge_personal_data",
+            retention_service.PURGE_INTERVAL_SECONDS,
+            retention_service.purge,
+            first_delay_seconds=PURGE_FIRST_DELAY_SECONDS,
+        )
 
     logger.info("Application started", extra={"context": {"corsOrigins": config.CORS_ORIGINS}})
     return app

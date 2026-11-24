@@ -19,7 +19,15 @@ from ..utils.errors import Conflict, NotFound, UnprocessableEntity
 from ..utils.passwords import hash_secret, random_digits
 from . import account_rules, ride_rules
 from . import ride_service
-from .account_rules import ACTIVATION_CODE_LENGTH, ACTIVATION_CODE_VALIDITY_HOURS, ACTIVE, DRIVER, RIDER, SUSPENDED
+from .account_rules import (
+    ACTIVATION_CODE_LENGTH,
+    ACTIVATION_CODE_VALIDITY_HOURS,
+    ACTIVE,
+    DELETED,
+    DRIVER,
+    RIDER,
+    SUSPENDED,
+)
 from .auth_service import EMAIL_TAKEN
 
 logger = logging.getLogger(__name__)
@@ -209,16 +217,22 @@ def _suspend(session, admin_id: int, user: User) -> None:
 
 
 def _cancel_rides_of_suspended_rider(session, admin_id: int, rider: User) -> None:
+    cancel_waiting_rides(session, admin_id, rider, reason="suspension", refused=RIDER_HAS_RIDE)
+
+
+def cancel_waiting_rides(session, admin_id: int, rider: User, *, reason: str, refused: str) -> None:
+    """Cancels and refunds the rider's rides no driver took yet. Conflict(`refused`)
+    if a driver holds one: they would come for nobody."""
     rides = ride_repository.find_upcoming(
         session, rider_id=rider.id, driver_id=None, statuses=ride_rules.UPCOMING_STATUSES
     )
     if any(ride.status in ride_rules.HELD_STATUSES for ride in rides):
-        raise Conflict(RIDER_HAS_RIDE)
+        raise Conflict(refused)
     for ride in rides:
         if not ride_service.cancel_in(session, ride, by_id=admin_id):
-            # A driver took it in between: the suspension waits for that ride.
-            raise Conflict(RIDER_HAS_RIDE)
-        logger.info("Ride cancelled", extra={"context": {"rideId": ride.id, "by": "suspension"}})
+            # A driver took it in between: the change waits for that ride.
+            raise Conflict(refused)
+        logger.info("Ride cancelled", extra={"context": {"rideId": ride.id, "by": reason}})
     if rides:
         # One SMS for all of them (simulated, UC62).
         sms_repository.send(session, user_id=rider.id, kind=sms_repository.SUSPENDED_RIDES_CANCELLED)
@@ -281,7 +295,8 @@ def _new_code() -> tuple[str, str, datetime]:
 
 def _find(session, user_id: int) -> User:
     user = user_repository.find_by_id(session, user_id)
-    if user is None:
+    # A deleted account has nothing left to manage (migration 025).
+    if user is None or user.status == DELETED:
         raise NotFound(ACCOUNT_NOT_FOUND)
     return user
 

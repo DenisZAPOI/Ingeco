@@ -21,6 +21,8 @@ export const fr = {
     retry: 'Réessayer',
     backHome: "Retour à l'accueil",
     notFound: 'Page introuvable',
+    privacy: 'Vos données',
+    privacyNote: 'Vos données : ce que nous gardons et pourquoi',
   },
   errors: {
     generic: "Une erreur s'est produite.",
@@ -219,6 +221,8 @@ export const fr = {
     partnerComing: 'Vous pourrez bientôt émettre des bons solidaires ici.',
     operatorTitle: "Centre d'appel",
     operatorComing: 'Vous pourrez bientôt réserver pour un usager ici.',
+    requests: 'Demandes',
+    requestsHint: 'Personnes à rappeler, comptes à supprimer',
   },
   welcome: {
     title: 'Bienvenue',
@@ -287,6 +291,82 @@ export const fr = {
     passwordTitle: 'Changer de mot de passe',
     passwordSubmit: 'Changer le mot de passe',
     passwordSaved: 'Votre mot de passe est changé.',
+    seeMyData: 'Voir et télécharger mes données',
+  },
+  // « Vos données » (RGPD art. 13, audit R2). CHANGER_SELON_DECISION : le responsable
+  // sera nommé avec l'accord de la cliente (nom d'Ingeco Territoires).
+  privacy: {
+    title: 'Vos données',
+    lead: "Ce que l'application garde sur vous, pourquoi, qui le voit et combien de temps. Ceci est un démonstrateur : les données sont fictives.",
+    whoTitle: 'Qui est responsable ?',
+    whoText: "L'association porteuse du projet. C'est à elle que vous pouvez écrire pour vos données.",
+    whatTitle: 'Ce que nous gardons, et pourquoi',
+    whatText:
+      "Votre prénom, votre nom et votre numéro, pour vous connecter et vous joindre. Votre courriel seulement si vous le donnez. Vos trajets (adresses, horaire, motif), pour les organiser. Votre besoin d'un véhicule adapté, pour envoyer le bon véhicule. Vos réponses au questionnaire, pour vous proposer un plan. Pour un chauffeur : son véhicule, sa photo et sa dernière position quand il est en ligne.",
+    neverTitle: 'Ce que nous ne demandons jamais',
+    neverText: 'Votre nationalité, vos papiers, votre numéro de sécurité sociale, votre origine, votre santé.',
+    seesTitle: 'Qui voit vos données ?',
+    seesText:
+      "Le chauffeur de votre trajet voit votre prénom et votre numéro pendant le trajet seulement, et l'adresse exacte à partir du moment où il accepte. Il ne voit jamais le motif. Le centre d'appel et l'administrateur voient votre compte. Les adresses que vous cherchez sont envoyées sans votre nom à OpenRouteService (en Allemagne), pour trouver le lieu.",
+    howLongTitle: 'Combien de temps ?',
+    howLongText:
+      "Le questionnaire : seulement le dernier. Une demande de rappel : 3 mois après l'appel. Un trajet : l'adresse exacte pendant 1 an, ensuite seulement la commune. Votre compte : jusqu'à ce que vous demandiez sa suppression.",
+    rightsTitle: 'Vos droits',
+    rightsText:
+      'Voir et télécharger vos données, les corriger, demander la suppression de votre compte : tout se fait depuis votre profil. Vous pouvez aussi vous plaindre à la CNIL (cnil.fr).',
+    seeMyData: 'Voir mes données',
+  },
+  // « Mes données » (RGPD art. 15 et 20, audit R3).
+  myData: {
+    title: 'Mes données',
+    lead: "Tout ce que l'application garde sur vous. Vous pouvez aussi les télécharger dans un fichier.",
+    download: 'Télécharger mes données',
+    accountTitle: 'Mon compte',
+    createdOn: 'Compte créé le',
+    none: 'Aucune',
+    ridesTitle: 'Mes trajets',
+    rideCount_one: '{count} trajet.',
+    rideCount_other: '{count} trajets.',
+    rideLine: '{when} : {from} → {to} ({status})',
+    planTitle: "Mon plan d'action",
+    helpTitle: "Mes demandes d'aide",
+    helpLine: '{kind} · {when} · {state}',
+    helpKinds: { callback: 'Être rappelé', report: 'Signalement' },
+    handled: 'traitée',
+    waiting: 'en attente',
+    deletionPending: 'Vous avez demandé la suppression de votre compte le {date}.',
+    whyKept: 'Pourquoi nous gardons ces données',
+    backToProfile: 'Retour au profil',
+  },
+  // Suppression du compte (RGPD art. 17, audit R3) : une personne la traite.
+  deletion: {
+    title: 'Supprimer mon compte',
+    lead: 'Une personne de la structure supprimera votre compte. Vos trajets resteront dans les statistiques, sans votre nom.',
+    ask: 'Supprimer mon compte',
+    warning:
+      'Votre nom, votre numéro et vos messages seront effacés. Vos trajets pas encore pris par un chauffeur seront annulés. Vous ne pourrez plus vous connecter.',
+    confirm: 'Oui, supprimer mon compte',
+    cancel: 'Non, garder mon compte',
+    pending: 'Vous avez demandé la suppression de votre compte le {date}. Une personne va la traiter.',
+    withdraw: 'Annuler ma demande',
+  },
+  // « Demandes » du centre d'appel et de l'administrateur (audit R3, R10).
+  requests: {
+    title: 'Demandes',
+    callbacksTitle: 'Personnes à rappeler',
+    noCallback: 'Personne à rappeler pour le moment.',
+    withAccount: 'a un compte',
+    withoutAccount: 'sans compte',
+    askedOn: 'Demandé le {date}, {who}',
+    calledBack: 'Rappel fait',
+    deletionsTitle: 'Comptes à supprimer',
+    deletionsLead: 'Le nom, le numéro et les textes sont effacés ; les trajets restent, sans identité.',
+    noDeletion: 'Aucune demande de suppression.',
+    deletionAskedOn: 'Suppression demandée le {date}',
+    anonymise: 'Supprimer ce compte',
+    anonymiseWarning: 'Le compte de {name} sera effacé. Cela ne peut pas être annulé.',
+    anonymiseConfirm: 'Oui, supprimer',
+    cancel: 'Non',
   },
   booking: {
     step: 'Étape {step} sur {total}',

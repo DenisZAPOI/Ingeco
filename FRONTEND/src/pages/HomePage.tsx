@@ -7,9 +7,9 @@ import { HomeIllustration } from '../components/home/HomeIllustration';
 import { NeedCards } from '../components/home/NeedCards';
 import { PlanLink } from '../components/orientation/PlanLink';
 import { NextRide } from '../components/rides/NextRide';
-import { ArrowRightIcon, CalendarIcon, ClockIcon, UserIcon } from '../components/ui/icons';
+import { ArrowRightIcon, CalendarIcon, ClockIcon, PhoneIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { ADMIN_ACCOUNTS_PATH, ADMIN_SETTINGS_PATH, PROFILE_PATH, RIDES_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, ADMIN_SETTINGS_PATH, PROFILE_PATH, RIDES_PATH, STAFF_REQUESTS_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -81,6 +81,12 @@ export function HomePage() {
               </span>
               <ArrowRightIcon className="action-card-arrow" />
             </Link>
+            <RequestsCard />
+          </div>
+        ) : account.role === 'operator' ? (
+          <div className="stack">
+            <p>{t('home.operatorComing')}</p>
+            <RequestsCard />
           </div>
         ) : (
           <>
@@ -101,5 +107,21 @@ export function HomePage() {
         )}
       </PageSheet>
     </section>
+  );
+}
+
+/** Operator and administrator: the callbacks to make (and, for the administrator, the accounts to delete). */
+function RequestsCard() {
+  return (
+    <Link to={STAFF_REQUESTS_PATH} className="action-card">
+      <span className="icon-chip">
+        <PhoneIcon />
+      </span>
+      <span className="action-card-text">
+        <span className="action-card-title">{t('home.requests')}</span>
+        <span className="action-card-hint">{t('home.requestsHint')}</span>
+      </span>
+      <ArrowRightIcon className="action-card-arrow" />
+    </Link>
   );
 }
