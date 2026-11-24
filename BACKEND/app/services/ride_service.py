@@ -18,7 +18,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from ..repository import ride_repository, tariff_repository, user_repository
+from ..repository import ride_repository, service_hours_repository, tariff_repository, user_repository
 from ..repository.place_repository import PlacesUnavailable, road_distance_km
 from ..repository.ride_repository import (
     AlreadyRated,
@@ -34,7 +34,7 @@ from ..repository.ride_repository import (
 from ..sockets import broadcast
 from ..utils import database
 from ..utils.errors import Conflict, NotFound, ServiceUnavailable, UnprocessableEntity
-from . import ride_rules
+from . import ride_rules, service_hours_rules
 from .place_service import check_proposed, check_served, count_lookup
 from .ride_rules import (
     APP_CHANNEL,
@@ -93,11 +93,15 @@ class Estimate:
     rider_amount_cents: int
 
 
-def estimate(pickup: Stop, dropoff: Stop, *, user_id: int) -> Estimate:
-    """Distance and price, without saving anything."""
+def estimate(pickup: Stop, dropoff: Stop, *, scheduled_at: datetime | None, user_id: int) -> Estimate:
+    """Distance and price, without saving anything.
+
+    scheduled_at (None: leave now) is only checked against the service hours,
+    so that a closed time is refused before the rider presses "Send".
+    """
     count_lookup(user_id)
     with database.session() as session:
-        return _estimate(session, pickup, dropoff)
+        return _estimate(session, pickup, dropoff, scheduled_at)
 
 
 def book_ride(
@@ -124,7 +128,7 @@ def book_ride(
         _check_open_rides(session, rider_id, scheduled=scheduled_at is not None)
 
         rider = user_repository.find_by_id(session, rider_id)
-        price = _estimate(session, pickup, dropoff)
+        price = _estimate(session, pickup, dropoff, scheduled_at)
         created_at = ride_rules.now()
         if price.rider_amount_cents == 0:
             # Free for the rider: nothing to wait for, the search for a driver
@@ -413,10 +417,11 @@ def _cancellation_already_settled(session: Session, ride_id: int) -> Ride:
     raise Conflict(_NOT_CANCELLABLE.get(ride.status, NOT_CANCELLABLE))
 
 
-def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:
+def _estimate(session: Session, pickup: Stop, dropoff: Stop, scheduled_at: datetime | None) -> Estimate:
     for stop in (pickup, dropoff):
         check_proposed(stop.address, stop.lat, stop.lng, stop.commune_id, stop.token)
         check_served(session, stop.lat, stop.lng, stop.commune_id)
+    _check_service_hours(session, scheduled_at)
 
     try:
         road_km = road_distance_km(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng)
@@ -438,6 +443,17 @@ def _estimate(session: Session, pickup: Stop, dropoff: Stop) -> Estimate:
         voucher_amount_cents=0,
         rider_amount_cents=ride_rules.rider_amount_cents(price),
     )
+
+
+def _check_service_hours(session: Session, scheduled_at: datetime | None) -> None:
+    """422 with the hours of that day if the service is closed at the departure time (§18).
+
+    Only new requests: a ride already booked keeps its time if the hours change.
+    """
+    departure = ride_rules.ride_time(scheduled_at, ride_rules.now())
+    slots = service_hours_repository.list_slots(session)
+    if not service_hours_rules.is_open(slots, departure):
+        raise UnprocessableEntity(service_hours_rules.closed_message(slots, departure))
 
 
 def _unsigned(stop: Stop) -> Stop:

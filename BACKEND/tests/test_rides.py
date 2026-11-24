@@ -43,8 +43,8 @@ def book(client, body=None):
     return client.post("/rides", json=body or booking(), headers=csrf_headers(client))
 
 
-def estimate(client, pickup=CAYENNE_TOWN_HALL, dropoff=MATOURY_TOWN_HALL):
-    body = {"pickup": signed(pickup), "dropoff": signed(dropoff)}
+def estimate(client, pickup=CAYENNE_TOWN_HALL, dropoff=MATOURY_TOWN_HALL, scheduled_at=None):
+    body = {"pickup": signed(pickup), "dropoff": signed(dropoff), "scheduledAt": scheduled_at}
     return client.post("/rides/estimate", json=body, headers=csrf_headers(client))
 
 

@@ -46,6 +46,14 @@ class StopBody(InputModel):
 class EstimateBody(InputModel):
     pickup: StopBody
     dropoff: StopBody
+    # The departure chosen, as in BookRideBody (null or absent: leave now).
+    # Only checked against the service hours: the price does not depend on it.
+    scheduled_at: AwareDatetime | None = None
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def _scheduled_at(cls, value: datetime | None) -> datetime | None:
+        return apply_rule(ride_rules.check_scheduled_at, value)
 
 
 class BookRideBody(InputModel):

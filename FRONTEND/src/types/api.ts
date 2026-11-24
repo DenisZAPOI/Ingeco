@@ -635,7 +635,8 @@ export interface paths {
          * @description The price is computed again here, never taken from the estimate. Sent again
          *     with the same clientRequestId, it returns the ride already booked (200)
          *     instead of booking a second one (201). 422 beyond 1 immediate ride and 3
-         *     scheduled ones not finished yet.
+         *     scheduled ones not finished yet, or if the service is closed at the
+         *     departure time.
          */
         post: operations["book"];
         delete?: never;
@@ -655,9 +656,10 @@ export interface paths {
         put?: never;
         /**
          * Road distance and price of a trip. Saves nothing.
-         * @description 422 if the pickup or the drop-off is outside the served zone, 503 if the
-         *     road distance cannot be computed, 429 beyond 60 searches and estimates in
-         *     10 minutes for an account.
+         * @description 422 if the pickup or the drop-off is outside the served zone, or if the
+         *     service is closed at the departure time (scheduledAt, or now), with the
+         *     hours of that day; 503 if the road distance cannot be computed, 429 beyond
+         *     60 searches and estimates in 10 minutes for an account.
          */
         post: operations["estimate"];
         delete?: never;
@@ -1144,6 +1146,11 @@ export interface components {
         EstimateBody: {
             dropoff: components["schemas"]["StopBody"];
             pickup: components["schemas"]["StopBody"];
+            /**
+             * Scheduledat
+             * @default null
+             */
+            scheduledAt: string | null;
         };
         /** EstimateDto */
         EstimateDto: {

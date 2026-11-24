@@ -8,8 +8,9 @@ export type Stop = components['schemas']['StopBody'];
 export type Estimate = components['schemas']['EstimateDto'];
 export type Booking = components['schemas']['BookRideBody'];
 
-export function estimateRide(pickup: Stop, dropoff: Stop): Promise<Estimate> {
-  return request<Estimate>('POST', '/rides/estimate', { pickup, dropoff });
+/** `scheduledAt` (null: leave now) lets the API refuse a closed time before the booking is sent. */
+export function estimateRide(pickup: Stop, dropoff: Stop, scheduledAt: string | null): Promise<Estimate> {
+  return request<Estimate>('POST', '/rides/estimate', { pickup, dropoff, scheduledAt });
 }
 
 /** Sent again with the same clientRequestId, returns the ride already booked. */
