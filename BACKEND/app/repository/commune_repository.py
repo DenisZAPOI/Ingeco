@@ -8,7 +8,7 @@ service can be in a commune that is not served: its name is still needed.
 
 from dataclasses import dataclass
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from ..models import Commune as CommuneRow
@@ -33,6 +33,15 @@ def find_by_id(session: Session, commune_id: int) -> Commune | None:
     """Served or not: the caller decides (a ride needs a served one)."""
     row = session.get(CommuneRow, commune_id)
     return _to_commune(row) if row else None
+
+
+def set_served(session: Session, served_ids: set[int]) -> None:
+    """These communes receive rides, the others no longer do.
+
+    A ride already booked keeps its commune (migration 010).
+    """
+    session.execute(update(CommuneRow).where(CommuneRow.id.in_(served_ids)).values(is_served=True))
+    session.execute(update(CommuneRow).where(CommuneRow.id.not_in(served_ids)).values(is_served=False))
 
 
 def _to_commune(row: CommuneRow) -> Commune:

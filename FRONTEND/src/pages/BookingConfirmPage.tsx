@@ -29,10 +29,11 @@ export function BookingConfirmPage() {
 
 function Confirmation({ pickup, dropoff, purpose }: { pickup: Stop; dropoff: Stop; purpose: Purpose }) {
   const { draft, setRequestId } = useBookingDraft();
-  const estimate = useEstimate(pickup, dropoff);
+  const scheduledAt = draft.when === 'later' ? new Date(guyanaDateTime(draft.day, draft.time)).toISOString() : null;
+  // Sent with the departure: a time when the service is closed is refused here, with its hours.
+  const estimate = useEstimate(pickup, dropoff, scheduledAt);
   const booking = useBookRide();
   const navigate = useNavigate();
-  const scheduledAt = draft.when === 'later' ? new Date(guyanaDateTime(draft.day, draft.time)).toISOString() : null;
 
   // One identifier per booking, kept for every retry: a booking sent twice on
   // a slow network is booked once (the API returns the first one).

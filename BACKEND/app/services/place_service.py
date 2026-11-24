@@ -1,6 +1,6 @@
 """
 The served zone: communes, address search, and the check that a stop is
-inside the pilot zone (H18) and was proposed by this API (audit F9).
+in a served commune (H18, zones set by the administrator) and was proposed by this API (audit F9).
 """
 
 import base64
@@ -15,12 +15,6 @@ from ..repository.place_repository import Place, PlacesUnavailable
 from ..utils import database
 from ..utils.errors import ServiceUnavailable, TooManyRequests, UnprocessableEntity
 from ..utils.rate_limit import AttemptLimiter
-
-# Centre of Cayenne. The communes chosen by the user are the real rule; this
-# radius only catches a position that cannot belong to them (Kourou typed
-# with "Cayenne"). An API setting, as the contract allows (H18).
-PILOT_ZONE_CENTRE = (4.9372, -52.3260)
-PILOT_ZONE_RADIUS_KM = 20.0
 
 SEARCH_UNAVAILABLE = "La recherche d'adresses ne répond pas pour le moment. Réessayez dans quelques minutes."
 
@@ -115,9 +109,15 @@ def recent_places(rider_id: int) -> list[Place]:
 
 
 def check_served(session: Session, lat: float, lng: float, commune_id: int) -> None:
-    """Raises 422 if the stop is outside the pilot zone."""
+    """Raises 422 if the stop is not in a served commune.
+
+    The served communes are the rule (set by the administrator). The commune
+    of a stop comes from OpenRouteService and is signed with it
+    (check_proposed); the rectangle only catches a position that cannot be
+    in French Guiana at all.
+    """
     _served_commune(session, commune_id)
-    if place_repository.straight_distance_km(*PILOT_ZONE_CENTRE, lat, lng) > PILOT_ZONE_RADIUS_KM:
+    if not place_repository.in_search_area(lat, lng):
         raise UnprocessableEntity(_out_of_zone(session))
 
 

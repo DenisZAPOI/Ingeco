@@ -7,9 +7,9 @@ import { HomeIllustration } from '../components/home/HomeIllustration';
 import { NeedCards } from '../components/home/NeedCards';
 import { PlanLink } from '../components/orientation/PlanLink';
 import { NextRide } from '../components/rides/NextRide';
-import { ArrowRightIcon, CalendarIcon, UserIcon } from '../components/ui/icons';
+import { ArrowRightIcon, CalendarIcon, ClockIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { ADMIN_ACCOUNTS_PATH, PROFILE_PATH, RIDES_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, ADMIN_SETTINGS_PATH, PROFILE_PATH, RIDES_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -60,16 +60,28 @@ export function HomePage() {
         ) : account.role === 'driver' ? (
           <DriverHome />
         ) : account.role === 'admin' ? (
-          <Link to={ADMIN_ACCOUNTS_PATH} className="action-card action-card-primary">
-            <span className="icon-chip icon-chip-sun">
-              <UserIcon />
-            </span>
-            <span className="action-card-text">
-              <span className="action-card-title">{t('home.accounts')}</span>
-              <span className="action-card-hint">{t('home.accountsHint')}</span>
-            </span>
-            <ArrowRightIcon className="action-card-arrow" />
-          </Link>
+          <div className="stack">
+            <Link to={ADMIN_ACCOUNTS_PATH} className="action-card action-card-primary">
+              <span className="icon-chip icon-chip-sun">
+                <UserIcon />
+              </span>
+              <span className="action-card-text">
+                <span className="action-card-title">{t('home.accounts')}</span>
+                <span className="action-card-hint">{t('home.accountsHint')}</span>
+              </span>
+              <ArrowRightIcon className="action-card-arrow" />
+            </Link>
+            <Link to={ADMIN_SETTINGS_PATH} className="action-card">
+              <span className="icon-chip">
+                <ClockIcon />
+              </span>
+              <span className="action-card-text">
+                <span className="action-card-title">{t('home.settings')}</span>
+                <span className="action-card-hint">{t('home.settingsHint')}</span>
+              </span>
+              <ArrowRightIcon className="action-card-arrow" />
+            </Link>
+          </div>
         ) : (
           <>
             <h2>{coming(account.role).title}</h2>

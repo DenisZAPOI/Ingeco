@@ -44,12 +44,18 @@ _TAGS = ["Réservation"]
 def estimate():
     """Road distance and price of a trip. Saves nothing.
 
-    422 if the pickup or the drop-off is outside the served zone, 503 if the
-    road distance cannot be computed, 429 beyond 60 searches and estimates in
-    10 minutes for an account.
+    422 if the pickup or the drop-off is outside the served zone, or if the
+    service is closed at the departure time (scheduledAt, or now), with the
+    hours of that day; 503 if the road distance cannot be computed, 429 beyond
+    60 searches and estimates in 10 minutes for an account.
     """
     body: EstimateBody = request.context.body
-    result = ride_service.estimate(body.pickup.to_stop(), body.dropoff.to_stop(), user_id=current_user_id())
+    result = ride_service.estimate(
+        body.pickup.to_stop(),
+        body.dropoff.to_stop(),
+        scheduled_at=body.scheduled_at,
+        user_id=current_user_id(),
+    )
     return jsonify(estimate_to_dto(result).to_json()), 200
 
 
@@ -75,7 +81,8 @@ def book():
     The price is computed again here, never taken from the estimate. Sent again
     with the same clientRequestId, it returns the ride already booked (200)
     instead of booking a second one (201). 422 beyond 1 immediate ride and 3
-    scheduled ones not finished yet.
+    scheduled ones not finished yet, or if the service is closed at the
+    departure time.
     """
     body: BookRideBody = request.context.body
     ride, created = ride_service.book_ride(

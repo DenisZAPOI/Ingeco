@@ -8,6 +8,7 @@ import { ActivatePage } from '../pages/ActivatePage';
 import { AdminAccountPage } from '../pages/AdminAccountPage';
 import { AdminAccountsPage } from '../pages/AdminAccountsPage';
 import { AdminNewAccountPage } from '../pages/AdminNewAccountPage';
+import { AdminSettingsPage } from '../pages/AdminSettingsPage';
 import { BookingConfirmPage } from '../pages/BookingConfirmPage';
 import { BookingPlacePage } from '../pages/BookingPlacePage';
 import { BookingTimePage } from '../pages/BookingTimePage';
@@ -95,6 +96,7 @@ export function AppRoutes() {
           <Route path="admin/comptes" element={<AdminAccountsPage />} />
           <Route path="admin/comptes/nouveau" element={<AdminNewAccountPage />} />
           <Route path="admin/comptes/:id" element={<AdminAccountPage />} />
+          <Route path="admin/reglages" element={<AdminSettingsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

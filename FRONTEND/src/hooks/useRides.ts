@@ -18,8 +18,8 @@ import { errorMessage } from '../lib/errorMessage';
 import { useRequest } from './useRequest';
 import { useSubmit } from './useSubmit';
 
-export function useEstimate(pickup: Stop, dropoff: Stop) {
-  return useRequest(useCallback(() => estimateRide(pickup, dropoff), [pickup, dropoff]));
+export function useEstimate(pickup: Stop, dropoff: Stop, scheduledAt: string | null) {
+  return useRequest(useCallback(() => estimateRide(pickup, dropoff, scheduledAt), [pickup, dropoff, scheduledAt]));
 }
 
 /** `known`: the ride handed over by the previous screen, shown without a call. */
