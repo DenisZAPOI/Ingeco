@@ -46,10 +46,18 @@ ORS_ROUTE_PATH = "/v2/directions/driving-car/json"
 ORS_TIMEOUT_SECONDS = 5
 # Asked for more than shown: some are dropped by the commune filter.
 ORS_SEARCH_SIZE = 20
-# Rectangle around the pilot zone (Cayenne, Rémire-Montjoly, Matoury), and the
-# point results are ranked from.
-SEARCH_AREA = {"min_lon": -52.50, "min_lat": 4.75, "max_lon": -52.20, "max_lat": 5.00}
+# Rectangle around French Guiana: the administrator may serve any of its
+# communes (zones, M9); the commune filter below keeps only the one chosen.
+# Results are ranked from Cayenne.
+SEARCH_AREA = {"min_lon": -54.65, "min_lat": 2.10, "max_lon": -51.60, "max_lat": 5.80}
 SEARCH_FOCUS = (4.9372, -52.3260)
+
+
+def in_search_area(lat: float, lng: float) -> bool:
+    """True if the position is inside the rectangle around French Guiana."""
+    inside_latitudes = SEARCH_AREA["min_lat"] <= lat <= SEARCH_AREA["max_lat"]
+    inside_longitudes = SEARCH_AREA["min_lon"] <= lng <= SEARCH_AREA["max_lon"]
+    return inside_latitudes and inside_longitudes
 
 _api_key: str | None = None
 

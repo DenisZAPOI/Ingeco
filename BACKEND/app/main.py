@@ -22,6 +22,7 @@ from .controllers.orientation_controller import orientation_bp
 from .controllers.practical_guide_controller import practical_guide_bp
 from .controllers.place_controller import place_bp
 from .controllers.ride_controller import ride_bp
+from .controllers.settings_controller import settings_bp
 from .controllers.support_controller import support_bp
 from .controllers.user_controller import user_bp
 from .extensions import jwt, socketio, spec
@@ -109,6 +110,7 @@ def create_app(config: type[Config] = Config) -> Flask:
     app.register_blueprint(ride_bp)
     app.register_blueprint(driver_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(settings_bp)
     app.register_blueprint(job_bp)
     app.register_blueprint(help_service_bp)
     app.register_blueprint(practical_guide_bp)

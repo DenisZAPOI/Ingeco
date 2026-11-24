@@ -926,6 +926,14 @@ a:hover {
   color: var(--color-muted);
 }
 
+/* Two short fields side by side (opening and closing time), one under the
+   other on a narrow phone. */
+.field-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--space);
+}
+
 .field-input {
   min-height: var(--touch-target);
   width: 100%;

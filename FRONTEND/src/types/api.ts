@@ -4,6 +4,45 @@
  */
 
 export interface paths {
+    "/admin/service-hours": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The hours when a ride can be requested, day by day, in local time of Cayenne. */
+        get: operations["getServiceHours"];
+        /**
+         * Replaces the hours of the whole week: one slot per day, or closed.
+         * @description 422 if every day is closed.
+         */
+        put: operations["putServiceHours"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tariff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tariff of the next bookings. */
+        get: operations["getTariff"];
+        put?: never;
+        /** A new version of the tariff, for the next bookings. The old one is kept for the rides booked with it. */
+        post: operations["postTariff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -85,6 +124,27 @@ export interface paths {
         get: operations["getPhoto"];
         /** Saves or replaces a driver's face photo: a JPEG already reduced by the browser (100 KB at most). */
         put: operations["putPhoto"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The 22 communes of French Guiana, and which ones receive rides. */
+        get: operations["getZones"];
+        /**
+         * The communes that receive rides from now on; every other one stops.
+         * @description 422 if none is left, or one does not exist.
+         */
+        put: operations["putZones"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1103,6 +1163,24 @@ export interface components {
             /** Totalcents */
             totalCents: number;
         };
+        /** DayHoursBody */
+        DayHoursBody: {
+            /** Closesat */
+            closesAt: string | null;
+            /** Opensat */
+            opensAt: string | null;
+            /** Weekday */
+            weekday: number;
+        };
+        /** DayHoursDto */
+        DayHoursDto: {
+            /** Closesat */
+            closesAt: string | null;
+            /** Opensat */
+            opensAt: string | null;
+            /** Weekday */
+            weekday: number;
+        };
         /** EarningsDto */
         EarningsDto: {
             /** Days */
@@ -1616,6 +1694,30 @@ export interface components {
             token: string;
         };
         /**
+         * TariffBody
+         * @description A new version of the tariff, in cents: 800 for 8 €.
+         */
+        TariffBody: {
+            /** Basefarecents */
+            baseFareCents: number;
+            /** Perkmcents */
+            perKmCents: number;
+        };
+        /** TariffDto */
+        TariffDto: {
+            /** Basefarecents */
+            baseFareCents: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Id */
+            id: number;
+            /** Perkmcents */
+            perKmCents: number;
+        };
+        /**
          * UpdateAccountBody
          * @description Only the fields sent are changed.
          */
@@ -1731,6 +1833,41 @@ export interface components {
             /** Seats */
             seats: number;
         };
+        /**
+         * WeekBody
+         * @description The whole week at once, saved by one button.
+         */
+        WeekBody: {
+            /** Days */
+            days: components["schemas"]["DayHoursBody"][];
+        };
+        /** WeekDto */
+        WeekDto: {
+            /** Days */
+            days: components["schemas"]["DayHoursDto"][];
+        };
+        /** ZoneDto */
+        ZoneDto: {
+            /** Id */
+            id: number;
+            /** Isserved */
+            isServed: boolean;
+            /** Name */
+            name: string;
+        };
+        /** ZoneListDto */
+        ZoneListDto: {
+            /** Items */
+            items: components["schemas"]["ZoneDto"][];
+        };
+        /**
+         * ZonesBody
+         * @description The communes that receive rides; every other one stops.
+         */
+        ZonesBody: {
+            /** Servedcommuneids */
+            servedCommuneIds: number[];
+        };
     };
     responses: never;
     parameters: never;
@@ -1740,6 +1877,207 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getServiceHours: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeekDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    putServiceHours: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WeekBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeekDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    getTariff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TariffDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    postTariff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TariffBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TariffDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
     listUsers: {
         parameters: {
             query?: {
@@ -2153,6 +2491,111 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    getZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZoneListDto"];
+                };
+            };
+            /** @description Validation Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+        };
+    };
+    putZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ZonesBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZoneListDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
