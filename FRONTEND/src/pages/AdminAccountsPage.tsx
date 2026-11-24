@@ -53,8 +53,8 @@ export function AdminAccountsPage() {
 
   return (
     <section>
-      <PageHero title={t('admin.accountsTitle')} />
-      <PageSheet>
+      <PageHero title={t('admin.accountsTitle')} wide />
+      <PageSheet wide>
         <Link to={NEW_ACCOUNT_PATH} className="button button-block">
           {t('admin.createAccount')}
         </Link>

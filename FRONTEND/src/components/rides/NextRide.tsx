@@ -1,6 +1,7 @@
 import { useUpcomingRides } from '../../hooks/useRides';
 import { t } from '../../i18n';
 import { RideCard } from './RideCard';
+import { RideProgress } from './RideProgress';
 
 /** The rider's next trip, first on the home screen. Nothing while it loads:
  *  the home screen stays usable without it. */
@@ -23,6 +24,7 @@ export function NextRide() {
     <>
       <h2>{t('ride.nextTitle')}</h2>
       <RideCard ride={next} />
+      <RideProgress status={next.status} />
     </>
   );
 }

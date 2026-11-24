@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import type { Account } from '../../api/admin';
 import { accountBadges, accountPath, roleLabel } from '../../lib/accounts';
-import { formatPhone } from '../../lib/phone';
+import { displayPhone } from '../../lib/phone';
 import { ArrowRightIcon } from '../ui/icons';
 
 /** An account in the list: who, which role, what to notice. Opens its page without a new call. */
@@ -14,7 +14,7 @@ function AccountCard({ account }: { account: Account }) {
           {account.firstName} {account.lastName}
         </span>
         <span>
-          {roleLabel(account.role)} · {formatPhone(account.phone)}
+          {roleLabel(account.role)} · {displayPhone(account.phone)}
         </span>
         <span className="ride-card-status">
           {accountBadges(account).map((badge) => (

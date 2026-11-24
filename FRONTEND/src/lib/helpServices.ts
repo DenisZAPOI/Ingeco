@@ -153,6 +153,20 @@ function isHelpService(value: unknown): value is HelpService {
 }
 
 /** The service handed over by the list (router state), if it is this one. */
+// « 7 h 30 », « 13 h »: a time, written by the directory with plain spaces.
+const TIME_IN_TEXT = /(\d{1,2}) h(?: (\d{2})\b)?/g;
+const NO_BREAK_SPACE = ' ';
+
+/** The opening hours of a service, as written in the directory, with each
+ *  time kept on one line (never « 7 h » at the end of a line and « 30 » on the next). */
+export function displayHours(hours: string): string {
+  return hours.replace(TIME_IN_TEXT, (_time, hour: string, minutes: string | undefined) => {
+    const withHour = `${hour}${NO_BREAK_SPACE}h`;
+    if (minutes === undefined) return withHour;
+    return `${withHour}${NO_BREAK_SPACE}${minutes}`;
+  });
+}
+
 export function serviceFromState(state: unknown, id: number): HelpService | null {
   if (typeof state !== 'object' || state === null || !('service' in state)) return null;
   const { service } = state as { service: unknown };

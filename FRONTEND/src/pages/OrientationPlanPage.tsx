@@ -4,11 +4,12 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { fetchPlan, markStep, previewPlan, saveQuestionnaire, type Plan, type PlanStep } from '../api/orientation';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { PhoneIcon } from '../components/ui/icons';
+import { PhoneIcon, PlanIcon } from '../components/ui/icons';
 import { RequestState } from '../components/ui/RequestState';
 import { useRequest } from '../hooks/useRequest';
 import { useSession } from '../hooks/useSession';
 import { useSubmit } from '../hooks/useSubmit';
+import { EmptyState } from '../components/ui/EmptyState';
 import { t, tn } from '../i18n';
 import { draftForPurpose, saveBookingDraft } from '../lib/bookingDraft';
 import { readDraft, saveDraft, stepTarget } from '../lib/orientation';
@@ -103,12 +104,11 @@ function PlanContent({ shown, role, loading, error, onRetry, onChange }: PlanCon
       <PageSheet>
         <RequestState loading={loading} error={error} onRetry={onRetry}>
           {shown?.kind === 'none' ? (
-            <>
-              <p>{t('orientation.noPlan')}</p>
-              <Link to={ORIENTATION_PATH} className="button button-block">
+            <EmptyState Icon={PlanIcon} message={t('orientation.noPlan')}>
+              <Link to={ORIENTATION_PATH} className="button">
                 {t('orientation.start')}
               </Link>
-            </>
+            </EmptyState>
           ) : (
             <>
               <p className="note">{t('orientation.planProposal')}</p>

@@ -161,6 +161,17 @@ export function CheckIcon({ className }: IconProps) {
   );
 }
 
+/** A list with ticks: the rider's action plan. */
+export function PlanIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...STROKE}>
+      <path d="M10 6h10M10 12h10M10 18h10" />
+      <path d="M4 6l1 1 2-2M4 12l1 1 2-2" />
+      <circle cx="5" cy="18" r="1" />
+    </svg>
+  );
+}
+
 // --- The needs of the help directory (module M5) ---------------------------------
 
 /** A pram: childcare. */

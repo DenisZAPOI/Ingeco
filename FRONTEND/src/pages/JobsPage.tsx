@@ -4,21 +4,26 @@ import { JobFilters } from '../components/jobs/JobFilters';
 import { JobList } from '../components/jobs/JobCard';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
 import { ArrowRightIcon, BookIcon, QuestionIcon } from '../components/ui/icons';
+import { Pagination } from '../components/ui/Pagination';
 import { RequestState } from '../components/ui/RequestState';
 import { useJobOffers } from '../hooks/useJobOffers';
+import { useAddressPage } from '../hooks/useListPage';
 import { t, tn } from '../i18n';
 import { ORIENTATION_PATH, TRAININGS_PATH } from '../lib/paths';
 import { NO_FILTER, filterJobOffers, filtersFromParams, filtersToParams, offerCommunes, type JobFilters as Filters } from '../lib/jobs';
 
+
 /** The job offers (module M2), public. One call for the whole list, then the
- *  filters run on the phone: instant, even on a slow network. */
+ *  filters and the pages run on the phone: instant, even on a slow network. */
 export function JobsPage() {
   const offers = useJobOffers();
   const [params, setParams] = useSearchParams();
   const filters = filtersFromParams(params);
   const all = offers.data ?? [];
   const shown = filterJobOffers(all, filters);
+  const current = useAddressPage(shown);
 
+  // A new filter starts again at the first page (no page in the address).
   function change(next: Filters) {
     // replace: the Back button leaves the list, it does not undo each filter.
     setParams(filtersToParams(next), { replace: true });
@@ -26,10 +31,10 @@ export function JobsPage() {
 
   return (
     <section>
-      <PageHero title={t('jobs.title')}>
+      <PageHero title={t('jobs.title')} wide>
         <p className="hero-lead">{t('jobs.lead')}</p>
       </PageHero>
-      <PageSheet>
+      <PageSheet wide>
         {/* The start of scenario A (§8): someone who does not know what to look for. */}
         <Link to={ORIENTATION_PATH} className="action-card action-card-primary">
           <span className="icon-chip icon-chip-sun">
@@ -43,11 +48,14 @@ export function JobsPage() {
         </Link>
         <RequestState loading={offers.loading && !offers.data} error={offers.error} onRetry={offers.retry}>
           <JobFilters communes={offerCommunes(all)} value={filters} onChange={change} />
-          <p aria-live="polite" className="note">
+          <p aria-live="polite" className="note" ref={current.listStart} tabIndex={-1}>
             {tn('jobs.count', shown.length)}
           </p>
           {shown.length > 0 ? (
-            <JobList offers={shown} />
+            <>
+              <JobList offers={current.items} />
+              <Pagination page={current.page} pageCount={current.pageCount} onChange={current.goTo} />
+            </>
           ) : (
             <>
               <p>{t('jobs.noMatch')}</p>

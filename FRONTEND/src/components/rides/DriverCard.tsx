@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Ride } from '../../api/rides';
 import { t } from '../../i18n';
 import { formatScore } from '../../lib/format';
-import { formatPhone } from '../../lib/phone';
+import { displayPhone } from '../../lib/phone';
 import { PhoneIcon } from '../ui/icons';
 
 type Driver = NonNullable<Ride['driver']>;
@@ -55,7 +55,7 @@ export function CallLink({ name, phone }: { name: string; phone: string }) {
   return (
     <a href={`tel:${phone}`} className="button button-block button-secondary">
       <PhoneIcon className="button-icon" />
-      {t('ride.call', { name, phone: formatPhone(phone) })}
+      {t('ride.call', { name, phone: displayPhone(phone) })}
     </a>
   );
 }

@@ -9,10 +9,11 @@ import { errorMessage } from '../../lib/errorMessage';
 import { ABOUT_PATH, HELP_PATH, PRIVACY_PATH } from '../../lib/paths';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { LogoMark } from '../ui/icons';
+import { AppNav, navRole } from './AppNav';
 import { LanguageSelect } from './LanguageSelect';
 
 export function Layout() {
-  const { user, status, error, retry, logout } = useSession();
+  const { user, hint, status, error, retry, logout } = useSession();
   const online = useOnline();
   const wasOnline = useRef(online);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -42,21 +43,27 @@ export function Layout() {
     }
   }
 
+  // Drawn from the last session's hint until the API confirms it, like the home screen.
+  const nav = navRole((user ?? hint)?.role);
+
   return (
-    <>
+    <div className={nav ? 'with-nav' : undefined}>
+      {nav && <AppNav role={nav} />}
       <header className="header">
         <Link to="/" className="brand">
           <LogoMark className="brand-mark" />
           {t('common.appName')}
         </Link>
-        {user && (
+        {/* A rider or a driver logs out from their profile (navigation): the
+            header keeps the whole name of the application on a phone. */}
+        {user && !nav && (
           <button type="button" className="header-action" onClick={handleLogout}>
             {t('common.logout')}
           </button>
         )}
       </header>
       <main className="main">
-        {/* On the green, between the header and the band: seen first, on every screen. */}
+        {/* Between the header and the title: seen first, on every screen. */}
         <div className="layout-alerts">
           {!online && (
             <p role="status" className="alert alert-info">
@@ -85,6 +92,6 @@ export function Layout() {
           <Link to={ABOUT_PATH}>{t('common.about')}</Link> · <Link to={PRIVACY_PATH}>{t('common.privacy')}</Link>
         </p>
       </footer>
-    </>
+    </div>
   );
 }

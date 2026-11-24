@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import type { Role } from '../api/auth';
 import { DriverHome } from '../components/driver/DriverHome';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
-import { HomeIllustration } from '../components/home/HomeIllustration';
 import { NeedCards } from '../components/home/NeedCards';
 import { PlanLink } from '../components/orientation/PlanLink';
 import { NextRide } from '../components/rides/NextRide';
-import { ArrowRightIcon, CalendarIcon, ClockIcon, PhoneIcon, UserIcon } from '../components/ui/icons';
+import { ArrowRightIcon, ClockIcon, PhoneIcon, UserIcon } from '../components/ui/icons';
 import { t } from '../i18n';
-import { ADMIN_ACCOUNTS_PATH, ADMIN_SETTINGS_PATH, PROFILE_PATH, RIDES_PATH, STAFF_REQUESTS_PATH } from '../lib/paths';
+import { ADMIN_ACCOUNTS_PATH, ADMIN_SETTINGS_PATH, PROFILE_PATH, STAFF_REQUESTS_PATH } from '../lib/paths';
 import { useSession } from '../hooks/useSession';
 import { WelcomePage } from './WelcomePage';
 
@@ -32,7 +31,7 @@ export function HomePage() {
   const isRider = account.role === 'rider';
   return (
     <section>
-      <PageHero title={t('home.greeting', { name: account.firstName })} art={isRider ? <HomeIllustration /> : undefined}>
+      <PageHero title={t('home.greeting', { name: account.firstName })}>
         {isRider && <p className="hero-lead">{t('home.riderLead')}</p>}
       </PageHero>
       <PageSheet>
@@ -40,21 +39,10 @@ export function HomePage() {
           <>
             <NextRide />
             <NeedCards />
-            {/* Below the three needs, smaller: they are not needs but the rider's own pages. */}
+            {/* Below the three needs, smaller: where the plan stands. The rider's
+                own pages (trips, plan, profile) are in the navigation. */}
             <ul className="quick-links">
               <PlanLink />
-              <li>
-                <Link to={RIDES_PATH} className="link-action">
-                  <CalendarIcon className="button-icon" />
-                  {t('home.myRides')}
-                </Link>
-              </li>
-              <li>
-                <Link to={PROFILE_PATH} className="link-action">
-                  <UserIcon className="button-icon" />
-                  {t('home.profile')}
-                </Link>
-              </li>
             </ul>
           </>
         ) : account.role === 'driver' ? (
@@ -94,7 +82,8 @@ export function HomePage() {
             <p>{coming(account.role).coming}</p>
           </>
         )}
-        {!isRider && (
+        {/* A driver reaches their profile from the navigation. */}
+        {!isRider && account.role !== 'driver' && (
           <div className="stack">
             <Link to={PROFILE_PATH} className="action-card">
               <span className="icon-chip">

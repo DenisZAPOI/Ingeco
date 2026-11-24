@@ -19,6 +19,9 @@ export type Session = {
   setUser: (user: User | null) => void;
   /** Rejects when the API cannot be reached: the user is then still logged in. */
   logout: () => Promise<void>;
+  /** True from a logout until the next login: a logged-in page then leads to
+   *  the welcome screen, not to the login page that would come back to it. */
+  loggedOut: boolean;
 };
 
 export const SessionContext = createContext<Session | null>(null);

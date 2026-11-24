@@ -8,7 +8,7 @@ import { useRequest } from '../hooks/useRequest';
 import { t, tn } from '../i18n';
 import { formatDateTime } from '../lib/format';
 import { PRIVACY_PATH, PROFILE_PATH } from '../lib/paths';
-import { formatPhone } from '../lib/phone';
+import { displayPhone } from '../lib/phone';
 import { statusLabel } from '../lib/ride';
 
 const FILE_NAME = 'mes-donnees.json';
@@ -53,7 +53,7 @@ function MyDataView({ data }: { data: MyData }) {
         <dt>{t('fields.lastName')}</dt>
         <dd>{account.lastName}</dd>
         <dt>{t('profile.phone')}</dt>
-        <dd>{formatPhone(account.phone)}</dd>
+        <dd>{displayPhone(account.phone)}</dd>
         <dt>{t('fields.emailOptional')}</dt>
         <dd>{account.email ?? t('myData.none')}</dd>
         <dt>{t('myData.createdOn')}</dt>

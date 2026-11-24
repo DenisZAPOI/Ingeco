@@ -7,6 +7,7 @@ import type { HelpService } from '../api/helpServices';
 import { setLanguage } from '../i18n';
 import { bookingSteps, draftForHelpService, NO_GIVEN_DROPOFF, readBookingDraft, saveBookingDraft, skipsDropoff } from './bookingDraft';
 import {
+  displayHours,
   filterHelpServices,
   filtersFromParams,
   filtersToParams,
@@ -18,7 +19,7 @@ import {
   speaksAppLanguage,
   storeHelpServices,
 } from './helpServices';
-import { formatPhone } from './phone';
+import { displayPhone, formatPhone } from './phone';
 
 function service(changes: Partial<HelpService>): HelpService {
   return {
@@ -124,6 +125,17 @@ describe('a service', () => {
   it('shows its fictitious number as people write it', () => {
     expect(formatPhone('+33536490001')).toBe('05 36 49 00 01');
     expect(formatPhone('+594694123456')).toBe('0694 12 34 56');
+  });
+
+  it('keeps each time of its opening hours on one line', () => {
+    expect(displayHours('Du lundi au samedi, 7 h 30 – 13 h')).toBe('Du lundi au samedi, 7 h 30 – 13 h');
+    expect(displayHours('Mercredi, 13 h – 18 h ; samedi, 9 h – 12 h')).toBe(
+      'Mercredi, 13 h – 18 h ; samedi, 9 h – 12 h',
+    );
+  });
+
+  it('keeps a number on one line for reading', () => {
+    expect(displayPhone('+594694123456')).toBe('0694 12 34 56');
   });
 
   it('keeps its date of update in Guyana time', () => {

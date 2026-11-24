@@ -1,8 +1,18 @@
 /* Plain CSS, no framework: the app must stay light on a weak network.
    The rules behind these values are in docs/charte-graphique.md: every color,
    size and spacing is a variable defined here, never a value in a component.
-   Depth comes from shapes, shadows and an inline SVG motif: no image, no web
-   font, a few hundred bytes. */
+   Depth comes from shapes, soft shadows and inline SVG drawings: no image.
+   One web font, Lexend, cut down to 18 kB (docs/adr/023). */
+
+/* Shown only if it is already there (cache, or arrived within ~100 ms): on a
+   first visit over 2G the phone's font is used, never a blank or a jump. */
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url('../assets/fonts/lexend-400-700.woff2') format('woff2');
+}
 
 :root {
   /* --- Colors (contrast ratios in the charter) ------------------------------ */
@@ -23,16 +33,29 @@
   --color-help: #1d5f99;
   --color-help-soft: #e1edf8;
   --color-on-help-soft: #124a7a;
-  /* Only in the home illustration, on the green band: decoration, no text. */
+  /* The three needs of the home screen, as large tiles: a tint and its dark
+     text (contrasts in the charter, part 2). */
+  --color-work-tile: #d9ecdf;
+  --color-on-work-tile: #0a3d27;
+  --color-ride-tile: #fbe8a6;
+  --color-on-ride-tile: #3d2d00;
+  --color-help-tile: #dbe8f5;
+  --color-on-help-tile: #0f3d63;
+  /* Only in the drawings of the needs: decoration, never text. */
+  --color-art-work: #b9dcc6;
+  --color-art-ride: #f6d56b;
+  --color-art-help: #bcd4ec;
   --color-art-coral: #f4a07f;
   --color-art-sky: #9fcbef;
 
   --color-text: #1a1a1a;
   --color-muted: #555555;
   --color-background: #ffffff;
-  /* Behind the sheets: a faint green-grey, so the white sheet stands out. */
-  --color-page: #eef3f0;
-  --color-surface: #f3f5f4;
+  /* Behind the sheets: a warm off-white, so the white sheet stands out. */
+  --color-page: #f7f7f2;
+  --color-surface: #f1f2ec;
+  /* Thin lines that separate (sheet, card, navigation): decoration only. */
+  --color-line: #e3e4db;
   /* Borders of fields and choices: softer than black, still 3.79:1 on white. */
   --color-border: #7d8581;
 
@@ -45,11 +68,12 @@
   --color-focus: #1a1a1a;
 
   /* --- Typography ------------------------------------------------------------ */
-  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-size-small: 0.889rem; /* 16 px: never smaller */
   --font-size-lead: 1.125rem; /* 20 px: the one sentence that presents a screen */
   --font-size-h2: 1.375rem;
-  --font-size-h1: 1.75rem;
+  /* 27 px on a 360 px phone, up to 31.5 px on a large screen. */
+  --font-size-h1: clamp(1.5rem, 1.2rem + 1.5vw, 1.75rem);
   --font-weight-strong: 600;
   --font-weight-title: 700;
 
@@ -63,7 +87,8 @@
 
   --radius: 0.75rem;
   /* Large shapes: the sheet and the bottom of the green band. */
-  --radius-large: 1.5rem;
+  --radius-large: 1.375rem;
+  --radius-pill: 999px;
   --border-width: 2px;
   --focus-width: 3px;
   /* Large touch targets: public not always at ease with digital tools. */
@@ -76,6 +101,12 @@
   /* Above the cards and fields that follow a drop-down list. */
   --z-dropdown: 10;
   --content-width: 40rem;
+  /* A list page on a large screen (offers, services, trips): cards side by side. */
+  --content-width-wide: 64rem;
+  /* The longest comfortable line of text, inside a wide sheet. */
+  --reading-width: 40rem;
+  /* The narrowest card of a list before it goes to a new line. */
+  --card-min-width: 18rem;
   --icon-size: 1.5rem;
   --icon-chip-size: 2.75rem;
   /* How far the sheet climbs over the green band. */
@@ -86,10 +117,17 @@
   --star-size: var(--touch-target);
   --textarea-height: 7rem;
   --status-dot-size: 0.875rem;
+  /* Navigation of a rider or a driver: a bar at the bottom of a phone, a
+     column on the left of a large screen. */
+  --nav-bar-height: 4.75rem;
+  --sidebar-width: 15rem;
+  /* A need tile and its drawing. */
+  --need-tile-height: 6rem;
+  --need-art-size: 5.25rem;
 
   /* --- Shadows (soft, tinted with the green) ------------------------------- */
-  --shadow-sheet: 0 10px 28px rgb(11 93 59 / 0.12), 0 2px 6px rgb(0 0 0 / 0.04);
-  --shadow-card: 0 2px 8px rgb(0 0 0 / 0.06);
+  --shadow-sheet: 0 1px 2px rgb(23 33 28 / 0.04), 0 8px 24px rgb(23 33 28 / 0.06);
+  --shadow-card: 0 1px 2px rgb(23 33 28 / 0.05), 0 4px 12px rgb(23 33 28 / 0.05);
   --shadow-button: 0 4px 12px rgb(11 93 59 / 0.25);
 
   font-family: var(--font-family);
@@ -113,6 +151,7 @@ body {
 h1 {
   margin: var(--space-l) 0 var(--space);
   font-size: var(--font-size-h1);
+  text-wrap: balance;
   font-weight: var(--font-weight-title);
   line-height: 1.2;
 }
@@ -160,45 +199,49 @@ a:hover {
   outline: none;
 }
 
-/* --- Layout: green header, green band, white sheet ---------------------------
-   Header and band are one green surface with a straight bottom; the sheet
-   starts just below it, without overlapping. Both span the screen; their content keeps --content-width. */
+/* --- Layout: light header, title on the page, white sheet -------------------
+   Header and title sit on the page color; the content follows in a white
+   sheet. Both span the screen; their content keeps --content-width. */
 
 .header,
 .hero,
 .layout-alerts {
-  --color-focus: var(--color-accent);
-
   padding-inline: max(var(--space), calc((100% - var(--content-width)) / 2));
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  color: var(--color-text);
 }
 
 .header {
+  /* The bar spans the widest content (list pages), so it never sits
+     narrower than the page below it. */
+  --content-width: var(--content-width-wide);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space);
-  padding-block: var(--space);
+  min-height: var(--touch-target);
+  padding-block: var(--space-m);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: var(--space-s);
+  min-width: 0;
   line-height: 1.2;
-  color: var(--color-on-primary);
+  white-space: nowrap;
+  color: var(--color-text);
   font-weight: var(--font-weight-title);
   text-decoration: none;
 }
 
 .brand:hover {
-  color: var(--color-on-primary);
+  color: var(--color-primary);
 }
 
 .brand-mark {
-  width: var(--icon-size);
-  height: var(--icon-size);
+  width: calc(var(--icon-size) * 1.25);
+  height: calc(var(--icon-size) * 1.25);
   flex-shrink: 0;
 }
 
@@ -206,10 +249,10 @@ a:hover {
   flex-shrink: 0;
   min-height: var(--touch-target);
   padding: 0 var(--space-m);
-  border: var(--border-width) solid rgb(255 255 255 / 0.7);
-  border-radius: var(--radius);
-  background: rgb(255 255 255 / 0.08);
-  color: var(--color-on-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-background);
+  color: var(--color-text);
   font: inherit;
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-strong);
@@ -218,10 +261,11 @@ a:hover {
 }
 
 .header-action:hover {
-  background: rgb(255 255 255 / 0.16);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-/* Messages of the whole app (no network, session unreadable), on the green. */
+/* Messages of the whole app (no network, session unreadable), under the header. */
 .layout-alerts {
   display: flex;
   flex-direction: column;
@@ -240,19 +284,16 @@ a:hover {
 .hero {
   position: relative;
   overflow: hidden;
-  /* One pixel over the header: at a half-pixel boundary, the two greens
-     would otherwise show a thin seam. */
-  margin-top: -1px;
-  padding-top: calc(var(--space-s) + 1px);
-  padding-bottom: var(--space-l);
+  padding-top: var(--space-s);
+  padding-bottom: var(--space-s);
 }
 
 .hero-motif {
   position: absolute;
-  top: var(--space-s);
+  top: 0;
   right: calc(max(var(--space), calc((100% - var(--content-width)) / 2)) - var(--space-l));
-  color: var(--color-on-primary);
-  opacity: 0.14;
+  color: var(--color-primary);
+  opacity: 0.07;
   pointer-events: none;
 }
 
@@ -266,97 +307,24 @@ a:hover {
 
 .hero-eyebrow {
   margin: 0;
-  color: var(--color-on-primary-muted);
+  color: var(--color-muted);
   font-weight: var(--font-weight-strong);
 }
 
 .hero-title {
   margin: var(--space-xs) 0 0;
-  color: var(--color-on-primary);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .hero-lead {
   margin: var(--space-s) 0 0;
-  color: var(--color-on-primary-muted);
+  color: var(--color-muted);
   font-size: var(--font-size-lead);
 }
 
-/* --- Home illustration, beside the title (placeholder, see HomeIllustration) --- */
-
-.hero-with-art {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space);
-}
-
-.hero-text {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.hero-art {
-  flex: 0 0 auto;
-  width: 7.5rem;
-  height: auto;
-  margin-top: var(--space-s);
-}
-
-/* A very narrow screen keeps its width for the title. */
-@media (max-width: 22rem) {
-  .hero-art {
-    display: none;
-  }
-}
-
-.art-sun,
-.art-road-line {
-  fill: var(--color-accent);
-  stroke: var(--color-accent);
-}
-
-.art-road-line {
-  fill: none;
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-
-.art-hill {
-  fill: var(--color-primary-hover);
-}
-
-.art-building,
-.art-car {
-  fill: var(--color-background);
-}
-
-.art-window {
-  fill: var(--color-primary);
-}
-
-.art-road {
-  fill: var(--color-primary-soft);
-  opacity: 0.35;
-}
-
-.art-wheel {
-  fill: var(--color-text);
-}
-
-.art-person-a {
-  fill: var(--color-art-coral);
-}
-
-.art-person-b {
-  fill: var(--color-art-sky);
-}
-
-.art-wheelchair {
-  fill: none;
-  stroke: var(--color-art-sky);
-  stroke-width: 3;
-}
-
-/* The steps of a booking, as a bar: filled in yellow up to the current one. */
+/* The steps of a booking, as a bar: filled in green up to the current one.
+   "Étape 2 sur 4" above it says the same in words. */
 .progress {
   display: flex;
   gap: var(--space-xs);
@@ -367,11 +335,11 @@ a:hover {
   flex: 1;
   height: var(--progress-height);
   border-radius: var(--progress-height);
-  background: rgb(255 255 255 / 0.25);
+  background: var(--color-line);
 }
 
 .progress-step-done {
-  background: var(--color-accent);
+  background: var(--color-primary);
 }
 
 .sheet {
@@ -379,6 +347,7 @@ a:hover {
   width: min(var(--content-width), calc(100% - 2 * var(--space)));
   margin: var(--sheet-gap) auto 0;
   padding: var(--space-l) var(--space);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-large);
   background: var(--color-background);
   box-shadow: var(--shadow-sheet);
@@ -458,6 +427,7 @@ a:hover {
 .disclosure summary {
   display: flex;
   align-items: center;
+  gap: var(--space-s);
   min-height: var(--touch-target);
   padding: var(--space-s) var(--space);
   font-weight: var(--font-weight-strong);
@@ -532,7 +502,7 @@ a:hover {
   min-height: var(--touch-target);
   padding: var(--space);
   /* On the white sheet, the shadow alone would be too faint to see the card. */
-  border: var(--border-width) solid var(--color-primary-soft);
+  border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-large);
   background: var(--color-background);
   box-shadow: var(--shadow-card);
@@ -617,62 +587,282 @@ a:hover {
 }
 
 .need-card {
-  /* Tighter than the other cards: three of them must fit above the account buttons. */
   gap: var(--space-m);
-  padding-inline: var(--space-m);
+  min-height: var(--need-tile-height);
+  padding: 0 0 0 var(--space);
+  overflow: hidden;
+  /* Filled with the tint of its need: the border, of the same tint at rest,
+     takes the dark color of the text on hover. */
+  border-color: transparent;
+  box-shadow: none;
 }
 
-/* Each card filled with the pale tint of its need, the icon on a white chip.
-   The border is the same tint at rest (the card looks full, not outlined) and
-   takes the strong color on hover. Grey hint text: at least 6.27:1 on every tint. */
-.need-card .icon-chip {
-  background: var(--color-background);
+.need-card .action-card-title {
+  font-size: var(--font-size-lead);
+  line-height: 1.25;
+}
+
+.need-card .action-card-hint {
+  color: inherit;
+  font-size: var(--font-size-small);
+  line-height: 1.35;
+}
+
+.need-card .action-card-text {
+  gap: var(--space-xs);
+  padding-block: var(--space-m);
+}
+
+/* The drawing of the need, at the right edge: decoration, the title says it. */
+.need-art {
+  flex-shrink: 0;
+  width: var(--need-art-size);
+  height: var(--need-art-size);
+  margin-left: auto;
 }
 
 .need-work {
-  border-color: var(--color-primary-soft);
-  background: var(--color-primary-soft);
-}
-
-.need-work:hover {
-  border-color: var(--color-primary);
+  background: var(--color-work-tile);
+  color: var(--color-on-work-tile);
 }
 
 .need-ride {
-  border-color: var(--color-accent-soft);
-  background: var(--color-accent-soft);
-}
-
-/* The sun yellow is too pale on white for a border (1.8:1): its dark text color instead. */
-.need-ride:hover {
-  border-color: var(--color-on-accent-soft);
-}
-
-.need-ride .icon-chip {
-  color: var(--color-on-accent-soft);
+  background: var(--color-ride-tile);
+  color: var(--color-on-ride-tile);
 }
 
 .need-help {
-  border-color: var(--color-help-soft);
-  background: var(--color-help-soft);
+  background: var(--color-help-tile);
+  color: var(--color-on-help-tile);
+}
+
+.need-work:hover {
+  border-color: var(--color-on-work-tile);
+  color: var(--color-on-work-tile);
+}
+
+.need-ride:hover {
+  border-color: var(--color-on-ride-tile);
+  color: var(--color-on-ride-tile);
 }
 
 .need-help:hover {
-  border-color: var(--color-help);
+  border-color: var(--color-on-help-tile);
+  color: var(--color-on-help-tile);
 }
 
-.need-help .icon-chip {
-  color: var(--color-on-help-soft);
+.art-work-disc {
+  fill: var(--color-art-work);
 }
 
-/* The rider's own pages, under the needs: smaller than the cards. */
-.quick-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-l);
-  margin: var(--space) 0 0;
+.art-ride-disc {
+  fill: var(--color-art-ride);
+}
+
+.art-help-disc {
+  fill: var(--color-art-help);
+}
+
+.art-green {
+  fill: var(--color-primary);
+}
+
+.art-sun {
+  fill: var(--color-accent);
+}
+
+.art-blue {
+  fill: var(--color-help);
+}
+
+.art-sky {
+  fill: var(--color-art-sky);
+}
+
+.art-dark {
+  fill: var(--color-text);
+}
+
+.art-white {
+  fill: var(--color-background);
+}
+
+.art-stroke-green {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 6;
+}
+
+.art-stroke-coral {
+  fill: none;
+  stroke: var(--color-art-coral);
+  stroke-width: 12;
+}
+
+/* --- Navigation of a rider or a driver ----------------------------------------
+   A bar at the bottom of a phone, within reach of the thumb; a column on the
+   left of a large screen. Each entry: an icon and its word; the current page
+   also says it with its weight and its pill, not with the color only. */
+
+.app-nav-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.app-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--touch-target);
+  padding: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+
+.app-nav-link:hover {
+  color: var(--color-primary);
+}
+
+.app-nav-icon {
+  display: flex;
+  padding: var(--space-xs) var(--space-l);
+  border-radius: var(--radius-pill);
+}
+
+.app-nav-icon svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.app-nav-link[aria-current='page'] {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-title);
+}
+
+.app-nav-link[aria-current='page'] .app-nav-icon {
+  background: var(--color-work-tile);
+}
+
+/* Phone: fixed at the bottom; the page keeps room for it below the footer. */
+@media (max-width: 59.99rem) {
+  .app-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-dropdown);
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--color-line);
+    background: var(--color-background);
+  }
+
+  .with-nav .footer {
+    padding-bottom: calc(var(--nav-bar-height) + var(--space-l));
+  }
+}
+
+/* Large screen: a column on the left, the rest of the page beside it. */
+@media (min-width: 60rem) {
+  .app-nav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    padding: var(--space-xl) var(--space);
+    border-right: 1px solid var(--color-line);
+    background: var(--color-background);
+  }
+
+  .with-nav {
+    padding-left: var(--sidebar-width);
+  }
+
+  .app-nav-list {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+
+  .app-nav-link {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-m);
+    padding: var(--space-xs) var(--space-s);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  .app-nav-icon {
+    padding: var(--space-s);
+    border-radius: var(--radius);
+  }
+
+  .app-nav-link[aria-current='page'] {
+    background: var(--color-work-tile);
+  }
+}
+
+/* --- Where a trip stands, as a bar in steps ------------------------------------
+   Four segments, then one line in words: the color is never the only sign. */
+
+.ride-progress {
+  margin: var(--space-s) 0 var(--space);
+}
+
+.ride-progress-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ride-progress-step {
+  height: var(--progress-height);
+  border-radius: var(--progress-height);
+  background: var(--color-line);
+}
+
+.ride-progress-done {
+  background: var(--color-primary);
+}
+
+.ride-progress-text {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+}
+
+/* --- A light answer to a tap (pressed cards and buttons) --- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .action-card,
+  .ride-card,
+  .button,
+  .app-nav-link {
+    transition:
+      transform 120ms ease-out,
+      border-color 120ms ease-out,
+      background-color 120ms ease-out;
+  }
+
+  .action-card:active,
+  .ride-card:active,
+  .button:active {
+    transform: scale(0.98);
+  }
 }
 
 /* --- Orientation questionnaire and action plan (module M1) --- */
@@ -798,10 +988,10 @@ a:hover {
   height: 100%;
   min-height: calc(2 * var(--touch-target));
   padding: var(--space);
-  border: var(--border-width) solid var(--color-primary-soft);
+  border: var(--border-width) solid var(--color-help-tile);
   border-radius: var(--radius-large);
-  background: var(--color-primary-soft);
-  color: var(--color-text);
+  background: var(--color-help-tile);
+  color: var(--color-on-help-tile);
   text-align: center;
   text-decoration: none;
 }
@@ -873,7 +1063,7 @@ a:hover {
 .alert {
   margin: 0;
   padding: var(--space-m) var(--space);
-  border-left: var(--space-xs) solid currentColor;
+  border: 1px solid currentColor;
   border-radius: var(--radius);
   font-weight: var(--font-weight-strong);
 }
@@ -890,8 +1080,9 @@ a:hover {
 
 /* A state of the app that is neither a failure nor a success (no network). */
 .alert-info {
-  background: var(--color-surface);
-  color: var(--color-text);
+  border-color: var(--color-help-tile);
+  background: var(--color-help-tile);
+  color: var(--color-on-help-tile);
 }
 
 .alert > p {
@@ -1251,11 +1442,6 @@ a:hover {
   fill: var(--color-accent);
 }
 
-/* On the green header, the logo's own green square would vanish: a light one instead. */
-.brand-mark .logo-ground {
-  fill: rgb(255 255 255 / 0.14);
-}
-
 .button-icon {
   width: var(--icon-size);
   height: var(--icon-size);
@@ -1351,6 +1537,9 @@ a:hover {
   display: flex;
   gap: var(--space-xs);
   margin-bottom: var(--space-l);
+  padding: var(--space-xs);
+  border-radius: var(--radius);
+  background: var(--color-surface);
 }
 
 .tab {
@@ -1358,24 +1547,28 @@ a:hover {
   /* Three tabs fit on a 360 px phone: they may shrink and wrap their words. */
   min-width: 0;
   min-height: var(--touch-target);
-  padding: var(--space-xs) 0;
+  padding: var(--space-xs);
   font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
   line-height: 1.2;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-background);
-  color: var(--color-text);
+  border: var(--border-width) solid transparent;
+  border-radius: calc(var(--radius) - var(--space-xs));
+  background: transparent;
+  color: var(--color-muted);
   font-family: inherit;
   cursor: pointer;
 }
 
 .tab:hover {
-  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.tab[aria-selected='true']:hover {
+  color: var(--color-on-primary);
 }
 
 /* The selected tab also says it with its weight, not with the color only. */
 .tab[aria-selected='true'] {
-  border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: var(--font-weight-title);
@@ -1396,7 +1589,7 @@ a:hover {
   align-items: center;
   gap: var(--space);
   padding: var(--space);
-  border: var(--border-width) solid var(--color-primary-soft);
+  border: var(--border-width) solid var(--color-line);
   border-radius: var(--radius-large);
   background: var(--color-background);
   box-shadow: var(--shadow-card);
@@ -1441,8 +1634,12 @@ a:hover {
 }
 
 .badge {
+  display: inline-block;
   padding: 0 var(--space-s);
+  /* Rounded, not a pill: a long badge may wrap on a phone. */
   border-radius: var(--radius);
+  font-size: var(--font-size-small);
+  line-height: 1.6;
   background: var(--color-accent-soft);
   color: var(--color-on-accent-soft);
   font-weight: var(--font-weight-strong);
@@ -1688,4 +1885,138 @@ a:hover {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* --- List pages, wider on a large screen ---------------------------------------
+   Offers, help services, guides and trips: the sheet takes up to 64rem and the
+   cards sit side by side, so a large screen is not mostly empty. Forms and
+   detail pages keep the reading width (--content-width). */
+
+.hero-wide,
+.sheet-wide {
+  --content-width: var(--content-width-wide);
+}
+
+/* Sentences keep a comfortable length, even in a wide sheet. */
+.sheet-wide > p,
+.sheet-wide .tabs {
+  max-width: var(--reading-width);
+}
+
+@media (min-width: 48rem) {
+  .sheet-wide .ride-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
+  }
+
+  .sheet-wide .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--card-min-width), 1fr));
+    column-gap: var(--space-l);
+    align-items: end;
+  }
+
+  /* The title of the filters (a floated legend) and "Voir toutes les offres" on a line of their own. */
+  .sheet-wide .filters legend,
+  .sheet-wide .filters .link-button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Pages of a list ------------------------------------------------------------ */
+
+/* "Page 2 sur 4" on its own line, the two buttons below it, each in its half:
+   on the first or last page, the missing button keeps its place. */
+.pagination {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-s);
+  max-width: var(--reading-width);
+  margin: 0 auto var(--space-l);
+}
+
+.pagination-status {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: var(--font-weight-strong);
+  text-align: center;
+}
+
+.pagination .button:disabled {
+  visibility: hidden;
+}
+
+/* --- Audit of 24/11: small fixes of rhythm ----------------------------------- */
+
+/* A sentence that explains the button just above it is not glued to it. */
+.button-block + p,
+.button-block + .note {
+  margin-top: var(--space-s);
+}
+
+/* A main button at the top of a sheet (« Créer un compte ») is not glued to the form below. */
+.sheet > .button-block:first-child {
+  margin-bottom: var(--space-l);
+}
+
+/* The count of a list, under its filters. */
+.field + .note,
+.filters + .note {
+  margin-top: var(--space);
+}
+
+@media (min-width: 48rem) {
+  .sheet-wide .category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- Empty list: a drawing, a sentence, at most one action ------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  margin: 0 0 var(--space-l);
+  padding: var(--space-l) var(--space);
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.empty-state .icon-chip {
+  width: calc(var(--icon-chip-size) * 1.25);
+  height: calc(var(--icon-chip-size) * 1.25);
+  border-radius: 50%;
+  background: var(--color-background);
+}
+
+.empty-state p {
+  max-width: var(--reading-width);
+  margin: 0;
+}
+
+.empty-state .button {
+  margin-top: var(--space-s);
+}
+
+/* --- A trip in a list: when, where, then its state and number ------------------ */
+
+.ride-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-s);
+}
+
+.ride-card-status-badge {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* A phone number, a time: never cut at the end of a line. */
+.nowrap {
+  white-space: nowrap;
 }

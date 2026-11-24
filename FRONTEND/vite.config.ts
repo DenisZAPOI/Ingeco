@@ -10,6 +10,11 @@ export default defineConfig({
     // weak network. API calls are never cached: a ride state must be fresh.
     VitePWA({
       registerType: 'autoUpdate',
+      // The font too (docs/adr/023): kept after the first visit, so the next
+      // ones show it at once.
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+      },
       manifest: {
         name: "En route pour l'emploi",
         short_name: 'En route',
@@ -17,8 +22,8 @@ export default defineConfig({
         lang: 'fr',
         start_url: '/',
         display: 'standalone',
-        theme_color: '#0b5d3b',
-        background_color: '#ffffff',
+        theme_color: '#f7f7f2',
+        background_color: '#f7f7f2',
         icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },
     }),

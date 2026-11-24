@@ -8,12 +8,13 @@ import { Form } from '../components/form/Form';
 import { PasswordField } from '../components/form/PasswordField';
 import { TextField } from '../components/form/TextField';
 import { AccountDeletion } from '../components/profile/AccountDeletion';
+import { LogoutButton } from '../components/profile/LogoutButton';
 import { LoadingMessage } from '../components/ui/LoadingMessage';
 import { useUpdateProfile } from '../hooks/useAuthForms';
 import { useSession } from '../hooks/useSession';
 import { t } from '../i18n';
 import { MY_DATA_PATH } from '../lib/paths';
-import { formatPhone } from '../lib/phone';
+import { displayPhone } from '../lib/phone';
 
 // The staff accounts are deleted by an administrator, not from their own profile.
 const MAY_ASK_DELETION: readonly User['role'][] = ['rider', 'driver'];
@@ -37,7 +38,7 @@ function Profile({ user }: { user: User }) {
   return (
     <>
       <p>
-        {t('profile.phone')} <strong>{formatPhone(user.phone)}</strong>
+        {t('profile.phone')} <strong>{displayPhone(user.phone)}</strong>
         <br />
         <span className="note">{t('profile.phoneChange')}</span>
       </p>
@@ -48,6 +49,7 @@ function Profile({ user }: { user: User }) {
         {t('profile.seeMyData')}
       </Link>
       {MAY_ASK_DELETION.includes(user.role) && <AccountDeletion />}
+      <LogoutButton />
     </>
   );
 }
