@@ -140,6 +140,7 @@ Pour tout effacer et repartir d'une base neuve : `docker compose down -v`, puis
 | `required variable … is missing` ou `FLASK_SECRET_KEY must be generated` | Le fichier `.env` est incomplet : refaire l'étape 3, puis `docker compose up -d` |
 | `port is already allocated` | L'application tourne déjà, ou un autre programme prend la place : `docker compose down`, puis relancer ; sinon redémarrer l'ordinateur |
 | La page ne s'ouvre pas, ou « Le service ne répond pas » | Attendre une minute après `docker compose up -d`. Sinon, dans Docker Desktop, onglet **Containers**, regarder si un conteneur est rouge |
+| `Cannot add or update a child row` en remettant la démo à zéro | La base date d'avant le 08/11/2026 et n'a pas reçu toutes ses mises à jour : `docker compose down -v` (efface la base), puis `docker compose up -d` |
 | Mot de passe refusé | `Trajet-2026!` : majuscule au début, point d'exclamation à la fin. Hugo (`0694 00 00 08`) est volontairement suspendu |
 
 Si le problème continue : copier le texte de la fenêtre noire et l'envoyer à un développeur, avec
