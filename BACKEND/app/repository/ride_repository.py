@@ -119,7 +119,8 @@ class Ride:
     booked_by_id: int
     channel: str
     status: str
-    purpose: str
+    # None once hidden by ride_service.present(): a driver sees it only on their own ride.
+    purpose: str | None
     pickup: Stop
     dropoff: Stop
     scheduled_at: datetime | None

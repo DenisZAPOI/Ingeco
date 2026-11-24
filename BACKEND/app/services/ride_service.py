@@ -238,6 +238,10 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
     rating, and their phone while the ride is under way. The driver sees the
     rider's first name and phone, only while the ride is under way: never on
     an offer.
+
+    The purpose is hidden from a driver until the ride is theirs: "health"
+    with an address tells about the rider's health (RGPD art. 9, cahier des
+    charges §7.4 and §12), and every available driver sees the offers.
     """
     driver_ids = {ride.driver_id for ride in rides if ride.driver_id is not None}
     rider_ids = {ride.rider_id for ride in rides}
@@ -248,6 +252,12 @@ def present(session: Session, rides: list[Ride], *, user_id: int, role: str) -> 
         under_way = ride.status in ride_rules.CONTACT_STATUSES
         caller_is_rider = user_id == ride.rider_id
         caller_is_driver = user_id == ride.driver_id
+
+        # CHANGER_SELON_DECISION (F10, docs/decisions.md): the
+        # client may say the driver needs it earlier, or never.
+        purpose_hidden = not (is_staff or caller_is_rider or caller_is_driver)
+        if purpose_hidden:
+            ride.purpose = None
 
         if ride.driver_id is not None and (is_staff or caller_is_rider):
             driver = people[ride.driver_id]

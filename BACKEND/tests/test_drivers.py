@@ -176,6 +176,46 @@ def test_an_offer_hides_the_rider(client):
     assert ride["rider"] is None
 
 
+def test_an_offer_hides_the_purpose_of_the_ride(client):
+    # "health" with an address tells about the rider's health (RGPD art. 9).
+    ride_id = waiting_ride(client, purpose="health")
+    go_online(client)
+
+    offered = offers(client).get_json()["items"][0]["ride"]
+    detail = client.get(f"/rides/{ride_id}").get_json()
+
+    assert offered["purpose"] is None
+    assert detail["purpose"] is None
+
+
+def test_the_driver_sees_the_purpose_once_the_ride_is_theirs(client):
+    ride_id = waiting_ride(client, purpose="health")
+    go_online(client)
+
+    accepted = act(client, ride_id, "accept").get_json()
+
+    assert accepted["purpose"] == "health"
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+
+
+def test_a_released_ride_hides_its_purpose_again(client):
+    ride_id = waiting_ride(client, purpose="health")
+    go_online(client)
+    act(client, ride_id, "accept")
+
+    released = act(client, ride_id, "release").get_json()
+
+    assert released["purpose"] is None
+
+
+def test_the_rider_and_the_staff_always_see_the_purpose(client):
+    ride_id = waiting_ride(client, purpose="health")
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+
+    login(client, phone=OPERATOR_PHONE)
+    assert client.get(f"/rides/{ride_id}").get_json()["purpose"] == "health"
+
+
 def test_a_ride_not_paid_or_past_its_time_is_not_offered(client, clock):
     login(client)
     book(client)  # awaiting payment

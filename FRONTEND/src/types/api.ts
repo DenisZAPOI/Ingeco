@@ -1514,11 +1514,8 @@ export interface components {
             pickup: components["schemas"]["StopDto"];
             /** Pricecents */
             priceCents: number;
-            /**
-             * Purpose
-             * @enum {string}
-             */
-            purpose: "employment" | "training" | "health" | "administrative" | "other";
+            /** Purpose */
+            purpose: ("employment" | "training" | "health" | "administrative" | "other") | null;
             rating: components["schemas"]["RatingDto"] | null;
             rider: components["schemas"]["RideRiderDto"] | null;
             /** Rideramountcents */
