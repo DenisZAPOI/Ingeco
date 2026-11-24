@@ -42,7 +42,7 @@ from app.utils.access import require_login  # noqa: E402
 from app.utils.errors import Conflict  # noqa: E402
 from app.utils import database  # noqa: E402
 
-from . import mysql_setup  # noqa: E402
+from . import mysql_setup, reference_settings  # noqa: E402
 
 # Signed stops are built at import time by the test modules (tests/test_rides.py).
 place_service.configure(signing_key=os.environ["FLASK_SECRET_KEY"])
@@ -123,6 +123,19 @@ def fresh_state(test_database):
     registration_repository.reset()
     # Registrations get the fixed demo code: the tests type it.
     auth_service.configure(demo_codes=True)
+
+
+@pytest.fixture(scope="session")
+def initial_settings(test_database):
+    """Service hours, served communes and tariff as the DB team's scripts load them."""
+    return reference_settings.read()
+
+
+@pytest.fixture(autouse=True)
+def fresh_settings(initial_settings):
+    """Puts back what a test changed in the settings: sql/demo-data.sql leaves them alone."""
+    yield
+    reference_settings.restore(initial_settings)
 
 
 @pytest.fixture(autouse=True)
