@@ -176,8 +176,7 @@ Les SMS servent à l'inscription, au mot de passe oublié et aux alertes de traj
 - Options : un prestataire d'envoi de SMS avec une API (plusieurs opérateurs et hébergeurs
   français en proposent). Vérifier la **couverture et le prix vers la Guyane** (numéros
   `0694`), ce n'est pas toujours le tarif de la métropole.
-- Compte ouvert **au nom de la structure**, jamais d'un étudiant (README, « Comptes des
-  services externes »).
+- Compte ouvert **au nom de la structure**, jamais d'un étudiant ([comptes-externes.md](comptes-externes.md)).
 - Garder la règle actuelle : aucun numéro ni contenu de SMS dans les journaux.
 
 ### 4.5 Le paiement — de rien à gros, selon la décision 2.1
@@ -294,8 +293,7 @@ d'annulation et d'absence fixées par la structure (aujourd'hui des valeurs prov
 
 ### 5.6 Comptes et propriété
 
-- Transférer le dépôt GitHub et tous les comptes de services à la structure (README,
-  « Remettre les accès en fin de projet »).
+- Transférer le dépôt GitHub et tous les comptes de services à la structure ([comptes-externes.md](comptes-externes.md#remettre-les-accès-en-fin-de-projet)).
 - Choisir la **licence** du code (MIT par défaut aujourd'hui, ou EUPL, ou cession à Ingeco) :
   question posée à la cliente.
 

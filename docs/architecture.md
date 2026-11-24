@@ -77,7 +77,7 @@ exactement les mêmes règles que les routes HTTP.
 - La base appartient à l'équipe BD, avec **tout le dossier `sql/`** (schéma, migrations, données,
   index, vues). On n'appelle **jamais** `Base.metadata.create_all()`, on ne crée ni ne modifie
   aucune table, et on ne touche à aucun fichier de `sql/`. Un besoin de schéma, de vue ou de
-  donnée → une issue GitHub avec l'étiquette `bd` (README, partie 5).
+  donnée → une issue GitHub avec l'étiquette `bd` ([guide-equipe-bd.md](guide-equipe-bd.md#demander-un-changement-de-schéma)).
 - Les classes de `models/` décrivent les tables telles que l'équipe BD les livre : elles suivent
   `sql/schema-mvp.sql` puis chaque migration de `sql/migrations/`, jamais l'inverse.
 - Requêtes courantes : approche mixte. Une ligne d'ORM lisible → ORM ; trois jointures ou une
