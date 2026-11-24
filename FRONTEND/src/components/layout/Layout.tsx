@@ -54,7 +54,9 @@ export function Layout() {
           <LogoMark className="brand-mark" />
           {t('common.appName')}
         </Link>
-        {user && (
+        {/* A rider or a driver logs out from their profile (navigation): the
+            header keeps the whole name of the application on a phone. */}
+        {user && !nav && (
           <button type="button" className="header-action" onClick={handleLogout}>
             {t('common.logout')}
           </button>

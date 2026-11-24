@@ -19,6 +19,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<SessionStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [loggedOut, setLoggedOut] = useState(false);
   // A visitor can log in before the startup read answers (it can take seconds
   // on 2G): that answer is then out of date and must not undo the login.
   const accountSetByScreen = useRef(false);
@@ -26,6 +27,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // Every change of account goes through here, so the hint always matches.
   const applyUser = useCallback((next: User | null) => {
     saveSessionHint(next);
+    if (next) setLoggedOut(false);
     setUserState(next);
     setError(null);
     setStatus('ready');
@@ -77,6 +79,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // account must stay visible, or it would come back at the next opening
     // while the user (on a shared phone) thinks they are logged out.
     await logoutRequest();
+    // On a shared phone, the next person must not land, once logged in, on
+    // the page of the previous one: see LoggedInRoutes.
+    setLoggedOut(true);
     // A shared phone: the next person must not find the addresses, purpose
     // or answers being typed (audit RGPD R7). Only at logout: a visitor's
     // answers must survive their login ("Garder mon plan").
@@ -86,8 +91,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [setUser]);
 
   const session = useMemo<Session>(
-    () => ({ user, status, hint: status === 'ready' ? null : hint, error, retry, setUser, logout }),
-    [user, status, hint, error, retry, setUser, logout],
+    () => ({ user, status, hint: status === 'ready' ? null : hint, error, retry, setUser, logout, loggedOut }),
+    [user, status, hint, error, retry, setUser, logout, loggedOut],
   );
 
   return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;

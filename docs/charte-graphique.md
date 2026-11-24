@@ -180,6 +180,14 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
 - **Pied de page** (`footer`, dans `Layout.tsx` et recopié dans `index.html`) : « Projet
   étudiant — démonstrateur · À propos », centré, en petit texte gris, sous la feuille de chaque
   écran. Exigé par le cahier des charges (§14) : ne jamais le retirer. Rien d'autre n'y va.
+- **Liste vide** (`EmptyState`) : un dessin dans une pastille ronde, une phrase, et au plus une
+  action (« Réserver un trajet »), sur un fond `surface` arrondi. Jamais une phrase seule.
+- **En-tête d'un usager ou d'un chauffeur** : le nom de l'application seul, sur une ligne ;
+  « Se déconnecter » est en bas de son profil (navigation). Les autres rôles le gardent dans
+  l'en-tête.
+- **Typographie française** : espace insécable avant « : » et dans « », espace fine insécable
+  avant « ? ! ; » (dans `fr.ts` et `index.html`), pour qu'un signe ne commence jamais une ligne.
+  Un numéro de téléphone s'affiche avec `displayPhone` (jamais coupé en fin de ligne).
 - **Ordre d'un écran** : le titre, puis dans la feuille : une phrase d'explication si
   besoin, le contenu, le bouton principal **en bas, en pleine largeur** (`button-block`), puis les
   liens secondaires.
@@ -190,8 +198,10 @@ On n'invente pas d'espacement : on prend le plus proche dans cette échelle.
   (`--content-width-wide`) et les cartes se rangent côte à côte (2 ou 3 colonnes, 324 px au moins
   chacune, `--card-min-width`), les filtres aussi. Les phrases restent à 720 px au plus
   (`--reading-width`). Formulaires et pages de détail gardent la largeur de lecture.
-- **Pagination** (`Pagination`, `lib/pagination.ts`) : une liste déjà chargée sur le téléphone
-  (offres d'emploi) se découpe en pages de 10, sans appel au serveur. « Page 2 sur 4 » sur une
+- **Pagination** (`Pagination`, `hooks/useListPage.ts`) : une liste déjà chargée sur le
+  téléphone (offres d'emploi, services d'aide d'un besoin, fiches pratiques, demandes à traiter)
+  se découpe en pages de 10, sans appel au serveur. Les listes que l'API envoie par morceaux
+  (trajets passés, comptes) gardent leur bouton « Voir plus ». « Page 2 sur 4 » sur une
   ligne, puis « Précédente » et « Suivante » côte à côte ; la page est dans l'adresse
   (`?page=2`) et un nouveau filtre ramène à la première. Changer de page remonte en haut de la
   liste.
@@ -281,12 +291,13 @@ choix de la langue, dans le pied de page, reste un `<select>` du navigateur.
 
 ### Mes trajets
 
-- Onglets (`tabs`, `tab`) : deux gros boutons côte à côte (« À venir », « Passés »). L'onglet
-  choisi est vert plein et en gras ; l'onglet est aussi dans l'adresse (`?onglet=passes`), pour
+- Onglets (`tabs`, `tab`) : un seul bloc gris clair arrondi, découpé en parties (« À venir »,
+  « Passés »). La partie choisie est vert plein, texte blanc et en gras ; l'onglet est aussi dans l'adresse (`?onglet=passes`), pour
   que « Retour » y ramène.
 - `RideCard` (`ride-card`) : un trajet dans une liste, même famille que les cartes d'action. Date
-  et heure en gras, puis « départ vers arrivée », puis l'état en gris. Une pastille jaune pâle
-  (`badge`) signale ce qui attend l'usager (« À noter »). Toute la carte est le lien.
+  et heure en gras, puis « départ vers arrivée », puis une ligne avec l'état dans une pastille
+  grise et le numéro du trajet en petit. Une pastille jaune pâle (`badge`) signale ce qui attend
+  l'usager (« À noter »). Toute la carte est le lien.
 - `RideProgress` (`ride-progress`) : où en est le trajet, sous l'état de la page du trajet et sous
   le prochain trajet de l'accueil. Une barre en quatre segments (demande envoyée, chauffeur
   trouvé, en route, arrivé), remplis en vert jusqu'à l'étape atteinte, puis une ligne en mots

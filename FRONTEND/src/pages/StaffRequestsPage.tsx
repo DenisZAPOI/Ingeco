@@ -9,13 +9,15 @@ import {
   type OpenDeletionRequest,
 } from '../api/privacy';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { Pagination } from '../components/ui/Pagination';
 import { RequestState } from '../components/ui/RequestState';
+import { useLocalPage } from '../hooks/useListPage';
 import { useRequest } from '../hooks/useRequest';
 import { useSession } from '../hooks/useSession';
 import { useSubmit } from '../hooks/useSubmit';
 import { t } from '../i18n';
 import { formatDateTime } from '../lib/format';
-import { formatPhone } from '../lib/phone';
+import { displayPhone } from '../lib/phone';
 
 /** « Demandes » : the callbacks to make (operator, administrator) and the
  *  accounts to delete (administrator), the oldest first (audit RGPD R3, R10). */
@@ -25,8 +27,8 @@ export function StaffRequestsPage() {
 
   return (
     <section>
-      <PageHero title={t('requests.title')} />
-      <PageSheet>
+      <PageHero title={t('requests.title')} wide />
+      <PageSheet wide>
         <Callbacks />
         {isAdmin && <DeletionRequests />}
       </PageSheet>
@@ -37,20 +39,26 @@ export function StaffRequestsPage() {
 function Callbacks() {
   const callbacks = useRequest(fetchCallbacks);
   const items = callbacks.data ?? [];
+  const current = useLocalPage(items);
   return (
     <>
-      <h2>{t('requests.callbacksTitle')}</h2>
+      <h2 ref={current.listStart} tabIndex={-1}>
+        {t('requests.callbacksTitle')}
+      </h2>
       <RequestState loading={callbacks.loading} error={callbacks.error} onRetry={callbacks.retry}>
         {items.length === 0 ? (
           <p>{t('requests.noCallback')}</p>
         ) : (
-          <ul className="ride-list">
-            {items.map((callback) => (
-              <li key={callback.id}>
-                <CallbackItem callback={callback} onDone={callbacks.retry} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="ride-list">
+              {current.items.map((callback) => (
+                <li key={callback.id}>
+                  <CallbackItem callback={callback} onDone={callbacks.retry} />
+                </li>
+              ))}
+            </ul>
+            <Pagination page={current.page} pageCount={current.pageCount} onChange={current.goTo} />
+          </>
         )}
       </RequestState>
     </>
@@ -70,7 +78,7 @@ function CallbackItem({ callback, onDone }: { callback: Callback; onDone: () => 
   return (
     <div className="panel">
       <p>
-        {callback.phone ? <a href={`tel:${callback.phone}`}>{formatPhone(callback.phone)}</a> : t('myData.none')}
+        {callback.phone ? <a href={`tel:${callback.phone}`}>{displayPhone(callback.phone)}</a> : t('myData.none')}
         <br />
         <span className="note">{t('requests.askedOn', { date: formatDateTime(callback.createdAt), who })}</span>
       </p>
@@ -85,21 +93,27 @@ function CallbackItem({ callback, onDone }: { callback: Callback; onDone: () => 
 function DeletionRequests() {
   const requests = useRequest(fetchDeletionRequests);
   const items = requests.data ?? [];
+  const current = useLocalPage(items);
   return (
     <>
-      <h2>{t('requests.deletionsTitle')}</h2>
+      <h2 ref={current.listStart} tabIndex={-1}>
+        {t('requests.deletionsTitle')}
+      </h2>
       <p className="note">{t('requests.deletionsLead')}</p>
       <RequestState loading={requests.loading} error={requests.error} onRetry={requests.retry}>
         {items.length === 0 ? (
           <p>{t('requests.noDeletion')}</p>
         ) : (
-          <ul className="ride-list">
-            {items.map((request) => (
-              <li key={request.userId}>
-                <DeletionItem request={request} onDone={requests.retry} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="ride-list">
+              {current.items.map((request) => (
+                <li key={request.userId}>
+                  <DeletionItem request={request} onDone={requests.retry} />
+                </li>
+              ))}
+            </ul>
+            <Pagination page={current.page} pageCount={current.pageCount} onChange={current.goTo} />
+          </>
         )}
       </RequestState>
     </>
@@ -119,7 +133,7 @@ function DeletionItem({ request, onDone }: { request: OpenDeletionRequest; onDon
   return (
     <div className="panel">
       <p>
-        <strong>{name}</strong> · {formatPhone(request.phone)}
+        <strong>{name}</strong> · {displayPhone(request.phone)}
         <br />
         <span className="note">{t('requests.deletionAskedOn', { date: formatDateTime(request.requestedAt) })}</span>
       </p>

@@ -200,6 +200,8 @@ export const en: Texts = {
     },
   },
   guides: {
+    count_one: '{count} guide',
+    count_other: '{count} guides',
     title: 'How do I do it?',
     lead: 'The steps of useful procedures, explained simply. You can also listen to them.',
     guideTitle: 'How do I do it?',

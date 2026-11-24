@@ -4,7 +4,7 @@ import type { ActivationCode } from '../../api/admin';
 import { t } from '../../i18n';
 import { formatActivationCode } from '../../lib/accounts';
 import { formatDateTime } from '../../lib/format';
-import { formatPhone } from '../../lib/phone';
+import { displayPhone } from '../../lib/phone';
 
 type ActivationCodePanelProps = {
   activation: ActivationCode;
@@ -25,7 +25,7 @@ export function ActivationCodePanel({ activation, firstName, phone }: Activation
     <div ref={panelRef} tabIndex={-1} className="panel activation-code" role="status">
       <p>{t('admin.codeOf', { name: firstName })}</p>
       <p className="activation-code-value">{formatActivationCode(activation.code)}</p>
-      <p>{t('admin.codeHandOver', { phone: formatPhone(phone), name: firstName })}</p>
+      <p>{t('admin.codeHandOver', { phone: displayPhone(phone), name: firstName })}</p>
       <p className="note">{t('admin.codeValidity', { date: formatDateTime(activation.expiresAt) })}</p>
     </div>
   );

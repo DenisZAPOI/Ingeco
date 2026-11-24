@@ -16,7 +16,7 @@ import { accountFromState, accountStatusLabel, activationFromState, roleLabel } 
 import { formatDateTime } from '../lib/format';
 import { vehicleData, vehicleDraft } from '../lib/vehicle';
 import { ADMIN_ACCOUNTS_PATH } from '../lib/paths';
-import { formatPhone } from '../lib/phone';
+import { displayPhone } from '../lib/phone';
 
 /** UC51 to UC53 for one account: suspend or reactivate, priority, vehicle, photo, activation code. */
 export function AdminAccountPage() {
@@ -95,7 +95,7 @@ function Identity({ account }: { account: Account }) {
       <dt>{t('admin.role')}</dt>
       <dd>{roleLabel(account.role)}</dd>
       <dt>{t('admin.phone')}</dt>
-      <dd>{formatPhone(account.phone)}</dd>
+      <dd>{displayPhone(account.phone)}</dd>
       {account.email && (
         <>
           <dt>{t('admin.email')}</dt>

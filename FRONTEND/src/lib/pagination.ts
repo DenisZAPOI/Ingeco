@@ -1,9 +1,10 @@
-// Pages of a list already loaded on the phone (job offers): cutting it in
-// pages costs no call, so it stays instant on a slow network. The page lives
-// in the address (?page=2), so the Back button from an item comes back to it.
+// Pages of a list already loaded on the phone (job offers, help services,
+// guides, requests to handle): cutting it in pages costs no call, so it stays
+// instant on a slow network. The lists loaded page by page by the API (past
+// trips, accounts) keep their « Voir plus » button instead.
 
 /** Name of the address parameter, in French: users see it. */
-const PAGE_PARAM = 'page';
+export const PAGE_PARAM = 'page';
 const FIRST_PAGE = 1;
 
 export type Page<T> = {
@@ -27,10 +28,4 @@ export function pageFromParams(params: URLSearchParams): number {
   const page = Number(params.get(PAGE_PARAM));
   const isValid = Number.isInteger(page) && page >= FIRST_PAGE;
   return isValid ? page : FIRST_PAGE;
-}
-
-/** The address parameter of a page: none for the first one. */
-export function pageToParams(page: number): Record<string, string> {
-  if (page <= FIRST_PAGE) return {};
-  return { [PAGE_PARAM]: String(page) };
 }

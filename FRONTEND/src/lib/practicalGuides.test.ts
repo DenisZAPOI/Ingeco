@@ -45,9 +45,10 @@ describe('guideSpeechText', () => {
     expect(guideSpeechText(PAPERWORK).split('\n')).toEqual([
       "S'inscrire à France Travail",
       'Un conseiller, des offres, des formations.',
-      'Étape 1 : Inscrivez-vous en ligne.',
-      'Étape 2 : Prenez le rendez-vous.',
-      "À apporter : Une pièce d'identité, Un CV.",
+      // No-break space before the colon, as in every French text (i18n/fr.ts).
+      'Étape 1\u00a0: Inscrivez-vous en ligne.',
+      'Étape 2\u00a0: Prenez le rendez-vous.',
+      "À apporter\u00a0: Une pièce d'identité, Un CV.",
     ]);
   });
 

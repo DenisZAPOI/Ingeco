@@ -18,7 +18,7 @@ import {
   speaksAppLanguage,
   storeHelpServices,
 } from './helpServices';
-import { formatPhone } from './phone';
+import { displayPhone, formatPhone } from './phone';
 
 function service(changes: Partial<HelpService>): HelpService {
   return {
@@ -124,6 +124,10 @@ describe('a service', () => {
   it('shows its fictitious number as people write it', () => {
     expect(formatPhone('+33536490001')).toBe('05 36 49 00 01');
     expect(formatPhone('+594694123456')).toBe('0694 12 34 56');
+  });
+
+  it('keeps a number on one line for reading', () => {
+    expect(displayPhone('+594694123456')).toBe('0694 12 34 56');
   });
 
   it('keeps its date of update in Guyana time', () => {

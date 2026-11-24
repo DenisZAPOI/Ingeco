@@ -9,7 +9,7 @@ import { LOGIN_PATH, returnPathFromState } from '../lib/paths';
 
 /** Pages for a logged-in user. A visitor is sent to the login page. */
 export function LoggedInRoutes() {
-  const { user, hint, status } = useSession();
+  const { user, hint, status, loggedOut } = useSession();
   const location = useLocation();
   // Logged in last time on this phone: the page is shown and starts its own
   // calls at once, while the API confirms the session. On 2G, waiting for
@@ -21,6 +21,11 @@ export function LoggedInRoutes() {
   // login page. A failure is shown by the Layout, with its "Réessayer".
   if (status !== 'ready') {
     return status === 'loading' ? <LoadingMessage /> : null;
+  }
+  // Just logged out (a shared phone): to the welcome screen, so that the next
+  // person, once logged in, does not come back to this page.
+  if (loggedOut) {
+    return <Navigate to="/" replace />;
   }
   // Once logged in, back to the page asked for ("Comment y aller ?" on a job
   // offer leads to the booking): handed over in the router state.

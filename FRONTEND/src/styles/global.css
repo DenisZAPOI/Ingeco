@@ -72,7 +72,8 @@
   --font-size-small: 0.889rem; /* 16 px: never smaller */
   --font-size-lead: 1.125rem; /* 20 px: the one sentence that presents a screen */
   --font-size-h2: 1.375rem;
-  --font-size-h1: 1.75rem;
+  /* 27 px on a 360 px phone, up to 31.5 px on a large screen. */
+  --font-size-h1: clamp(1.5rem, 1.2rem + 1.5vw, 1.75rem);
   --font-weight-strong: 600;
   --font-weight-title: 700;
 
@@ -150,6 +151,7 @@ body {
 h1 {
   margin: var(--space-l) 0 var(--space);
   font-size: var(--font-size-h1);
+  text-wrap: balance;
   font-weight: var(--font-weight-title);
   line-height: 1.2;
 }
@@ -209,18 +211,25 @@ a:hover {
 }
 
 .header {
+  /* The bar spans the widest content (list pages), so it never sits
+     narrower than the page below it. */
+  --content-width: var(--content-width-wide);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space);
-  padding-block: var(--space);
+  min-height: var(--touch-target);
+  padding-block: var(--space-m);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: var(--space-s);
+  min-width: 0;
   line-height: 1.2;
+  white-space: nowrap;
   color: var(--color-text);
   font-weight: var(--font-weight-title);
   text-decoration: none;
@@ -418,6 +427,7 @@ a:hover {
 .disclosure summary {
   display: flex;
   align-items: center;
+  gap: var(--space-s);
   min-height: var(--touch-target);
   padding: var(--space-s) var(--space);
   font-weight: var(--font-weight-strong);
@@ -978,10 +988,10 @@ a:hover {
   height: 100%;
   min-height: calc(2 * var(--touch-target));
   padding: var(--space);
-  border: var(--border-width) solid var(--color-primary-soft);
+  border: var(--border-width) solid var(--color-help-tile);
   border-radius: var(--radius-large);
-  background: var(--color-primary-soft);
-  color: var(--color-text);
+  background: var(--color-help-tile);
+  color: var(--color-on-help-tile);
   text-align: center;
   text-decoration: none;
 }
@@ -1053,7 +1063,7 @@ a:hover {
 .alert {
   margin: 0;
   padding: var(--space-m) var(--space);
-  border-left: var(--space-xs) solid currentColor;
+  border: 1px solid currentColor;
   border-radius: var(--radius);
   font-weight: var(--font-weight-strong);
 }
@@ -1070,8 +1080,9 @@ a:hover {
 
 /* A state of the app that is neither a failure nor a success (no network). */
 .alert-info {
-  background: var(--color-surface);
-  color: var(--color-text);
+  border-color: var(--color-help-tile);
+  background: var(--color-help-tile);
+  color: var(--color-on-help-tile);
 }
 
 .alert > p {
@@ -1526,6 +1537,9 @@ a:hover {
   display: flex;
   gap: var(--space-xs);
   margin-bottom: var(--space-l);
+  padding: var(--space-xs);
+  border-radius: var(--radius);
+  background: var(--color-surface);
 }
 
 .tab {
@@ -1533,24 +1547,28 @@ a:hover {
   /* Three tabs fit on a 360 px phone: they may shrink and wrap their words. */
   min-width: 0;
   min-height: var(--touch-target);
-  padding: var(--space-xs) 0;
+  padding: var(--space-xs);
   font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
   line-height: 1.2;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-background);
-  color: var(--color-text);
+  border: var(--border-width) solid transparent;
+  border-radius: calc(var(--radius) - var(--space-xs));
+  background: transparent;
+  color: var(--color-muted);
   font-family: inherit;
   cursor: pointer;
 }
 
 .tab:hover {
-  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.tab[aria-selected='true']:hover {
+  color: var(--color-on-primary);
 }
 
 /* The selected tab also says it with its weight, not with the color only. */
 .tab[aria-selected='true'] {
-  border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: var(--font-weight-title);
@@ -1616,8 +1634,11 @@ a:hover {
 }
 
 .badge {
+  display: inline-block;
   padding: 0 var(--space-s);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-small);
+  line-height: 1.6;
   background: var(--color-accent-soft);
   color: var(--color-on-accent-soft);
   font-weight: var(--font-weight-strong);
@@ -1923,4 +1944,78 @@ a:hover {
 
 .pagination .button:disabled {
   visibility: hidden;
+}
+
+/* --- Audit of 24/11: small fixes of rhythm ----------------------------------- */
+
+/* A sentence that explains the button just above it is not glued to it. */
+.button-block + p,
+.button-block + .note {
+  margin-top: var(--space-s);
+}
+
+/* A main button at the top of a sheet (« Créer un compte ») is not glued to the form below. */
+.sheet > .button-block:first-child {
+  margin-bottom: var(--space-l);
+}
+
+/* The count of a list, under its filters. */
+.field + .note,
+.filters + .note {
+  margin-top: var(--space);
+}
+
+@media (min-width: 48rem) {
+  .sheet-wide .category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- Empty list: a drawing, a sentence, at most one action ------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  margin: 0 0 var(--space-l);
+  padding: var(--space-l) var(--space);
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.empty-state .icon-chip {
+  width: calc(var(--icon-chip-size) * 1.25);
+  height: calc(var(--icon-chip-size) * 1.25);
+  border-radius: 50%;
+  background: var(--color-background);
+}
+
+.empty-state p {
+  max-width: var(--reading-width);
+  margin: 0;
+}
+
+.empty-state .button {
+  margin-top: var(--space-s);
+}
+
+/* --- A trip in a list: when, where, then its state and number ------------------ */
+
+.ride-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-s);
+}
+
+.ride-card-status-badge {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* A phone number, a time: never cut at the end of a line. */
+.nowrap {
+  white-space: nowrap;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pageFromParams, pageToParams, paginate } from './pagination';
+import { pageFromParams, paginate } from './pagination';
 
 const ITEMS = Array.from({ length: 23 }, (_, index) => index + 1);
 const PAGE_SIZE = 10;
@@ -41,12 +41,5 @@ describe('pageFromParams', () => {
     expect(pageFromParams(new URLSearchParams('page=abc'))).toBe(1);
     expect(pageFromParams(new URLSearchParams('page=-3'))).toBe(1);
     expect(pageFromParams(new URLSearchParams('page=1.5'))).toBe(1);
-  });
-});
-
-describe('pageToParams', () => {
-  it('leaves the first page out of the address', () => {
-    expect(pageToParams(1)).toEqual({});
-    expect(pageToParams(3)).toEqual({ page: '3' });
   });
 });

@@ -15,3 +15,11 @@ export function formatPhone(phone: string): string {
   }
   return phone;
 }
+
+const NO_BREAK_SPACE = ' ';
+
+/** formatPhone for reading: the number is never cut at the end of a line
+ *  ('0694 12 34 / 56'). Not for a field: the typed value keeps plain spaces. */
+export function displayPhone(phone: string): string {
+  return formatPhone(phone).replaceAll(' ', NO_BREAK_SPACE);
+}

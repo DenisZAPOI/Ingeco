@@ -19,18 +19,17 @@ export function RideCard({ ride, forDriver = false }: RideCardProps) {
   return (
     <Link to={forDriver ? driverRidePath(ride.id) : ridePath(ride.id)} state={{ ride }} className="ride-card">
       <span className="ride-card-text">
-        <span className="ride-card-when">
-          {formatDateTime(rideDate(ride))}{' '}
-          <span className="ride-card-number">{t('ride.shortNumber', { id: ride.id })}</span>
-        </span>
+        <span className="ride-card-when">{formatDateTime(rideDate(ride))}</span>
         <span>
           {ride.pickup.address}
           <span className="ride-card-to">{t('ride.to')}</span>
           {ride.dropoff.address}
         </span>
-        <span className="ride-card-status">
-          {(forDriver ? driverStatusLabel : statusLabel)(ride.status)}
+        <span className="ride-card-footer">
+          <span className="badge ride-card-status-badge">{(forDriver ? driverStatusLabel : statusLabel)(ride.status)}</span>
           {!forDriver && canRate(ride) && <span className="badge">{t('ride.toRate')}</span>}
+          {/* The trip number: to give on the phone, not to read first. */}
+          <span className="ride-card-number">{t('ride.shortNumber', { id: ride.id })}</span>
         </span>
       </span>
       <ArrowRightIcon className="action-card-arrow" />

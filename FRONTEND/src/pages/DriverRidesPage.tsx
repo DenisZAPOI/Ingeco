@@ -8,6 +8,8 @@ import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { RequestState } from '../components/ui/RequestState';
 import { usePastRides, useUpcomingRides } from '../hooks/useRides';
 import { useSession } from '../hooks/useSession';
+import { CalendarIcon, CarIcon } from '../components/ui/icons';
+import { EmptyState } from '../components/ui/EmptyState';
 import { t } from '../i18n';
 
 // In the address: the Back button returns to the tab the driver was on.
@@ -71,12 +73,12 @@ function MyRides() {
         {upcoming.data?.items.length ? (
           <RideList rides={upcoming.data.items} forDriver />
         ) : (
-          <p>{t('driver.noneAccepted')}</p>
+          <EmptyState Icon={CarIcon} message={t('driver.noneAccepted')} />
         )}
       </RequestState>
       <h2>{t('driver.past')}</h2>
       <RequestState loading={past.loading} error={past.error} onRetry={past.retry}>
-        {past.rides.length ? <RideList rides={past.rides} forDriver /> : <p>{t('driver.nonePast')}</p>}
+        {past.rides.length ? <RideList rides={past.rides} forDriver /> : <EmptyState Icon={CalendarIcon} message={t('driver.nonePast')} />}
         {past.moreError && <ErrorAlert message={past.moreError} onRetry={past.loadMore} />}
         {past.hasMore && !past.moreError && (
           <button

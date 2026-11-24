@@ -7,8 +7,10 @@ import { GuideList } from '../components/help/GuideList';
 import { HelpServiceList } from '../components/help/HelpServiceCard';
 import { RightsSimulators } from '../components/help/RightsSimulators';
 import { PageHero, PageSheet } from '../components/layout/PageHero';
+import { Pagination } from '../components/ui/Pagination';
 import { RequestState } from '../components/ui/RequestState';
 import { useHelpServices } from '../hooks/useHelpServices';
+import { useAddressPage } from '../hooks/useListPage';
 import { usePracticalGuides } from '../hooks/usePracticalGuides';
 import { t, tn } from '../i18n';
 import {
@@ -88,6 +90,7 @@ function ServicesOfNeed({ category, filters, onChange }: ServicesOfNeedProps) {
   const guides = guidesOfCategory(usePracticalGuides().data ?? [], category);
   const ofNeed = filterHelpServices(services.data ?? [], { category, communeId: null });
   const shown = filterHelpServices(ofNeed, filters);
+  const current = useAddressPage(shown);
   const communeChoices = [
     { value: ALL, label: t('helpServices.allCommunes') },
     ...serviceCommunes(ofNeed).map((commune) => ({ value: String(commune.id), label: commune.name })),
@@ -108,11 +111,14 @@ function ServicesOfNeed({ category, filters, onChange }: ServicesOfNeedProps) {
               onChange={(chosen) => onChange({ category, communeId: chosen === ALL ? null : Number(chosen) })}
             />
           )}
-          <p aria-live="polite" className="note">
+          <p aria-live="polite" className="note" ref={current.listStart} tabIndex={-1}>
             {tn('helpServices.count', shown.length)}
           </p>
           {shown.length > 0 ? (
-            <HelpServiceList services={shown} />
+            <>
+              <HelpServiceList services={current.items} />
+              <Pagination page={current.page} pageCount={current.pageCount} onChange={current.goTo} />
+            </>
           ) : (
             <>
               <p>{t('helpServices.noMatch')}</p>

@@ -10,7 +10,7 @@ import { t } from '../i18n';
 import { draftForHelpService, saveBookingDraft } from '../lib/bookingDraft';
 import { categoryLabel, filtersToParams, formatUpdatedOn, languageLabel, purposeFor, serviceFromState } from '../lib/helpServices';
 import { BOOKING_PATHS, HELP_SERVICES_PATH } from '../lib/paths';
-import { formatPhone } from '../lib/phone';
+import { displayPhone } from '../lib/phone';
 
 /** One help service, and its main action: "Comment y aller ?". */
 export function HelpServicePage() {
@@ -86,7 +86,7 @@ function ServiceDetail({ service }: { service: HelpService }) {
         <div className="panel help">
           <h2>{t('helpServices.callTitle')}</h2>
           {/* In full, for someone who dials it from another phone. */}
-          <p className="help-phone">{formatPhone(service.phone)}</p>
+          <p className="help-phone">{displayPhone(service.phone)}</p>
           <a href={`tel:${service.phone}`} className="button button-block button-secondary">
             <PhoneIcon className="button-icon" />
             {t('helpServices.call')}

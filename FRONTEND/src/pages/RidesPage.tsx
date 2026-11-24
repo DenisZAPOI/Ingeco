@@ -5,6 +5,8 @@ import { RideList } from '../components/rides/RideCard';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { RequestState } from '../components/ui/RequestState';
 import { usePastRides, useUpcomingRides } from '../hooks/useRides';
+import { CalendarIcon, CarIcon } from '../components/ui/icons';
+import { EmptyState } from '../components/ui/EmptyState';
 import { t } from '../i18n';
 import { BOOKING_PATHS } from '../lib/paths';
 
@@ -34,7 +36,7 @@ export function RidesPage() {
         <div role="tabpanel">
           {showPast ? (
             <RequestState loading={past.loading} error={past.error} onRetry={past.retry}>
-              {past.rides.length === 0 ? <p>{t('rides.noPast')}</p> : <RideList rides={past.rides} />}
+              {past.rides.length === 0 ? <EmptyState Icon={CalendarIcon} message={t('rides.noPast')} /> : <RideList rides={past.rides} />}
               {past.moreError && <ErrorAlert message={past.moreError} onRetry={past.loadMore} />}
               {past.hasMore && !past.moreError && (
                 <button
@@ -52,12 +54,11 @@ export function RidesPage() {
               {upcoming.data?.items.length ? (
                 <RideList rides={upcoming.data.items} />
               ) : (
-                <>
-                  <p>{t('rides.noUpcoming')}</p>
-                  <Link to={BOOKING_PATHS.pickup} className="button button-block">
+                <EmptyState Icon={CarIcon} message={t('rides.noUpcoming')}>
+                  <Link to={BOOKING_PATHS.pickup} className="button">
                     {t('rides.book')}
                   </Link>
-                </>
+                </EmptyState>
               )}
             </RequestState>
           )}

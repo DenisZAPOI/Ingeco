@@ -199,6 +199,8 @@ export const ptBR: Texts = {
     },
   },
   guides: {
+    count_one: '{count} ficha',
+    count_other: '{count} fichas',
     title: 'Como fazer?',
     lead: 'As etapas de procedimentos úteis, explicadas de forma simples. Você também pode ouvi-las.',
     guideTitle: 'Como fazer?',
