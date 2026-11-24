@@ -2,7 +2,7 @@
 
 - **Statut** : Proposée
 - **Date** : 16/11/2026
-- **Voir aussi** : [008](008-mysql.md), [README, partie 4](../../README.md#base-de-données-mysql-dans-docker)
+- **Voir aussi** : [008](008-mysql.md), [développement, base de données](../developpement.md#base-de-données-mysql-dans-docker)
 
 ## Contexte
 
@@ -36,7 +36,7 @@ l'application). Aucun compte ni service externe.
 
 - Une commande et une URL pour parcourir les tables, lancer une requête ou exporter.
 - Adminer permet aussi de **modifier** les données : une modification à la main éloigne la base
-  de `sql/demo-data.sql` (remise à zéro : README, partie 4). Le schéma ne se change jamais par
+  de `sql/demo-data.sql` (remise à zéro : README, « Remettre la démo à zéro »). Le schéma ne se change jamais par
   Adminer : il passe par une migration de l'équipe BD.
 - Outil de poste de développement uniquement : jamais exposé sur un réseau ni dans un
   environnement hébergé. Adminer a déjà eu des failles : monter la version figée quand une

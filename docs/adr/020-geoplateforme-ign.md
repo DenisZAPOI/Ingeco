@@ -73,6 +73,6 @@ cahier des charges restent nécessaires :
 - Le prix dépendra du réseau routier de l'IGN plutôt que de celui d'OpenStreetMap : les
   distances peuvent changer un peu.
 - Si la fiche est acceptée, mettre à jour : `place_repository.py` et ses tests, `.env.example`,
-  le tableau « Comptes des services externes » du README, la page « À propos »,
+  le tableau de [comptes-externes.md](../comptes-externes.md), la page « À propos »,
   [passage-en-production.md](../passage-en-production.md), la partie Stack de `CLAUDE.md`, et
   passer la fiche 009 à « Remplacée par 020 ».

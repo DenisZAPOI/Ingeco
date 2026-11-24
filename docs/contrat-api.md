@@ -803,7 +803,7 @@ qui demanderait ses propres tables.
 4. Une date, même approximative, pour une première version du schéma.
 
 Le reste (connexion, données de test, livraison du script) est dans le
-[README, partie 5](../README.md#5-pour-léquipe-base-de-données).
+[guide pour l'équipe BD](guide-equipe-bd.md).
 
 **Où on en est (20/10/2026)**
 
